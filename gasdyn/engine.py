@@ -14,6 +14,19 @@ Each cylinder (ADR 0001: firing order from spec, 180 deg apart, local angle 0 = 
 
 Cycles are repeated until the 4-cylinder mean net IMEP changes by less than `cycle.imep_tol` between
 consecutive cycles. All results are MODELLED: there is no physical engine (CLAUDE.md rule 5).
+
+Turbocharger hooks (M10 stretch, turbo/; all optional, the defaults build and run exactly the M4 engine):
+
+* `boost` (constructor): layout of a turbocharged variant. The intake ambient becomes a 0D charge-air
+  plenum (compressor outlet + intercooler + ducting to the throttle) and the exhaust collector feeds a
+  turbine-housing pipe and a wastegate pipe, both ending in variable orifices into a 0D post-turbine
+  volume that drains through the catalyst / silencer line. The compressor (mass / enthalpy source), the
+  turbine (work sink) and the wastegate area are applied by gasdyn.elements between kernel calls.
+* `substep_fn(net, theta_deg, dt)` with `substep_deg` (attributes): called after every kernel call; the
+  marching is additionally split every `substep_deg` crank degrees.
+* `cycle_fn(icyc, rec)` (attribute): called after every complete cycle; returning False vetoes the IMEP
+  convergence test (used to iterate to a turbo / boost-control steady state or to run a fixed-length
+  transient).
 """
 from __future__ import annotations
 
@@ -81,7 +94,7 @@ class OperatingPoint:
 class EngineModel:
     def __init__(self, spec: dict | None = None, tspec: dict | None = None, vspec: dict | None = None,
                  gspec: dict | None = None, tables: Tables | None = None, overrides: dict | None = None,
-                 vvt_advance_deg: float = 0.0):
+                 vvt_advance_deg: float = 0.0, boost: dict | None = None):
         self.spec = spec or load()
         self.tspec = tspec or thermo_spec()
         self.vspec = vspec or valvetrain_spec()
@@ -93,6 +106,11 @@ class EngineModel:
         num_t = self.tspec["numerics"]
         self.tol, self.maxit = float(num_t["newton_tol"]), int(num_t["newton_max_iter"])
         self.vvt_advance_deg = vvt_advance_deg
+        self.boost = copy.deepcopy(boost) if boost else None
+        # turbo hooks (module docstring); None keeps the M4 behaviour bit for bit
+        self.substep_fn = None
+        self.substep_deg = None
+        self.cycle_fn = None
         # M7 hook: replacement for the spec Wiebe closed part, callable(m, x, T_ivc, rpm, hp, theta_s, theta_e,
         # step_deg) -> thermo.cycle.ClosedResult (e.g. a spark-timed flame model). None = spec Wiebe (M4).
         self.closed_fn = None
@@ -155,10 +173,17 @@ class EngineModel:
             net.add_cylinder(self.phase_deg[c] * DEG)
         gi, Ri, ge, Re = self.g_in, self.R_in, self.g_ex, self.R_ex
         # intake
-        self.v_amb_in = net.add_ambient(self.p_amb, self.T_amb, gi, Ri, Y=0.0)
+        bst = self.boost
+        if bst is None:
+            self.v_amb_in = net.add_ambient(self.p_amb, self.T_amb, gi, Ri, Y=0.0)
+            self.v_charge = None
+        else:   # turbo: the inlet duct starts at the charge-air plenum (fed by gasdyn.elements.MapCompressor)
+            self.v_amb_in = None
+            self.v_charge = net.add_plenum(bst["charge_air_volume"], bst["p_charge_init"], self.T_amb, gi, Ri)
+        v_src = self.v_amb_in if bst is None else self.v_charge
         self.v_plenum = net.add_plenum(it["plenum"]["volume"], self.p_amb, self.T_amb, gi, Ri)
         duct = it["inlet_duct"]
-        self.throttle_slot_pipe = self._pipe(net, duct, gi, Ri, (self.v_amb_in, duct["entry_cd"] * A(duct["diameter"])),
+        self.throttle_slot_pipe = self._pipe(net, duct, gi, Ri, (v_src, duct["entry_cd"] * A(duct["diameter"])),
                                              (self.v_plenum, 0.0), self.T_amb, 0.0)
         run = it["runner"]
         self.runner_pipes = [self._pipe(net, run, gi, Ri, (self.v_plenum, run["entry_cd"] * A(run["diameter"])),
@@ -190,13 +215,28 @@ class EngineModel:
             raise ValueError(ex["layout"])
         v_sil = plen(ex["silencer"]["volume"])
         tf, trr = ex["tailpipe_front"], ex["tailpipe_rear"]
-        self._pipe(net, tf, ge, Re, (v_col, cdj * A(tf["diameter"])), (v_sil, cdj * A(tf["diameter"])), Tx, 1.0, dx=dxt)
+        v_down = v_col
+        self.turbine_pipe = self.wastegate_pipe = self.v_post_turbine = None
+        if bst is not None:
+            # collector -> turbine housing pipe -> turbine (nozzle-equivalent orifice) -> post-turbine volume
+            # collector -> wastegate pipe -> wastegate (variable orifice)              -> post-turbine volume
+            tp, wp = bst["turbine_pipe"], bst["wastegate_pipe"]
+            self.v_post_turbine = plen(bst["post_turbine_volume"])
+            self.turbine_pipe = self._pipe(net, tp, ge, Re, (v_col, cdj * A(tp["diameter"])),
+                                           (self.v_post_turbine, bst["turbine_area"]), Tx, 1.0)
+            self.wastegate_pipe = self._pipe(net, wp, ge, Re, (v_col, cdj * A(wp["diameter"])),
+                                             (self.v_post_turbine, bst.get("wastegate_area", 0.0)), Tx, 1.0)
+            v_down = self.v_post_turbine
+        self._pipe(net, tf, ge, Re, (v_down, cdj * A(tf["diameter"])), (v_sil, cdj * A(tf["diameter"])), Tx, 1.0, dx=dxt)
         self._pipe(net, trr, ge, Re, (v_sil, cdj * A(trr["diameter"])), (self.v_amb_ex, ex["exit_cd"] * A(trr["diameter"])),
                    Tx, 1.0, dx=dxt)
         net.finalize()
         self.net = net
         self._cold = (net.U.copy(), net.S.copy(), net.Tg.copy())   # pristine pipes and plenums
         self.throttle_slot = int(net.e_slot[self.throttle_slot_pipe, 1])
+        if bst is not None:
+            self.turbine_slot = int(net.e_slot[self.turbine_pipe, 1])
+            self.wastegate_slot = int(net.e_slot[self.wastegate_pipe, 1])
         self.set_throttle(float(it["throttle"]["wot_angle_deg"]))
 
     def set_throttle(self, angle_deg: float):
@@ -284,6 +324,7 @@ class EngineModel:
         nbin = int(round(CYCLE_DEG / tr_step))
         ntr = len(net.v_kind)
         max_cycles = int(max_cycles or cyc["max_cycles"])
+        sub_deg = float(self.substep_deg) if (self.substep_fn is not None and self.substep_deg) else None
         rec = [dict() for _ in range(self.ncyl)]
         history = []
         ok_run = 0
@@ -299,9 +340,13 @@ class EngineModel:
                     nxt = th_ev
                     if probe_deg:
                         nxt = min(th_ev, (math.floor(theta / probe_deg + 1e-9) + 1.0) * probe_deg)
-                    net.advance((nxt - theta) * DEG / omega, theta0=theta * DEG, omega=omega, trace=tr,
-                                trace_dth=tr_step * DEG)
+                    if sub_deg:
+                        nxt = min(nxt, (math.floor(theta / sub_deg + 1e-9) + 1.0) * sub_deg)
+                    dt = (nxt - theta) * DEG / omega
+                    net.advance(dt, theta0=theta * DEG, omega=omega, trace=tr, trace_dth=tr_step * DEG)
                     theta = nxt
+                    if self.substep_fn is not None:
+                        self.substep_fn(net, theta, dt)
                     if probe_deg and abs(theta / probe_deg - round(theta / probe_deg)) < 1e-9:
                         probes.append(net.plenum_state(self.v_collector)[1])
                 if kind == "ivc":
@@ -327,6 +372,8 @@ class EngineModel:
                                 "m_trapped": float(np.mean([r["m_trapped"] for r in rec]))})
                 ok_run = ok_run + 1 if d < float(cyc["imep_tol"]) else 0
                 imep_prev = imep
+                if self.cycle_fn is not None and self.cycle_fn(icyc, rec) is False:
+                    ok_run = 0
                 if ok_run >= int(cyc["consecutive"]) and icyc + 1 >= int(cyc["min_cycles"]):
                     converged = True
                     break
