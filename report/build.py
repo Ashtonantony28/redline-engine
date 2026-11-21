@@ -477,9 +477,32 @@ def render(d: dict) -> str:
     # ---- M6
     A("## M6: structural FEA")
     A("")
-    A("**In progress** in a parallel work stream (`fea/`, `spec/fea.yaml`: gmsh + CalculiX for conrod, crank, piston "
-      "and main cap with Goodman fatigue and mesh convergence). Interim results in `out/fea/` are not final and are "
-      "not summarised here. Exit criterion: conrod buckling SF >= 3, fatigue SF >= 1.5, convergence shown.")
+    fea_path = ROOT / "out" / "fea" / "results.json"
+    if fea_path.exists():
+        fr = json.loads(fea_path.read_text())
+        A("gmsh second-order tets + CalculiX, Goodman fatigue, three mesh levels per part (ADR 0006 for the piston). "
+          "Loads come from the M4/M2 pressure traces and the M5 inertia model. Finest-mesh results:")
+        A("")
+        A("| Part | Safety factors | Targets | Peak-stress change, finest two meshes | Result |")
+        A("|---|---|---|---|---|")
+        for name, part in fr["parts"].items():
+            sf = ", ".join(f"{k} {v:.2f}" for k, v in part["sf"].items())
+            tg = ", ".join(f"{k} {v:.1f}" for k, v in part["targets"].items())
+            conv = part["convergence"]["change_finest_two"] * 100
+            A(f"| {name} | {sf} | {tg} | {conv:.2f} % | {'PASS' if part['passed'] else 'FAIL'} |")
+        A("")
+        A("The M1 piston (pin boss hung from a thin rib) could not reach fatigue SF 1.5 in any mass budget. It became a "
+          "forged 2618-T61 pillar-boss design at 0.377 kg (budget raised from 0.330 kg) with under-crown oil jets "
+          "(Stevens & Webb impingement correlation); the converged 505 K piston temperature is fed back into the cycle "
+          "model and the jet pump cost into FMEP. Conrod flange widened to keep fatigue SF above 1.5 under the higher "
+          "reciprocating mass.")
+        A("")
+        A("*Known gaps:* the piston peak stress still rises with refinement (no Richardson extrapolation), so a fourth "
+          "mesh level should confirm SF 1.57; skirt side thrust, piston inertia and pin ovalisation are not modelled; "
+          "2618 fatigue above 230 C is extrapolated from tensile-strength ratios; a blocked oil jet would put the crown "
+          "back above the cited data (oil-pressure diagnosis needed).")
+    else:
+        A("Run `python -m fea.run --all` to produce `out/fea/results.json`; this section is generated from it.")
     A("")
 
     # ---- M7
@@ -598,20 +621,20 @@ def render(d: dict) -> str:
     A(f"*Known gaps:* only {pct(v['fuel_share_inside_m7_map_coverage'], 0)} of the WLTP fuel is burned inside the "
       "speed/BMEP range the M7 maps sampled; the rest relies on the Willans extrapolation to light load and idle. "
       "Hot start only (no cold-start enrichment or catalyst heating), economy shift strategy rather than the GTR 15 "
-      "Annex 2 algorithm, constant driveline efficiency, no road grade. The replay is not yet published as an Artifact.")
+      "Annex 2 algorithm, constant driveline efficiency, no road grade.")
     A("")
 
     # ---- remaining
     A("## What remains")
     A("")
-    A("* **M6 FEA** (in progress): conrod, crankshaft fillets, piston crown and main cap to their safety-factor "
-      "targets with mesh convergence.")
-    A("* **M10 stretch** (plan decision 4 default): turbocharged variant (option B: compressor/turbine maps, "
-      "wastegate, boost control) and the ECU PCB in Zener. Intake-port CFD is not planned.")
-    A("* Open items carried from earlier milestones: ECU loop against the crank-angle model (M8), interrupt-driven "
-      "tooth handling and a hard-float or fixed-point slow loop to fit the 7000 rpm budget (M9), maps on a knock-"
-      "limited M4 at low-speed part load (M7), M4 traces with the flame model for the dynamics (M5/M10), publishing "
-      "the replay, and the GitHub repository.")
+    A("* **Stretch, done:** turbocharged I4-2.0T (`turbo/`, ADR 0004; modelled 275 Nm peak, 165 kW, 2.1 s to 90 % "
+      "boost at 2000 rpm, synthetic compressor/turbine maps, turbine inlet ~1320 K without enrichment) and the "
+      "STM32H743 ECU board in Zener (`ecad/`, 230 parts, KiCad DRC 0/0/0; conformal-coating clearance, ETB copper "
+      "and datasheet VERIFY items open, see docs/ecad.md). Intake-port CFD is not planned.")
+    A("* Open items: ECU loop against the crank-angle model (M8); event timing 0.76 deg vs the 0.5 deg spec at 50 MHz "
+      "on Vortex-V (needs a capture/compare unit or >= 77.5 MHz, M9.1); maps at low-speed part load where M4 "
+      "residuals are high (M7); M4 traces with the flame model for the dynamics (M5/M10); a fourth piston mesh "
+      "level (M6); and the GitHub repository.")
     A("")
     A("## Regenerate")
     A("")
