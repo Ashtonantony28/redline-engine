@@ -1,0 +1,57 @@
+# Redline M2 thermodynamics parameters (supplements spec/engine.yaml; never duplicates it).
+# SI units unless suffixed _deg. All results produced with these numbers are MODELLED.
+mixture:
+  lambda: 1.0                 # air-fuel equivalence ratio (lean or stoich only in M2)
+  o2_n2_ratio: 3.773          # mol "atmospheric N2" per mol O2 in air (Heywood sec. 3.3)
+  fuel_species: C8H18,isooctane   # NASA-7 polynomial in Cantera's bundled nasa_gas.yaml
+  fuel_h_fg: 0.308e+6          # J/kg, iso-octane enthalpy of vaporisation at 298 K (Heywood App. D)
+  T_ref: 298.15               # K, reference state for heating values and sensible energies
+  p_ref: 101325.0             # Pa
+  air_molar_mass: 0.028965    # kg/mol, dry air, for volumetric-efficiency reference density
+tables:
+  product_species: ["N2", "O2", "CO2", "H2O", "CO", "H2", "OH", "H", "O", "NO", "N"]   # quoted: YAML reads bare NO as false
+  T_min: 250.0                # K, 1-D frozen-mixture tables
+  T_max: 3500.0
+  dT_frozen: 1.0
+  Tb_min: 300.0               # K, 2-D burned-gas equilibrium table
+  Tb_max: 3500.0
+  dT_burned: 20.0
+  p_min: 0.2e+5                # Pa, log-spaced
+  p_max: 2.5e+7
+  n_p: 36
+loads:                        # manifold boundary conditions for the simple filling/emptying model
+  full: {p_intake: 0.98e+5, T_intake: 315.0, p_exhaust: 1.08e+5, T_exhaust: 1000.0}
+  part: {p_intake: 0.50e+5, T_intake: 315.0, p_exhaust: 1.03e+5, T_exhaust: 900.0}
+gas_exchange:
+  cd_intake: 0.60             # discharge coefficient on curtain area (Heywood sec. 6.3)
+  cd_exhaust: 0.60
+  lift_to_diameter_cap: 0.25  # curtain area capped at the port (L/D = 1/4) area
+  lift_profile: sine-squared  # zero lift at the spec open/close angles
+  linear_flow_pr: 0.99        # pressure ratio above which the orifice law is linearised (stiffness)
+  store_blend_mass_fraction: 1.0e-2   # intake-port backflow store blends to fresh charge below this share of the reference charge
+heat_transfer:
+  woschni_coeff: 3.26         # h = C B^-0.2 p[kPa]^0.8 T^-0.55 w^0.8 (Woschni 1967; Heywood eq. 12.19)
+  bore_exp: -0.2
+  p_exp: 0.8
+  T_exp: -0.55
+  w_exp: 0.8
+  p_unit: 1.0e+3               # Pa per kPa (Woschni correlation uses kPa)
+  C1_gas_exchange: 6.18
+  C1_compression: 2.28
+  C1_combustion: 2.28
+  C2_compression: 0.0
+  C2_combustion: 3.24e-3      # m/(s K)
+  head_area_factor: 1.30      # pent-roof head area / piston area
+  piston_area_factor: 1.10    # crown area / piston area (valve reliefs, bowl)
+  T_head: 480.0               # K
+  T_piston: 530.0
+  T_liner: 420.0
+numerics:
+  step_deg: 0.1
+  max_cycles: 30
+  cycle_tol: 1.0e-9           # relative change in trapped mass / residual fraction between cycles
+  newton_tol: 1.0e-10
+  newton_max_iter: 50
+  xr_guess: 0.05
+  T_ivc_guess: 350.0
+  T_flame_guess: 2400.0       # K, Newton start for adiabatic flame / constant-volume burn
