@@ -69,7 +69,14 @@ class ClosedResult:
 
 
 def run_closed(tables: Tables, geom, m, xr, T0, theta_s, theta_e, step_deg, hp, burn="wiebe",
-               soc_deg=None, dur_deg=None, wiebe_a=None, wiebe_m=None, inst_deg=0.0, num=None):
+               soc_deg=None, dur_deg=None, wiebe_a=None, wiebe_m=None, inst_deg=0.0, num=None,
+               xb_half=None, dxb_half=None, act_index=None):
+    """Closed two-zone part from theta_s to theta_e [deg].
+
+    burn: "wiebe" (soc/dur/a/m), "instant" (constant-volume burn at inst_deg), "none", or "profile":
+    a prescribed burn law on the half-step grid (2N+1 points, see `_grid`), x_b in `xb_half` and
+    dx_b/dtheta [1/rad] in `dxb_half`, with the burned zone created at full-grid index `act_index`
+    (used by the M7 quasi-dimensional flame model, thermo.flame)."""
     num = num or thermo_spec()["numerics"]
     n, hdeg, half = _grid(theta_s, theta_e, step_deg)
     th = np.radians(half)
@@ -84,6 +91,10 @@ def run_closed(tables: Tables, geom, m, xr, T0, theta_s, theta_e, step_deg, hp, 
         x, dx = wiebe(half, soc_deg, dur_deg, wiebe_a, wiebe_m)
         xb[2 * k_act:] = x[2 * k_act:]
         dxb[2 * k_act:] = np.degrees(dx[2 * k_act:])   # per rad
+    elif burn == "profile":
+        k_act = int(act_index)
+        xb[2 * k_act:] = np.asarray(xb_half, dtype=float)[2 * k_act:]
+        dxb[2 * k_act:] = np.asarray(dxb_half, dtype=float)[2 * k_act:]
     elif burn == "instant":
         k_inst = int(round((inst_deg - theta_s) / hdeg))
         xb[2 * k_inst:] = 1.0
@@ -148,7 +159,9 @@ def _apparent_hrr(theta_deg, p, V, gamma):
 
 def run_cycle(rpm: float = 3000.0, load_name: str = "full", step_deg: float | None = None,
               heat_transfer: bool = True, tables: Tables | None = None, spec: dict | None = None,
-              tspec: dict | None = None) -> CycleResult:
+              tspec: dict | None = None, closed_fn=None) -> CycleResult:
+    """closed_fn (optional, M7 hook): callable(tables, geom, m, xr, T_ivc, theta_s, theta_e, step_deg, hp, num)
+    returning a ClosedResult, replacing the spec Wiebe closed part (e.g. a spark-timed flame model)."""
     spec = spec or load()
     tspec = tspec or thermo_spec()
     tables = tables or build_tables(tspec)
@@ -194,9 +207,12 @@ def run_cycle(rpm: float = 3000.0, load_name: str = "full", step_deg: float | No
         p_ivc = m * Ru * T / V_ivc
         hp_c = heat_params(tspec, geom, rpm, "closed", on=heat_transfer,
                            ref=(p_ivc, V_ivc, T, cpu / (cpu - Ru)))
-        cl = run_closed(tables, geom, m, xr, T, th_s, th_e, step_deg, hp_c, "wiebe",
-                        comb["heat_release_start_deg"], comb["burn_duration_deg"], comb["wiebe_a"],
-                        comb["wiebe_m"], num=num)
+        if closed_fn is None:
+            cl = run_closed(tables, geom, m, xr, T, th_s, th_e, step_deg, hp_c, "wiebe",
+                            comb["heat_release_start_deg"], comb["burn_duration_deg"], comb["wiebe_a"],
+                            comb["wiebe_m"], num=num)
+        else:
+            cl = closed_fn(tables, geom, m, xr, T, th_s, th_e, step_deg, hp_c, num)
         x_open, U, T_open = merge_zones(cl, tables, tol, maxit)
         y0 = np.zeros(gx.NG)
         y0[gx.G_M], y0[gx.G_MX], y0[gx.G_U] = m, m * x_open, U
@@ -233,7 +249,11 @@ def run_cycle(rpm: float = 3000.0, load_name: str = "full", step_deg: float | No
     Tbulk = np.concatenate([Tbulk_c, oo[1:, gx.GO_T]])
 
     m_fuel = m_c * (1.0 - xr_c) * tables.fuel_mass_fraction
-    _, dx = wiebe(theta, comb["heat_release_start_deg"], comb["burn_duration_deg"], comb["wiebe_a"], comb["wiebe_m"])
+    if closed_fn is None:
+        _, dx = wiebe(theta, comb["heat_release_start_deg"], comb["burn_duration_deg"], comb["wiebe_a"], comb["wiebe_m"])
+    else:
+        xbc_full = np.concatenate([xbc, np.full(n_o, xbc[-1])])
+        dx = np.gradient(xbc_full, theta)
     hrr_chem = np.where(theta <= evo, m_fuel * tables.lhv_vapour * dx, 0.0)
     hu, cpu, Ru = frozen(T_c, xr_c, *targs[:5])
     gamma_ref = cpu / (cpu - Ru)

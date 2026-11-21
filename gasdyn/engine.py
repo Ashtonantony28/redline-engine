@@ -93,6 +93,9 @@ class EngineModel:
         num_t = self.tspec["numerics"]
         self.tol, self.maxit = float(num_t["newton_tol"]), int(num_t["newton_max_iter"])
         self.vvt_advance_deg = vvt_advance_deg
+        # M7 hook: replacement for the spec Wiebe closed part, callable(m, x, T_ivc, rpm, hp, theta_s, theta_e,
+        # step_deg) -> thermo.cycle.ClosedResult (e.g. a spark-timed flame model). None = spec Wiebe (M4).
+        self.closed_fn = None
         self._valve_tables()
         self._gas()
         self._build()
@@ -170,6 +173,7 @@ class EngineModel:
         if ex["layout"] == "4-2-1":
             sec = ex["secondary"]
             v_col = plen(ex["collector_volume"])
+            self.v_collector = v_col
             for pair in ((1, 4), (2, 3)):
                 vj = plen(ex["junction_volume"])
                 for cyl in pair:
@@ -178,6 +182,7 @@ class EngineModel:
                 self._pipe(net, sec, ge, Re, (vj, cdj * A(sec["diameter"])), (v_col, cdj * A(sec["diameter"])), Tx, 1.0)
         elif ex["layout"] == "4-1":
             v_col = plen(ex["junction_volume"])
+            self.v_collector = v_col
             for c in range(self.ncyl):
                 self.primary_pipes.append(self._pipe(net, prim, ge, Re, (c, "exhaust"),
                                                      (v_col, cdj * A(prim["diameter"])), Tx, 1.0))
@@ -207,10 +212,13 @@ class EngineModel:
         _, cpu, Ru = frozen(T, x, *self.props)
         p_ivc = m * Ru * T / V_ivc
         hp = heat_params(self.tspec, self.geom, rpm, "closed", on=True, ref=(p_ivc, V_ivc, T, cpu / (cpu - Ru)))
-        cl = run_closed(self.tables, self.geom, m, x, T, self.ivc_deg - CYCLE_DEG, self.evo_deg,
-                        float(self.gspec["numerics"]["closed_step_deg"]), hp, "wiebe",
-                        comb["heat_release_start_deg"], comb["burn_duration_deg"], comb["wiebe_a"], comb["wiebe_m"],
-                        num=self.tspec["numerics"])
+        step = float(self.gspec["numerics"]["closed_step_deg"])
+        if self.closed_fn is not None:
+            cl = self.closed_fn(m, x, T, rpm, hp, self.ivc_deg - CYCLE_DEG, self.evo_deg, step)
+        else:
+            cl = run_closed(self.tables, self.geom, m, x, T, self.ivc_deg - CYCLE_DEG, self.evo_deg, step, hp,
+                            "wiebe", comb["heat_release_start_deg"], comb["burn_duration_deg"], comb["wiebe_a"],
+                            comb["wiebe_m"], num=self.tspec["numerics"])
         x_open, U, T_open = merge_zones(cl, self.tables, self.tol, self.maxit)
         st.pend[c] = (m, m * x_open, U, T_open)
         st.w_closed[c] = cl.col(tz.O_W)[-1]
@@ -251,8 +259,12 @@ class EngineModel:
 
     # ------------------------------------------------------------------------------------------
     def run(self, rpm: float, state: EngineState | None = None, throttle_deg: float | None = None,
-            max_cycles: int | None = None, trace: bool = False) -> OperatingPoint:
-        """Iterate engine cycles at constant speed until the mean net IMEP is periodic."""
+            max_cycles: int | None = None, trace: bool = False, probe_deg: float | None = None) -> OperatingPoint:
+        """Iterate engine cycles at constant speed until the mean net IMEP is periodic.
+
+        probe_deg (M7, optional): also split the time marching every probe_deg crank degrees and sample the
+        exhaust collector gas temperature there; the last cycle's mean is reported as T_exhaust_K. The
+        default (None) marches event to event exactly as in M4."""
         cyc = self.gspec["cycle"]
         num = self.gspec["numerics"]
         net = self.net
@@ -281,11 +293,17 @@ class EngineModel:
         for icyc in range(max_cycles):
             tr = np.full((nbin, ntr), np.nan) if trace else None
             theta = 0.0
+            probes = []
             for th_ev, c, kind in events + [(CYCLE_DEG, -1, "end")]:
-                if th_ev > theta:
-                    net.advance((th_ev - theta) * DEG / omega, theta0=theta * DEG, omega=omega, trace=tr,
+                while th_ev > theta:
+                    nxt = th_ev
+                    if probe_deg:
+                        nxt = min(th_ev, (math.floor(theta / probe_deg + 1e-9) + 1.0) * probe_deg)
+                    net.advance((nxt - theta) * DEG / omega, theta0=theta * DEG, omega=omega, trace=tr,
                                 trace_dth=tr_step * DEG)
-                    theta = th_ev
+                    theta = nxt
+                    if probe_deg and abs(theta / probe_deg - round(theta / probe_deg)) < 1e-9:
+                        probes.append(net.plenum_state(self.v_collector)[1])
                 if kind == "ivc":
                     S = net.S[c]
                     m = S[fv.S_M]
@@ -357,6 +375,8 @@ class EngineModel:
             "floor_hits": int(net.nbad),
             "steps": int(net.nstep),
         }
+        if probe_deg:
+            metrics["T_exhaust_K"] = float(np.mean(probes))
         op = OperatingPoint(rpm, self.throttle_deg, converged, icyc + 1, metrics, rec, history, st)
         if trace and tr is not None:
             op.trace_deg = (np.arange(nbin) + 0.5) * tr_step
