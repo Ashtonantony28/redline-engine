@@ -1,8 +1,11 @@
-"""M8 closed-loop HIL runner: `python -m hil.run --target host --cycle tipin`.
+"""Closed-loop HIL runner: `python -m hil.run --target host --cycle tipin`.
 
 Cycles (hil/cycles.yaml): idle, tipin, tipout, sweep. Prints a summary and writes
 out/hil/<cycle>.csv (and out/hil/<cycle>.png with --plot). Target `host` runs the C ECU core as a
-shared library against the Python MVEM; the RV64 / Vortex-V target is milestone M9.
+shared library against the Python MVEM. Target `rv64` (M9) runs the same core as firmware on the
+Vortex-V SoC RTL in Verilator (hil/rv64.py): every ECU call is simulated cycle by cycle, about a
+minute of wall time per simulated second, so shorten the cycle with --duration; the bit-exactness
+and cycle-budget report is `make -C hil cosim` (hil/cosim.py).
 All numbers are MODELLED: there is no physical engine.
 """
 from __future__ import annotations
@@ -60,17 +63,24 @@ def main(argv=None) -> int:
     ap.add_argument("--target", default="host", choices=["host", "rv64"])
     ap.add_argument("--cycle", default="tipin", choices=cycles)
     ap.add_argument("--plot", action="store_true")
+    ap.add_argument("--duration", type=float, default=None, help="truncate the cycle to this many seconds")
     a = ap.parse_args(argv)
-    if a.target != "host":
-        print("target rv64 (Vortex-V co-sim) is milestone M9; only --target host exists in M8", file=sys.stderr)
-        return 2
-    res = runner.run(runner.Scenario.from_cycle(a.cycle))
+    over = {} if a.duration is None else {"duration": a.duration, "windows": {}}   # metric windows need the full cycle
+    ecu = None
+    if a.target == "rv64":
+        from hil import rv64
+        missing = rv64.toolchain_missing()
+        if missing:
+            print(f"target rv64 needs {missing} (run $VORTEX_V_ROOT/scripts/setup-toolchain.sh)", file=sys.stderr)
+            return 2
+        ecu = rv64.Rv64Ecu()
+    res = runner.run(runner.Scenario.from_cycle(a.cycle, **over), ecu)
     s = runner.summary(res)
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     write_csv(res, OUT_DIR / f"{a.cycle}.csv")
     if a.plot:
         plot(res, OUT_DIR / f"{a.cycle}.png")
-    print(f"Redline M8 HIL, target host, cycle {a.cycle} (all values MODELLED)")
+    print(f"Redline HIL, target {a.target}, cycle {a.cycle} (all values MODELLED)")
     print(json.dumps(s, indent=2, default=float))
     print(f"wrote {OUT_DIR / (a.cycle + '.csv')}")
     return 0

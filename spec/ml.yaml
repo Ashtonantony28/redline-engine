@@ -1,0 +1,100 @@
+# Redline M9 machine-learning specification: the int8 knock virtual sensor (Xmlacc) and the PPO
+# transient-fueling controller with its Simplex supervisor. Read by ml/. All results are MODELLED:
+# the "accelerometer" is synthesized, there is no physical engine. Exponents carry explicit signs.
+
+knock:
+  seed: 9
+  # --- synthetic block-accelerometer window (one per combustion event, opens at CA50) ---
+  sample_rate_hz: 40000.0
+  window_samples: 128              # 3.2 ms; multiple of the 8 int8 lanes of an Xmlacc register
+  adc_full_scale_g: 6.0            # int8 code 127 = this acceleration; samples saturate beyond it
+  rpm_range: [1000.0, 7000.0]
+  map_range_pa: [0.4e+5, 1.0e+5]
+  # knock resonance: f = mode_constant * sqrt(gamma R T_burned) / (pi * bore)   (Draper)
+  mode_constant_1: 1.841           # first circumferential mode
+  mode_constant_2: 3.054           # second circumferential mode
+  mode_2_amplitude_ratio: [0.0, 0.4]
+  burned_gamma: 1.25
+  burned_gas_constant: 290.0       # J/(kg K)
+  burned_temperature_k: [2300.0, 3400.0]    # -> first mode about 6.2 to 7.6 kHz at 86 mm bore
+  knock_probability: 0.5
+  # knock amplitude follows the MVEM knock model: proportional to the spark advance beyond the
+  # knock limit (spec/mvem.yaml knock.gain_counts_per_deg plays the same role for the window integral)
+  spark_excess_deg: [0.3, 6.0]
+  knock_g_per_deg: 0.5
+  knock_onset_after_ca50_deg: [2.0, 12.0]
+  knock_decay_s: [0.4e-3, 1.2e-3]
+  # mechanical background
+  noise_rms_idle_g: 0.10           # broadband, speed independent part
+  noise_rms_inertia_g: 0.35        # broadband part at redline, scales with inertia force (rpm^2)
+  noise_gain_spread: 0.3           # +/- fraction, event to event
+  combustion_thump_g: [0.2, 1.0]   # low-frequency block response to the pressure rise, x load
+  combustion_thump_hz: [600.0, 1200.0]
+  combustion_thump_decay_s: 1.5e-3
+  valve_impact_probability: 0.5
+  valve_impact_g: [0.2, 1.2]
+  valve_impact_hz: [2500.0, 4500.0]
+  valve_impact_decay_s: [0.2e-3, 0.6e-3]
+  cylinder_path_gain: [1.0, 0.85, 0.75, 0.6]     # sensor between cylinders 1 and 2
+  # --- model and training ---
+  hidden: [32, 16]                 # 128 -> 32 -> 16 -> 1, ReLU; widths are multiples of 8
+  n_train: 48000
+  n_val: 6000
+  n_test: 6000
+  epochs: 60
+  batch_size: 256
+  learning_rate: 2.0e-3
+  weight_decay: 1.0e-5
+  # --- int8 quantization: y = clamp(rshift_round(acc * M, S), -128, 127), Vortex-V mlacc.rqs ---
+  multiplier_bits: 15              # M normalised into [2^(bits-1), 2^bits)
+  activation_percentile: 99.9      # hidden activation scale from the calibration set
+  false_alarm_rate: 0.01           # operating point: threshold from knock-free validation windows
+  # classical reference detector: band-pass energy around the first mode
+  bandpass_hz: [5500.0, 8500.0]
+  # acceptance (tests/test_m9_hil.py)
+  min_auc: 0.95
+  min_detection_at_far: 0.75       # all knock events, including sub-LSB ones (0.3 deg excess)
+  strong_excess_deg: 2.0           # "clearly knocking": spark this far beyond the limit
+  min_detection_strong: 0.90
+  max_auc_drop_int8: 0.01          # int8 vs float model
+  fixture_vectors: 48              # committed bit-exact vectors (plus edge cases)
+
+fuel_ppo:
+  seed: 9
+  # --- environment: MVEM + host ECU on a dyno, pedal steps (tip-in / tip-out) ---
+  control_period_s: 0.010          # policy rate (the ECU slow loop stays at 1 kHz)
+  episode_s: 4.0
+  settle_s: 1.0                    # closed loop converges before the first pedal step
+  rpm_choices: [1500.0, 2000.0, 2500.0, 3000.0, 3500.0]
+  pedal_levels: [0.08, 0.45]       # steps go between two levels drawn from this range
+  min_pedal_step: 0.15
+  pedal_ramp_s: [0.05, 0.20]
+  step_interval_s: [0.5, 0.9]
+  trim_limit: 0.08                 # policy authority: pulse width x (1 + trim), |trim| <= limit
+  trim_washout_s: 0.3              # applied trim = output - lowpass(output): transient authority only
+  reward_lambda_weight: 1000.0     # reward = -w (lambda_event - 1)^2 averaged over the period
+  reward_start_s: 0.6              # no lambda reward before this (ECU sync and first fueling)
+  reward_error_clip: 0.3           # |lambda - 1| is clipped here in the reward
+  reward_trim_weight: 0.5          # small penalty on trim^2 (no steady-state bias)
+  # --- PPO (torch, CPU) ---
+  hidden: [32, 32]
+  total_steps: 200000
+  rollout_steps: 2048
+  minibatch: 256
+  epochs: 8
+  learning_rate: 3.0e-4
+  gamma: 0.97
+  gae_lambda: 0.95
+  clip: 0.2
+  entropy_coef: 0.0
+  value_coef: 0.5
+  max_grad_norm: 0.5
+  init_log_std: -1.0
+  # --- Simplex supervisor: classical ECU fueling is the safety controller ---
+  safe_band: [0.80, 1.20]          # lambda must stay inside this (per combustion event), always;
+                                   # the MVEM misfire limits are 0.60 / 1.50 (spec/mvem.yaml)
+  switch_band: [0.93, 1.07]        # leave this (sensor or last event) -> trim forced to 0
+  supervisor_hold_s: 0.5           # stay on the classical controller this long after the sensor returns
+  # --- evaluation (python -m ml.eval) ---
+  eval_cycles: [tipin, tipout]
+  eval_rpm: [1500.0, 2000.0, 3000.0]

@@ -1,0 +1,7 @@
+`verilator_config
+// The HIL bridge loads the firmware image and exchanges the mailbox by direct access to the SoC
+// RAM array (Vortex-V sources are consumed unmodified, so the access is granted here).
+public_flat_rw -module "vortex_ram" -var "mem"
+// Vortex-V is lint-clean per top level under its own flags; the model build is not a lint gate.
+lint_off -rule WIDTHEXPAND
+lint_off -rule WIDTHTRUNC

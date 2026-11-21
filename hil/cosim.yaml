@@ -1,0 +1,22 @@
+# Redline M9 co-simulation settings (hil/cosim.py, hil/rv64.py). MODELLED.
+# Scenario windows use the hil/cycles.yaml schema; they are short because every ECU call is
+# executed cycle by cycle on the Vortex-V RTL.
+core_clock_hz: 50.0e+6       # Vortex-V Arty A7 target: rtl/fpga/vortex_clkgen (100 MHz in -> 50 MHz)
+boot_max_cycles: 200000      # reset to mailbox magic
+command_max_cycles: 2000000  # any single mailbox command (slow loop on soft-float is the longest)
+budget_margin: 0.5           # tooth handler must use at most this fraction of the tooth period
+# the slow-loop period comes from spec/ecu.yaml hardware.slow_loop_hz
+
+windows:
+  smoke:                     # default test suite: sync, first injections, start of a tip-in
+    duration: 0.10
+    dyno_rpm: [[0.0, 3000.0]]
+    pedal: [[0.0, 0.10], [0.05, 0.10], [0.08, 0.40]]
+  tipin:                     # `make -C hil cosim`: the M8 tip-in (2000 rpm, pedal 0.10 -> 0.40 in 0.1 s)
+    duration: 0.35
+    dyno_rpm: [[0.0, 2000.0]]
+    pedal: [[0.0, 0.10], [0.15, 0.10], [0.25, 0.40]]
+  redline:                   # worst-case tooth rate: wide open at the redline speed (spec/engine.yaml)
+    duration: 0.06
+    dyno_rpm: redline
+    pedal: [[0.0, 1.0]]

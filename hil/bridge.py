@@ -14,6 +14,8 @@ LIB = ECU_DIR / "build" / "libecu_host.so"
 NSTATUS = 16
 NCONSTS = 11
 MAX_DRAIN = 64
+STATUS_KEYS = ["sync", "tooth", "half", "period", "rev_ticks", "n_sync", "n_loss", "n_noise", "n_dropout",
+               "n_cam_err", "cam_angle_u", "rev_cut", "n_cut", "n_knock", "overflow", "limp"]
 
 
 def _stale() -> bool:
@@ -57,9 +59,12 @@ def _make_structs(ncyl: int):
 class HostEcu:
     """The C ECU core with the host HAL (one static instance per process)."""
 
-    def __init__(self):
-        build()
-        lib = C.CDLL(str(LIB))
+    def __init__(self, lib_path=None):
+        """lib_path: another build of the same core + host HAL (M9: the portable-libm reference,
+        ecu/targets/rv64/build/libecu_host_ref.so); default is the host library, rebuilt if stale."""
+        if lib_path is None:
+            build()
+        lib = C.CDLL(str(lib_path or LIB))
         self.lib = lib
         u32 = C.c_uint32
         lib.hil_crank.argtypes = [u32]
@@ -115,6 +120,4 @@ class HostEcu:
 
     def status(self) -> dict:
         self.lib.hil_status(self._status)
-        keys = ["sync", "tooth", "half", "period", "rev_ticks", "n_sync", "n_loss", "n_noise", "n_dropout",
-                "n_cam_err", "cam_angle_u", "rev_cut", "n_cut", "n_knock", "overflow", "limp"]
-        return {k: int(self._status[i]) for i, k in enumerate(keys)}
+        return {k: int(self._status[i]) for i, k in enumerate(STATUS_KEYS)}

@@ -5,3 +5,6 @@ cantera
 build123d
 matplotlib
 pytest
+torch
+gymnasium
+numba
