@@ -1,0 +1,115 @@
+# Redline M4 1D gas-dynamics parameters (supplements spec/engine.yaml, spec/thermo.yaml and
+# spec/valvetrain.yaml; never duplicates them). SI units unless the key ends in _deg (ADR 0001).
+# Every value is a MODELLED design value: there is no physical engine (CLAUDE.md rule 5).
+# Valve discharge coefficients and the L/D cap come from spec/thermo.yaml gas_exchange; valve lift
+# comes from kin.cam (spec/valvetrain.yaml), timing at the 1 mm check lift from spec/engine.yaml.
+ambient:
+  p: 101325.0                  # Pa
+  T: 298.15                    # K
+gas:
+  # Pipes use an ideal gas with constant gamma: fresh charge (intake) and frozen products (exhaust)
+  # from the thermo tables, evaluated at these temperatures.
+  T_gamma_intake: 300.0        # K
+  T_gamma_exhaust: 1000.0      # K
+transport:                     # Sutherland viscosity of air (White, "Viscous Fluid Flow", 3rd ed., eq. 1-36)
+  mu_ref: 1.716e-5             # Pa s at T_ref
+  T_ref: 273.15                # K
+  sutherland: 110.4            # K
+  prandtl: 0.71
+pipe_friction:                 # Darcy friction factor: max(laminar, Blasius smooth-pipe turbulent)
+  laminar_coeff: 64.0          # f = 64 / Re
+  blasius_coeff: 0.3164        # f = 0.3164 Re^-0.25 (Blasius 1913)
+  blasius_exp: -0.25
+  re_min: 1.0                  # Reynolds-number floor (stagnant gas)
+
+intake:                        # ambient -> inlet duct -> throttle -> plenum -> 4 runners -> valves
+  inlet_duct:
+    length: 0.350              # m
+    diameter: 0.065
+    wall_T: 305.0              # K
+    friction_multiplier: 1.5   # >1 lumps bends and the air-filter loss into the wall friction
+    heat_multiplier: 1.0
+    entry_cd: 0.95             # airbox entry (ambient side)
+  throttle:
+    bore: 0.060                # m
+    cd: 0.90                   # plate edge + shaft blockage at wide open
+    closed_angle_deg: 6.0      # plate angle at which the projected open area is zero
+    wot_angle_deg: 90.0
+  plenum:
+    volume: 4.0e-3             # m^3
+  runner:                      # one per cylinder, plenum to valve seat (includes the head port)
+    length: 0.550              # m, tuned with the diameter for the torque peak near targets.torque_rpm
+    diameter: 0.036
+    wall_T: 330.0              # K
+    friction_multiplier: 1.2
+    heat_multiplier: 1.0
+    entry_cd: 0.97             # bellmouth at the plenum
+exhaust:                       # valves -> 4 primaries -> junction(s) -> secondaries -> collector -> tailpipe
+  layout: 4-2-1                # 4-2-1 (pairs 1+4 and 2+3, cylinders 360 deg apart) or 4-1
+  primary:
+    length: 0.450
+    diameter: 0.038
+    wall_T: 800.0
+    friction_multiplier: 1.2
+    heat_multiplier: 1.0
+  secondary:                   # 4-2-1 only
+    length: 0.450
+    diameter: 0.045
+    wall_T: 750.0
+    friction_multiplier: 1.2
+    heat_multiplier: 1.0
+  junction_volume: 0.15e-3     # m^3, each 2-into-1 (or the 4-into-1) junction, modelled as a 0D volume
+  collector_volume: 0.25e-3    # m^3, final junction of the 4-2-1 layout
+  junction_cd: 1.0             # pipe ends at junctions are plain open ends
+  tailpipe_front:              # collector -> silencer: downpipe carrying the catalytic converter
+    length: 0.400
+    diameter: 0.055
+    wall_T: 650.0
+    friction_multiplier: 10.0  # lumps the catalyst monolith pressure loss into the wall friction
+    heat_multiplier: 1.0
+  silencer:
+    volume: 30.0e-3            # m^3, 0D expansion chamber (all silencer boxes lumped)
+  tailpipe_rear:               # silencer -> ambient
+    length: 0.800
+    diameter: 0.055
+    wall_T: 500.0
+    friction_multiplier: 10.0  # lumps the silencer internals (baffles, perforated tubes): without this
+                               # damping the lossless chamber + pipe resonates at low speed
+    heat_multiplier: 1.0
+  exit_cd: 1.0
+  T_init: 900.0                # K, initial gas temperature in the exhaust system
+
+numerics:
+  dx: 0.020                    # m, target cell size (cells per pipe = max(min_cells, round(L / dx)))
+  dx_tailpipe: 0.040           # m, coarser cells downstream of the collector
+  min_cells: 8
+  cfl: 0.80                    # on (|u| + c) dt / dx, SSP-RK2 + MUSCL
+  limiter: vanleer             # vanleer or minmod
+  positivity_fraction: 0.05    # reconstructed face rho, p must stay above this share of the cell value
+  rho_floor: 1.0e-6            # kg/m^3
+  p_floor: 1.0e+0              # Pa
+  bc_tol: 1.0e-12              # relative bracket width of the pipe-end boundary solve
+  bc_max_iter: 60
+  char_base_min: 0.05          # lower clamp of 1 - (g-1) v / (2 c) (near-vacuum guard at a wall)
+  max_step_deg: 0.5            # crank-angle cap of the time step in engine runs
+  dt_max: 1.0e-3               # s, cap when the network is at rest (non-engine problems)
+  table_step_deg: 0.05         # crank-angle resolution of the cylinder volume and valve-area tables
+  closed_step_deg: 0.1         # step of the thermo two-zone closed part
+  trace_step_deg: 1.0          # resolution of the stored pressure traces
+
+cycle:                         # multi-cycle iteration to a periodic state
+  max_cycles: 60
+  min_cycles: 3
+  imep_tol: 1.0e-3             # relative cycle-to-cycle change of the 4-cylinder mean net IMEP
+  consecutive: 2               # cycles in a row that must meet imep_tol
+
+friction:                      # FMEP = const + peak_pressure_factor p_max + speed_factor Sp + speed_sq_factor Sp^2
+  model: chen-flynn            # Chen & Flynn, SAE 650733 (1965); see gasdyn/friction.py
+  const: 0.137e+5              # Pa
+  peak_pressure_factor: 0.005  # Pa per Pa of peak cylinder pressure
+  speed_factor: 0.162e+5       # Pa per (m/s) of mean piston speed
+  speed_sq_factor: 0.0         # Pa per (m/s)^2
+
+wot:
+  sweep_rpm: [1000, 7000, 250]       # default of `python -m sim.wot`
+  coarse_sweep_rpm: [1500, 7000, 500]  # used by the tests (same model, fewer speeds)

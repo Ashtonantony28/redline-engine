@@ -37,6 +37,11 @@ def valve_area(theta_deg, open_deg, close_deg, n_valves, diameter, max_lift, cd,
     dur = (close_deg - open_deg) % CYCLE_DEG
     phi = ((np.asarray(theta_deg, dtype=float) - open_deg) % CYCLE_DEG) / dur
     lift = np.where(phi < 1.0, max_lift * np.sin(np.pi * np.clip(phi, 0.0, 1.0)) ** 2, 0.0)
+    return effective_valve_area(lift, n_valves, diameter, cd, ld_cap)
+
+
+def effective_valve_area(lift, n_valves, diameter, cd, ld_cap):
+    """Cd * n * pi * d * min(L, cap*d) for any lift curve [m] (M4 passes the kin.cam lift here)."""
     return cd * n_valves * np.pi * diameter * np.minimum(lift, ld_cap * diameter)
 
 
@@ -90,6 +95,26 @@ def run_closed(tables: Tables, geom, m, xr, T0, theta_s, theta_e, step_deg, hp, 
     out = tz.integrate(y0, n, math.radians(hdeg), Vh, dVh, xb, dxb, m, xr, k_act, k_inst, *tables.args(), hp,
                        float(num["newton_tol"]), int(num["newton_max_iter"]), float(num["T_flame_guess"]))
     return ClosedResult(half[::2], Vh[::2], out, m, xr, T0)
+
+
+def merge_zones(cl: ClosedResult, tables: Tables, tol: float, maxit: int):
+    """End of the closed part: merge the two zones at fixed total internal energy; the burned gas relaxes
+    to frozen products. Returns (burned mass fraction x, internal energy U [J], temperature T [K]) of the
+    single well-mixed zone that starts gas exchange. Shared by `run_cycle` and the M4 1D coupling
+    (gasdyn.engine), which supplies its own port boundary states and kin.cam valve lift."""
+    targs = tables.args()
+    m, xr = cl.m, cl.xr
+    e = cl.out[-1]
+    xb = e[tz.O_XB]
+    mb, mu = xb * m, (1.0 - xb) * m
+    hu, _, Ru = frozen(e[tz.O_TU], xr, *targs[:5])
+    U = mu * (hu - Ru * e[tz.O_TU])
+    if mb > 0.0:
+        hb, Rb, *_ = burned(e[tz.O_TB], e[tz.O_P], *targs[5:])
+        U += mb * (hb - Rb * e[tz.O_TB])
+    x_open = (mb + mu * xr) / m
+    T_open = T_from_u_frozen(U / m, x_open, e[tz.O_TB], *targs[:5], tol, maxit)
+    return x_open, U, T_open
 
 
 # ---------------------------------------------------------------------------------------------
@@ -172,17 +197,7 @@ def run_cycle(rpm: float = 3000.0, load_name: str = "full", step_deg: float | No
         cl = run_closed(tables, geom, m, xr, T, th_s, th_e, step_deg, hp_c, "wiebe",
                         comb["heat_release_start_deg"], comb["burn_duration_deg"], comb["wiebe_a"],
                         comb["wiebe_m"], num=num)
-        # EVO: merge zones at fixed total internal energy, burned gas relaxes to frozen products
-        e = cl.out[-1]
-        xb = e[tz.O_XB]
-        mb, mu = xb * m, (1.0 - xb) * m
-        hu, _, Ru = frozen(e[tz.O_TU], xr, *targs[:5])
-        U = mu * (hu - Ru * e[tz.O_TU])
-        if mb > 0.0:
-            hb, Rb, *_ = burned(e[tz.O_TB], e[tz.O_P], *targs[5:])
-            U += mb * (hb - Rb * e[tz.O_TB])
-        x_open = (mb + mu * xr) / m
-        T_open = T_from_u_frozen(U / m, x_open, e[tz.O_TB], *targs[:5], tol, maxit)
+        x_open, U, T_open = merge_zones(cl, tables, tol, maxit)
         y0 = np.zeros(gx.NG)
         y0[gx.G_M], y0[gx.G_MX], y0[gx.G_U] = m, m * x_open, U
         y0[gx.G_MS], y0[gx.G_MXS], y0[gx.G_HS] = store
