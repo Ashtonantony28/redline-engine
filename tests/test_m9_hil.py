@@ -2,7 +2,8 @@
 knock sensor on Xmlacc, and the learned transient-fueling controller under its supervisor.
 All results MODELLED (MVEM plant, synthetic accelerometer; there is no physical engine).
 
-Verify:  make -C hil cosim && pytest -q tests/test_m9_hil.py tests/test_m8_ecu.py && python -m ml.eval
+Verify:  make -C hil cosim && pytest -q tests/test_m9_hil.py tests/test_m9_1_rt.py tests/test_m8_ecu.py && python -m ml.eval
+(M9.1: the timing gaps this file reports in frozen time are measured in real time in tests/test_m9_1_rt.py.)
 
 Anchors first, then the exit criteria. Stated tolerances (never loosened silently):
   requantize rule vs Vortex-V's mlacc.rqs model and NeuroFlight's cases .. exact
@@ -175,7 +176,7 @@ def test_portable_libm_within_one_ulp_of_glibc():
 
 @needs_rv
 def test_rv64_sync_units_have_no_float_and_core_is_unchanged():
-    """rv64im / lp64 turns any float operation into a libgcc soft-float call, so the sync-path
+    """rv64im / lp64 turns any float operation into a soft-float call, so the sync-path
     objects (decoder, scheduler, knock control) and the int8 kernel must reference none; the
     slow-loop object must (it is the proof that the check can fail). The portable core sources are
     the committed ones."""
@@ -188,12 +189,17 @@ def test_rv64_sync_units_have_no_float_and_core_is_unchanged():
         return {ln.split()[-1] for ln in out.splitlines() if ln.strip()}
 
     soft = lambda syms: {s for s in syms if s.startswith("__") and any(t in s for t in ("sf", "df", "tf"))}
-    for obj in ("decoder.o", "sched.o", "knock.o", "knock_kernel.o"):
+    # M9.1 (ADR 0005): the three core units are compiled as one (sync_unit.c includes them unchanged),
+    # with rv_div.c for the divisions
+    for obj in ("sync_unit.o", "knock_kernel.o", "rv_div.o"):
         assert not soft(undefined(obj)), f"{obj} references soft-float: {soft(undefined(obj))}"
     assert soft(undefined("ecu.o")), "slow loop expected to use soft-float (check is vacuous otherwise)"
     dis = subprocess.run(["riscv64-unknown-elf-objdump", "-d", str(rv64.ELF)], check=True, capture_output=True,
                          text=True).stdout
-    assert not any(tok in dis for tok in ("\tfadd", "\tfmul", "\tfmv", "\tfld", "\tflw", "\tfcvt", "\tcsrr"))
+    # no F/D instruction and no float CSR; the integer CSRs of the timer interrupt (mstatus, mie,
+    # mtvec, mcause) are expected since M9.1
+    assert not any(tok in dis for tok in ("\tfadd", "\tfmul", "\tfmv", "\tfld", "\tflw", "\tfcvt", "fcsr", "\tfrcsr",
+                                          "\tfscsr", "\tfrrm", "\tfsrm", "fflags"))
     if (ROOT / ".git").exists():
         st = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "ecu/src", "ecu/include", "ecu/host"],
                             capture_output=True, text=True).stdout

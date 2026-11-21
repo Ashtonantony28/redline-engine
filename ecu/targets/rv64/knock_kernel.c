@@ -5,24 +5,14 @@
  *              a = max(y, 0)                                             ReLU
  *     last:    acc is the output
  * Integer only (this unit is compiled with the no-float check). */
-#include "vortex.h"             /* xm_macc: .insn encodings maintained by Vortex-V */
+#include "vortex.h"             /* xm_macc, xm_rqs: .insn encodings maintained by Vortex-V */
 
 #define KNOCK_DEFINE_TABLES
 #include "knock_kernel.h"
 
 #define XM_LANES 8u             /* int8 lanes per 64-bit register */
-#define XM_OPCODE_CUSTOM0 0x0b
-#define XM_FUNCT3_RQS 5         /* mlacc.rqs, funct7 = 0 (XMLACC-SPEC-v1 table) */
 
 typedef uint64_t __attribute__((may_alias)) lanes_t;
-
-static inline int64_t xm_rqs(int64_t v, uint64_t sh)
-{
-    int64_t r;
-    __asm__ volatile(".insn r %c3, %c4, 0, %0, %1, %2"
-                     : "=r"(r) : "r"(v), "r"(sh), "i"(XM_OPCODE_CUSTOM0), "i"(XM_FUNCT3_RQS));
-    return r;
-}
 
 static inline int64_t sat_int32(int64_t acc)
 {

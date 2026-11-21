@@ -5,3 +5,7 @@ public_flat_rw -module "vortex_ram" -var "mem"
 // Vortex-V is lint-clean per top level under its own flags; the model build is not a lint gate.
 lint_off -rule WIDTHEXPAND
 lint_off -rule WIDTHTRUNC
+// M9.1: retire trace for the co-sim's PC-sampling profiler (hil/profile.py); read only
+public_flat_rd -module "vortex_ooo_core" -var "dbg_retire_valid"
+public_flat_rd -module "vortex_ooo_core" -var "dbg_retire_pc"
+public_flat_rd -module "vortex_ooo_core" -var "dbg_irq"

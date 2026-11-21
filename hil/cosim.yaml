@@ -7,6 +7,20 @@ command_max_cycles: 2000000  # any single mailbox command (slow loop on soft-flo
 budget_margin: 0.5           # tooth handler must use at most this fraction of the tooth period
 # the slow-loop period comes from spec/ecu.yaml hardware.slow_loop_hz
 
+# M9.1 real-time mode (hil/realtime.py, ADR 0005): plant time advances with core cycles.
+realtime:
+  poll_cycles: 2500          # timer period while no crank edge can be predicted (50 us at 50 MHz)
+  lead_cycles: 150           # wake this long before the predicted edge: covers the pipeline drain,
+                             # the register save in crt0 and one timer tick of prediction error
+  spin_cycles: 400           # longest wait inside the handler for a predicted edge
+  angle_error_max_deg: 0.5   # spark angle error vs the host build, the M8 scheduler tolerance
+  windows: [redline_rt, tipin]
+  clocks_hz: [25.0e+6, 50.0e+6, 100.0e+6]   # Arty A7: 100 MHz oscillator, MMCM /4, /2 (default), /1
+  min_clock:                 # bisection for the lowest clock that meets the spec on redline_rt
+    lo_hz: 20.0e+6
+    hi_hz: 100.0e+6
+    resolution_hz: 2.5e+6
+
 windows:
   smoke:                     # default test suite: sync, first injections, start of a tip-in
     duration: 0.10
@@ -16,6 +30,10 @@ windows:
     duration: 0.35
     dyno_rpm: [[0.0, 2000.0]]
     pedal: [[0.0, 0.10], [0.15, 0.10], [0.25, 0.40]]
+  redline_rt:                # real-time measurement at the redline speed: 14 revolutions
+    duration: 0.12
+    dyno_rpm: redline
+    pedal: [[0.0, 1.0]]
   redline:                   # worst-case tooth rate: wide open at the redline speed (spec/engine.yaml)
     duration: 0.06
     dyno_rpm: redline

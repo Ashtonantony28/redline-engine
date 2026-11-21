@@ -1,6 +1,6 @@
 # Shared by ecu/targets/rv64/Makefile (firmware link) and hil/Makefile (Verilator model): the
 # Vortex-V checkout (consumed read-only) and the SoC build that the ECU runs on.
-VORTEX_V_ROOT ?= /home/user/vortex-v
+VORTEX_V_ROOT ?= /home/user/vortex-v-main
 # RAM size [bytes, power of 2]; vortex_soc's default 16 KiB cannot hold soft-float + the ECU.
 SOC_RAM_BYTES ?= 65536
 # Core configuration = Vortex-V's board configuration "vortex_ooo_core_sync" (verif/core/cores.py,

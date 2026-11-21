@@ -1,8 +1,9 @@
 /* Portable, deterministic fabsf / expf / powf for the ECU slow loop (see include/math.h).
  *
  * Everything is evaluated in IEEE-754 binary64 with +, -, *, / only (no fused multiply-add, no
- * rounding-mode dependence, no tables), then rounded once to binary32. On RV64IM the operations
- * are libgcc soft-float; on the host they are SSE2: the results are bit-identical by construction.
+ * rounding-mode dependence; the only tables are the series coefficients), then rounded once to
+ * binary32. On RV64IM the operations are soft-float (rv_softfp.c); on the host they are SSE2: the
+ * results are bit-identical by construction.
  * Accuracy: the binary64 result is good to ~1e-15 relative, so the binary32 result is the correctly
  * rounded one except within ~1e-7 ulp of a rounding boundary (checked against glibc in
  * tests/test_m9_hil.py to <= 1 ulp).
@@ -29,9 +30,20 @@ static const double SQRT2 = 1.41421356237309504880168872421;
 /* exp argument limits: beyond these the binary32 result is +inf / 0 anyway */
 static const double EXP_ARG_MAX = 89.0;       /* > ln(FLT_MAX)  = 88.72 */
 static const double EXP_ARG_MIN = -104.0;     /* < ln(FLT_TRUE_MIN / 2) = -103.97 */
-/* Taylor orders: |r| <= ln2/2 so r^13/13! < 2e-16; |s| <= 0.1716 so s^22/23 < 1e-18 */
+/* Series lengths: |r| <= ln2/2 so r^13/13! < 2e-16; |s| <= 0.1716 so s^22/23 < 1e-18.
+ * The coefficients are constants (each quotient is folded by the compiler, correctly rounded), so
+ * the series cost one multiply and one add per term and no division: M9 divided by the term index
+ * at run time, 47 binary64 divisions per slow-loop step (M9.1, ADR 0005). */
 #define EXP_TAYLOR_ORDER 12
 #define LOG_SERIES_TERMS 10
+#ifndef ECU_LIBM_M9_SERIES
+static const double EXP_COEF[EXP_TAYLOR_ORDER + 1] = {      /* 1 / n! */
+    1.0, 1.0, 1.0 / 2.0, 1.0 / 6.0, 1.0 / 24.0, 1.0 / 120.0, 1.0 / 720.0, 1.0 / 5040.0, 1.0 / 40320.0,
+    1.0 / 362880.0, 1.0 / 3628800.0, 1.0 / 39916800.0, 1.0 / 479001600.0};
+static const double LOG_COEF[LOG_SERIES_TERMS + 1] = {      /* 1 / (2n + 1) */
+    1.0, 1.0 / 3.0, 1.0 / 5.0, 1.0 / 7.0, 1.0 / 9.0, 1.0 / 11.0, 1.0 / 13.0, 1.0 / 15.0, 1.0 / 17.0,
+    1.0 / 19.0, 1.0 / 21.0};
+#endif
 
 float ecu_fabsf(float x)
 {
@@ -54,10 +66,17 @@ static double exp_core(double x)
     double kf = x * INV_LN2;
     int k = (int)(kf >= 0.0 ? kf + 0.5 : kf - 0.5);
     double r = x - (double)k * LN2;
+#ifdef ECU_LIBM_M9_SERIES     /* the M9 evaluation, only for the "before" firmware build (make m9) */
     double p = 1.0;
     for (int n = EXP_TAYLOR_ORDER; n >= 1; --n) {
         p = 1.0 + p * r / (double)n;
     }
+#else
+    double p = EXP_COEF[EXP_TAYLOR_ORDER];
+    for (int n = EXP_TAYLOR_ORDER - 1; n >= 0; --n) {
+        p = EXP_COEF[n] + p * r;
+    }
+#endif
     return p * pow2i(k);
 }
 
@@ -75,10 +94,17 @@ static double log_core(double x)
     }
     double s = (m - 1.0) / (m + 1.0);
     double s2 = s * s;
+#ifdef ECU_LIBM_M9_SERIES
     double acc = 0.0;
     for (int n = LOG_SERIES_TERMS; n >= 0; --n) {
         acc = acc * s2 + 1.0 / (double)(2 * n + 1);
     }
+#else
+    double acc = LOG_COEF[LOG_SERIES_TERMS];
+    for (int n = LOG_SERIES_TERMS - 1; n >= 0; --n) {
+        acc = acc * s2 + LOG_COEF[n];
+    }
+#endif
     return 2.0 * s * acc + (double)e * LN2;
 }
 

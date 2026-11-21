@@ -173,11 +173,14 @@ def m9(cfg):
     from ml import ml_spec
     from ml.eval import table
     from ml.knock import golden
-    p = ROOT / cfg["external_artefacts"]["cosim"]
-    cosim = json.loads(p.read_text()) if p.exists() else None
+    def artefact(key):
+        q = ROOT / cfg["external_artefacts"][key]
+        return json.loads(q.read_text()) if q.exists() else None
+    cosim = artefact("cosim")
     rows = table(ml_spec()["fuel_ppo"])
     mean = lambda who, key: float(np.mean([r[who][key] for r in rows]))
-    return {"cosim": cosim, "ppo_rows": rows, "knock": golden.load_policy()["metrics"],
+    return {"cosim": cosim, "realtime": artefact("realtime"), "realtime_sweep": artefact("realtime_sweep"),
+            "baseline": cfg["m9_baseline"], "ppo_rows": rows, "knock": golden.load_policy()["metrics"],
             "max_cl": mean("classical", "max_dev"), "max_ppo": mean("ppo", "max_dev"),
             "rms_cl": mean("classical", "rms_dev"), "rms_ppo": mean("ppo", "rms_dev")}
 
@@ -207,6 +210,71 @@ def m10(fast: bool):
 # ------------------------------------------------------------------------------------------------
 # markdown
 # ------------------------------------------------------------------------------------------------
+def m9_1_lines(x) -> list:
+    """The M9.1 section: real-time co-sim figures from out/hil/realtime.json and realtime_sweep.json."""
+    L = []
+    A = L.append
+    A("## M9.1: the ECU on Vortex-V in real time (ADR 0005)")
+    A("")
+    rt, sw, c, b0 = x["realtime"], x["realtime_sweep"], x["cosim"], x["baseline"]
+    if not rt:
+        A("*out/hil/realtime.json not found: run `make -C hil cosim` (needs Verilator and the Vortex-V tree).*")
+        A("")
+        return L
+    A("Plant time advances with core cycles; the frozen-time mode is kept for bit-exactness. All values MODELLED "
+      "(`make -C hil cosim`, `make -C hil rt-sweep`).")
+    A("")
+    A("* Design: crank / cam / knock captures are serviced from the Vortex-V machine timer interrupt, armed for the "
+      "next predicted tooth; the slow loop runs in the background on a snapshot of the decoder and scheduler state; "
+      "soft-float and sync-path division are replaced by exact, faster target routines. The portable core `ecu/src` "
+      "is unchanged and every output stays bit-exact against the host build in frozen time.")
+    if c:
+        b = c["budget"]
+        A(f"* Frozen time: crank handler {b0['crank_handler_cycles_mean']} -> {b['crank_handler_cycles_mean']:.0f} cycles "
+          f"mean; slow loop {b0['slow_handler_cycles_mean'] / 1e3:.1f}k -> {b['slow_handler_cycles_mean'] / 1e3:.1f}k "
+          f"cycles mean.")
+    runs = {(m["window"], m["mode"]): m for m in rt["runs"]}
+    cols = [(w, mode) for w in dict.fromkeys(m["window"] for m in rt["runs"]) for mode in ("m9", "irq") if (w, mode) in runs]
+    name = {"m9": "M9", "irq": "M9.1"}
+    clk = rt["runs"][0]["clk_hz"] / 1e6
+    A(f"* Real time at {clk:.0f} MHz, M9 firmware vs M9.1 firmware:")
+    A("")
+    A("| | " + " | ".join(f"{runs[k]['rpm']:.0f} rpm ({k[0]}), {name[k[1]]}" for k in cols) + " |")
+    A("|---|" + "---|" * len(cols))
+    row = lambda label, f: A(f"| {label} | " + " | ".join(f(runs[k]) for k in cols) + " |")
+    row("worst tooth-to-event latency", lambda m: f"{m['tooth_to_event_max_us']:.1f} us")
+    row("worst tooth-to-serviced latency", lambda m: f"{m['tooth_to_serviced_max_us']:.1f} us")
+    row("spark angle error vs host, max", lambda m: f"{m['spark_angle_error_max_deg']:.3f} deg")
+    row("any event angle error, max", lambda m: f"{m['event_angle_error_max_deg']:.2f} deg")
+    row("worst case (latency as crank angle)", lambda m: f"{m['worst_case_angle_error_deg']:.2f} deg")
+    row("CPU load", lambda m: f"{100 * m['cpu_load']:.1f} %")
+    row("slow-loop steps skipped (overrun)", lambda m: f"{m['slow_overruns']} of {m['slow_steps_expected']}")
+    row("captures dropped / loss of sync", lambda m: f"{m['captures_dropped']} / {m['n_loss']}")
+    A("")
+    if sw and sw.get("min_clock"):
+        mc = sw["min_clock"]
+        pts = sorted(((float(f), m) for f, m in mc["tried"].items()), key=lambda t: t[0])
+        A(f"* Clock sweep on {mc['window']} (M9.1 firmware), worst case angle error: "
+          + "; ".join(f"{f / 1e6:g} MHz {m['worst_case_angle_error_deg']:.2f} deg"
+                      + ("" if m["rt_ok"] else f" (real time lost, {m['slow_overruns']} slow steps skipped)") for f, m in pts)
+          + ". Minimum clock meeting the spec for every event: "
+          + (f"{mc['min_clock_hz'] / 1e6:g} MHz." if mc["min_clock_hz"] else "none in the searched range."))
+    A("")
+    m7 = next((runs[k] for k in cols if k[1] == "irq" and not runs[k]["meets_spec"]), None)
+    A("*Known gaps:* "
+      + (f"at {m7['rpm']:.0f} rpm and {clk:.0f} MHz the 0.5 deg bound is not met for an event that falls within "
+         f"{m7['tooth_to_event_max_us']:.0f} us behind its reference tooth (worst case "
+         f"{m7['worst_case_angle_error_deg']:.2f} deg, observed {m7['event_angle_error_max_deg']:.2f} deg; sparks in the "
+         f"measured window {m7['spark_angle_error_max_deg']:.3f} deg because they landed mid-window). Closing it at this "
+         "clock needs the scheduler to arm from the previous tooth (a core change) or a capture/compare unit in the "
+         "SoC. " if m7 else "")
+      + "The M9 firmware drops no tooth only because the modelled capture FIFO holds 32 edges. The worst "
+        "tooth-to-serviced figures are the start-up poll before the decoder has a period. Vortex-V has not verified "
+        "FPGA timing at any of these clocks.")
+    A("")
+    return L
+
+
 def pct(x, d=1):
     return f"{x * 100:.{d}f} %"
 
@@ -249,7 +317,7 @@ def render(d: dict) -> str:
     if d["m9"]["cosim"]:
         b = d["m9"]["cosim"]["budget"]
         A(f"| ECU crank-tooth handler at {b['redline_rpm']:.0f} rpm | {b['crank_worst_us']:.1f} us "
-          f"({pct(b['crank_fraction_of_tooth_period'])} of a tooth) | {b['tooth_period_us']:.1f} us tooth period | M9 |")
+          f"({pct(b['crank_fraction_of_tooth_period'])} of a tooth) | {b['tooth_period_us']:.1f} us tooth period | M9.1 |")
     A("")
 
     # ---- M0
@@ -469,10 +537,12 @@ def render(d: dict) -> str:
         A(f"* Lockstep co-sim: ECU events and slow-loop outputs bit-exact vs the host build "
           f"({sum(r['diff']['host_ref']['events'] for r in x['cosim']['runs'])} event mismatches over "
           f"{len(x['cosim']['runs'])} windows).")
-        A(f"* Budget at {b['redline_rpm']:.0f} rpm on a {b['core_clock_hz'] / 1e6:.0f} MHz core: tooth handler worst "
-          f"{b['crank_worst_us']:.1f} us of a {b['tooth_period_us']:.1f} us tooth ({pct(b['crank_fraction_of_tooth_period'])}); "
-          f"soft-float slow loop {b['slow_worst_us']:.0f} us of {b['slow_period_us']:.0f} us; CPU utilisation "
-          f"{pct(b['cpu_utilisation_at_redline'])}; polled worst tooth latency {b['polled_worst_tooth_latency_us']:.0f} us.")
+        b0 = x["baseline"]
+        A(f"* Frozen-time budget at {b['redline_rpm']:.0f} rpm on a {b['core_clock_hz'] / 1e6:.0f} MHz core (M9.1 "
+          f"firmware; M9 figure in brackets): tooth handler worst {b['crank_worst_us']:.1f} us [{b0['crank_worst_us']}] of a "
+          f"{b['tooth_period_us']:.1f} us tooth ({pct(b['crank_fraction_of_tooth_period'])}); soft-float slow loop "
+          f"{b['slow_worst_us']:.0f} us [{b0['slow_worst_us']}] of {b['slow_period_us']:.0f} us; CPU utilisation "
+          f"{pct(b['cpu_utilisation_at_redline'])} [{pct(b0['cpu_utilisation_at_redline'])}].")
         A(f"* int8 knock MLP on Xmlacc: {k['vectors']} vectors, {k['mismatches']} mismatches vs the numpy golden model, "
           f"{k['cycles_max']} cycles per inference; ROC AUC {k['metrics']['int8']['auc']:.3f} (float "
           f"{k['metrics']['float']['auc']:.3f}, band-pass energy baseline {k['metrics']['bandpass_energy']['auc']:.3f}).")
@@ -482,10 +552,11 @@ def render(d: dict) -> str:
       f"deviation {x['rms_cl']:.4f} -> {x['rms_ppo']:.4f} ({(x['rms_ppo'] / x['rms_cl'] - 1) * 100:+.0f} %), mean peak "
       f"deviation {x['max_cl']:.4f} -> {x['max_ppo']:.4f} ({(x['max_ppo'] / x['max_cl'] - 1) * 100:+.0f} %).")
     A("")
-    A("*Known gaps:* at 7000 rpm the soft-float slow loop plus tooth handling exceeds one 50 MHz core and, with no "
-      "interrupts, a polled tooth can wait about a slow-loop period; lockstep co-sim hides both. PPO only beats the "
+    A("*Known gaps:* frozen-time co-sim hides latency and overload: the M9 firmware needed more than one 50 MHz core "
+      "at 7000 rpm and polled its teeth (M9.1 below measures and fixes this). PPO only beats the "
       "classical ECU on rms lambda, not on peak excursion.")
     A("")
+    L.extend(m9_1_lines(x))
 
     # ---- M10
     x = d["m10"]

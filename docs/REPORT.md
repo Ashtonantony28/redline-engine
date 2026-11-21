@@ -15,7 +15,7 @@
 | 80-120 km/h in 5th | 13.39 s | | M10 vehicle |
 | Secondary shaking force at 7000 rpm | 13.29 kN | analytic 12.99 kN (4 m r w^2 lam) | M5 |
 | First torsional mode | 560 Hz | Holzer within 7e-16 | M5 |
-| ECU crank-tooth handler at 7000 rpm | 39.3 us (27.5 % of a tooth) | 142.9 us tooth period | M9 |
+| ECU crank-tooth handler at 7000 rpm | 19.0 us (13.3 % of a tooth) | 142.9 us tooth period | M9.1 |
 
 ## M0: scaffold, spec, kinematics, Otto anchor
 
@@ -139,11 +139,34 @@ Quasi-dimensional turbulent flame, Livengood-Wu / Douaud-Eyzat knock and extende
 ## M9: ECU on Vortex-V RTL, int8 knock sensor, PPO fuel trim
 
 * Lockstep co-sim: ECU events and slow-loop outputs bit-exact vs the host build (0 event mismatches over 2 windows).
-* Budget at 7000 rpm on a 50 MHz core: tooth handler worst 39.3 us of a 142.9 us tooth (27.5 %); soft-float slow loop 934 us of 1000 us; CPU utilisation 106.7 %; polled worst tooth latency 973 us.
+* Frozen-time budget at 7000 rpm on a 50 MHz core (M9.1 firmware; M9 figure in brackets): tooth handler worst 19.0 us [39.3] of a 142.9 us tooth (13.3 %); soft-float slow loop 363 us [934] of 1000 us; CPU utilisation 42.0 % [106.7 %].
 * int8 knock MLP on Xmlacc: 54 vectors, 0 mismatches vs the numpy golden model, 3010 cycles per inference; ROC AUC 0.955 (float 0.955, band-pass energy baseline 0.888).
 * PPO + Simplex supervisor vs classical over 6 tip-in/tip-out cycles: mean rms lambda deviation 0.0157 -> 0.0139 (-11 %), mean peak deviation 0.0637 -> 0.0666 (+4 %).
 
-*Known gaps:* at 7000 rpm the soft-float slow loop plus tooth handling exceeds one 50 MHz core and, with no interrupts, a polled tooth can wait about a slow-loop period; lockstep co-sim hides both. PPO only beats the classical ECU on rms lambda, not on peak excursion.
+*Known gaps:* frozen-time co-sim hides latency and overload: the M9 firmware needed more than one 50 MHz core at 7000 rpm and polled its teeth (M9.1 below measures and fixes this). PPO only beats the classical ECU on rms lambda, not on peak excursion.
+
+## M9.1: the ECU on Vortex-V in real time (ADR 0005)
+
+Plant time advances with core cycles; the frozen-time mode is kept for bit-exactness. All values MODELLED (`make -C hil cosim`, `make -C hil rt-sweep`).
+
+* Design: crank / cam / knock captures are serviced from the Vortex-V machine timer interrupt, armed for the next predicted tooth; the slow loop runs in the background on a snapshot of the decoder and scheduler state; soft-float and sync-path division are replaced by exact, faster target routines. The portable core `ecu/src` is unchanged and every output stays bit-exact against the host build in frozen time.
+* Frozen time: crank handler 1430 -> 705 cycles mean; slow loop 44.1k -> 16.4k cycles mean.
+* Real time at 50 MHz, M9 firmware vs M9.1 firmware:
+
+| | 7000 rpm (redline_rt), M9 | 7000 rpm (redline_rt), M9.1 | 2000 rpm (tipin), M9 | 2000 rpm (tipin), M9.1 |
+|---|---|---|---|---|
+| worst tooth-to-event latency | 946.0 us | 18.1 us | 945.9 us | 18.9 us |
+| worst tooth-to-serviced latency | 965.1 us | 46.3 us | 958.0 us | 54.3 us |
+| spark angle error vs host, max | 34.936 deg | 0.042 deg | 10.580 deg | 0.000 deg |
+| any event angle error, max | 38.02 deg | 0.69 deg | 11.19 deg | 0.21 deg |
+| worst case (latency as crank angle) | 39.73 deg | 0.76 deg | 11.35 deg | 0.23 deg |
+| CPU load | 85.7 % | 48.2 % | 95.1 % | 37.6 % |
+| slow-loop steps skipped (overrun) | 35 of 120 | 0 of 120 | 0 of 350 | 0 of 350 |
+| captures dropped / loss of sync | 0 / 0 | 0 / 0 | 0 / 0 | 0 / 0 |
+
+* Clock sweep on redline_rt (M9.1 firmware), worst case angle error: 20 MHz 1.87 deg (real time lost, 52 slow steps skipped); 60 MHz 0.63 deg; 70 MHz 0.54 deg; 75 MHz 0.51 deg; 77.5 MHz 0.49 deg; 80 MHz 0.47 deg; 100 MHz 0.38 deg. Minimum clock meeting the spec for every event: 77.5 MHz.
+
+*Known gaps:* at 7000 rpm and 50 MHz the 0.5 deg bound is not met for an event that falls within 18 us behind its reference tooth (worst case 0.76 deg, observed 0.69 deg; sparks in the measured window 0.042 deg because they landed mid-window). Closing it at this clock needs the scheduler to arm from the previous tooth (a core change) or a capture/compare unit in the SoC. The M9 firmware drops no tooth only because the modelled capture FIFO holds 32 edges. The worst tooth-to-serviced figures are the start-up poll before the decoder has a period. Vortex-V has not verified FPGA timing at any of these clocks.
 
 ## M10: vehicle, drive cycle, replay
 
@@ -173,7 +196,7 @@ Replay: `viz/replay/index.html` (self-contained page, three.js 0.160.0 pinned on
 
 * **M6 FEA** (in progress): conrod, crankshaft fillets, piston crown and main cap to their safety-factor targets with mesh convergence.
 * **M10 stretch** (plan decision 4 default): turbocharged variant (option B: compressor/turbine maps, wastegate, boost control) and the ECU PCB in Zener. Intake-port CFD is not planned.
-* Open items carried from earlier milestones: ECU loop against the crank-angle model (M8), interrupt-driven tooth handling and a hard-float or fixed-point slow loop to fit the 7000 rpm budget (M9), maps on a knock-limited M4 at low-speed part load (M7), M4 traces with the flame model for the dynamics (M5/M10), publishing the replay, and the GitHub repository.
+* Open items carried from earlier milestones: ECU loop against the crank-angle model (M8), event scheduling from the previous tooth or a capture/compare unit in the SoC to reach 0.5 deg for every event at 7000 rpm on a 50 MHz core (M9.1), maps on a knock-limited M4 at low-speed part load (M7), M4 traces with the flame model for the dynamics (M5/M10), publishing the replay, and the GitHub repository.
 
 ## Regenerate
 

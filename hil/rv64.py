@@ -1,5 +1,6 @@
 """M9: the ECU firmware on the Vortex-V SoC RTL (Verilator), behind the same interface as
-hil.bridge.HostEcu, plus a lockstep comparator.
+hil.bridge.HostEcu, plus a lockstep comparator. This is the frozen-time command mode; the real-time
+mode of M9.1 (ADR 0005) drives the same Rv64Ecu from hil/realtime.py.
 
   Rv64Ecu       ecu/targets/rv64/build/ecu_rv64.elf running on hil/build/libvortex_soc.so. Every
                 call becomes a mailbox command (ecu/targets/rv64/hil_mbox.h): poke the arguments
@@ -27,11 +28,12 @@ import yaml
 from hil import bridge
 from redline.spec import ROOT
 
-VORTEX_V_ROOT = Path(os.environ.get("VORTEX_V_ROOT", "/home/user/vortex-v"))
+VORTEX_V_ROOT = Path(os.environ.get("VORTEX_V_ROOT", "/home/user/vortex-v-main"))
 HIL_DIR = ROOT / "hil"
 RV64_DIR = ROOT / "ecu" / "targets" / "rv64"
 MODEL_LIB = HIL_DIR / "build" / "libvortex_soc.so"
 ELF = RV64_DIR / "build" / "ecu_rv64.elf"
+M9_ELF = RV64_DIR / "build" / "m9" / "ecu_rv64.elf"      # M9 code generation (make -C ecu/targets/rv64 m9)
 IMAGE = RV64_DIR / "build" / "ecu_rv64.bin"
 REF_LIB = RV64_DIR / "build" / "libecu_host_ref.so"
 MBOX_H = RV64_DIR / "hil_mbox.h"
@@ -54,8 +56,11 @@ def toolchain_missing() -> list:
 
 
 def build(target: str = "all"):
-    """make -C hil model firmware ref (each is a no-op when up to date)."""
+    """make -C hil model firmware ref (each is a no-op when up to date); "m9": the M9 firmware build."""
     env = dict(os.environ, VORTEX_V_ROOT=str(VORTEX_V_ROOT))
+    if target == "m9":
+        subprocess.run(["make", "-s", "-C", str(RV64_DIR), "m9"], check=True, env=env)
+        return
     targets = ["model", "firmware", "ref"] if target == "all" else [target]
     subprocess.run(["make", "-s", "-C", str(HIL_DIR), *targets], check=True, env=env)
 
@@ -93,9 +98,12 @@ class RefEcu(bridge.HostEcu):
 class Rv64Ecu:
     """The firmware on the Vortex-V SoC model. Same methods as HostEcu."""
 
-    def __init__(self, do_build: bool = True):
+    def __init__(self, do_build: bool = True, elf: Path = ELF):
+        """elf: the firmware build to load (default: the optimised M9.1 build; M9_ELF is the M9
+        code generation kept as the 'before' reference)."""
         if do_build:
             build()
+        self.elf = Path(elf)
         self.cfg = cosim_spec()
         self.E = mbox_enums()
         lib = C.CDLL(str(MODEL_LIB))
@@ -112,9 +120,9 @@ class Rv64Ecu:
         lib.vx_run_until.argtypes = [vp, u64, C.c_uint32, u64]
         lib.vx_run_until.restype = C.c_int64
         self.h = lib.vx_new()
-        sym = elf_symbols()
+        sym = elf_symbols(self.elf)
         self.mbox = sym[MBOX_SYMBOL] - sym[RAM_BASE_SYMBOL]
-        image = IMAGE.read_bytes()
+        image = self.elf.with_suffix(".bin").read_bytes()
         if lib.vx_write(self.h, 0, image, len(image)) != 0:
             raise RuntimeError("firmware image larger than the SoC RAM")
         lib.vx_reset(self.h)

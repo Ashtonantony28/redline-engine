@@ -1,4 +1,4 @@
-"""M9 lockstep co-simulation: `python -m hil.cosim` (or `make -C hil cosim`).
+"""M9 lockstep (frozen-time) co-simulation: `python -m hil.cosim` (or `make -C hil cosim`).
 
 The MVEM plant drives the ECU firmware running on the Vortex-V SoC RTL in Verilator, with the host
 reference build of the same sources in lockstep. Reports
@@ -6,6 +6,8 @@ reference build of the same sources in lockstep. Reports
   * cycles per crank-tooth capture and per slow-loop iteration, and the budget at the redline speed,
   * the int8 knock sensor fixture on the RTL against the numpy golden model.
 Exit status 0 only if everything is bit-exact. All numbers are MODELLED: there is no physical engine.
+Plant time stands still while the core computes, so this mode proves bit-exactness and counts
+cycles but cannot show latency or overload; hil/realtime.py (M9.1, ADR 0005) measures those.
 """
 from __future__ import annotations
 
@@ -83,7 +85,8 @@ def budget(runs: list) -> dict:
         "slow_worst_us": worst_slow / f_clk * US_PER_S, "slow_period_us": US_PER_S / slow_hz,
         "slow_fraction_of_period": worst_slow * slow_hz / f_clk,
         "cpu_utilisation_at_redline": float(util),
-        # no interrupts on Vortex-V yet: a tooth that arrives during a slow-loop iteration waits for it
+        # what a polled main loop would cost (the M9 structure); the M9.1 firmware services teeth
+        # from the timer interrupt, measured in real time by hil/realtime.py
         "polled_worst_tooth_latency_us": (worst_slow + worst_tooth) / f_clk * US_PER_S,
         "polled_latency_within_tooth_period": bool(worst_slow + worst_tooth <= tooth_cycles),
     }
@@ -120,13 +123,14 @@ def report(runs: list, bud: dict, kn: dict | None) -> str:
           f"{bud['crank_handler_cycles_mean']:.0f} cycles; post-to-acknowledge max "
           f"{bud['crank_post_to_ack_cycles_max']} cycles = {bud['crank_worst_us']:.1f} us = "
           f"{100 * bud['crank_fraction_of_tooth_period']:.0f} % of the tooth period",
-          f"  slow loop (soft-float): handler max {bud['slow_handler_cycles_max']} / mean "
+          f"  slow loop (soft-float, rv_softfp.c): handler max {bud['slow_handler_cycles_max']} / mean "
           f"{bud['slow_handler_cycles_mean']:.0f} cycles = {bud['slow_worst_us']:.0f} us of the "
           f"{bud['slow_period_us']:.0f} us period ({100 * bud['slow_fraction_of_period']:.0f} %)",
           f"  CPU utilisation at redline (slow loop + teeth): {100 * bud['cpu_utilisation_at_redline']:.0f} %",
-          f"  polled main loop, tooth arriving during a slow-loop step: latency up to "
+          f"  if teeth were polled between slow-loop steps (M9 structure): latency up to "
           f"{bud['polled_worst_tooth_latency_us']:.0f} us "
-          f"({'within' if bud['polled_latency_within_tooth_period'] else 'EXCEEDS'} the tooth period)"]
+          f"({'within' if bud['polled_latency_within_tooth_period'] else 'EXCEEDS'} the tooth period); "
+          f"real-time figures: python -m hil.realtime"]
     if kn:
         m = kn["metrics"]["int8"]
         o += ["", f"int8 knock sensor on Xmlacc: {kn['vectors']} fixture vectors, {kn['mismatches']} mismatches vs golden"
