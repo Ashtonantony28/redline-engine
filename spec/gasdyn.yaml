@@ -109,6 +109,7 @@ friction:                      # FMEP = const + peak_pressure_factor p_max + spe
   peak_pressure_factor: 0.005  # Pa per Pa of peak cylinder pressure
   speed_factor: 0.162e+5       # Pa per (m/s) of mean piston speed
   speed_sq_factor: 0.0         # Pa per (m/s)^2
+  piston_cooling_jets: true    # add the cooling-jet oil-pump FMEP (thermo/oiljet.py, spec/thermo.yaml; M6 ADR 0006)
 
 wot:
   sweep_rpm: [1000, 7000, 250]       # default of `python -m sim.wot`

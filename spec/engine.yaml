@@ -18,7 +18,11 @@ targets:                 # modelled targets from PLAN.md sec. 2
   torque_rpm: 4500
   min_bsfc_g_per_kwh: 245
 masses:                  # design budget, checked against CAD in M1
-  piston_assembly: 0.330     # kg: piston + rings + pin + clips
+  # kg: piston + rings + pin + clips. M6: 0.330 -> 0.377 for the forged 2618 pillar/panel redesign (CAD mass,
+  # fea/design_history.json); aftermarket forged 2618 pistons for 86 mm-bore 2.0 L NA engines (e.g. Honda K20:
+  # JE, Wiseco, Manley, Supertech listings) are quoted at ~310-340 g, before or with a ~90 g pin depending
+  # on the listing, so 0.377 kg is within the typical range.
+  piston_assembly: 0.377
   conrod: 0.480              # kg total
   conrod_small_end_fraction: 0.30   # share of rod mass treated as reciprocating
   crank_inertia: 0.0200      # kg m^2 about the crank axis, without flywheel
@@ -49,5 +53,39 @@ combustion:
 materials:
   steel_crank: {E: 210.0e+9, rho: 7850.0, sut: 1000.0e+6, se: 450.0e+6}
   steel_rod: {E: 210.0e+9, rho: 7850.0, sut: 1050.0e+6, se: 480.0e+6, sy: 850.0e+6}
-  al_piston: {E: 72.0e+9, rho: 2700.0, sut: 330.0e+6, se: 110.0e+6}
+  al_piston: {E: 72.0e+9, rho: 2700.0, sut: 330.0e+6, se: 110.0e+6}   # M1 generic cast piston alloy; superseded for the piston by al_2618_t61 (M6)
+  # Forged AA 2618-T61 (EN AW-2618A T61, AlCu2Mg1.5Ni), the usual forged high-temperature piston alloy (M6
+  # redesign). Sources:
+  #  [AA]  Aluminum Association, "Aluminum Standards and Data": typical E 10.7e+6 psi (74 GPa), density
+  #        0.100 lb/in^3 (2770 kg/m^3); retrieved via secondary compilations (Engineering ToolBox, MatWeb),
+  #        to be checked against the primary table.
+  #  [ASM] ASM Handbook Vol. 2 (1990), 2618-T61 typical tensile properties at temperature, lowest strength
+  #        after up to 10,000 h exposure at temperature: 345 MPa at 149 C, 221 MPa at 204 C, 90 MPa at
+  #        260 C, 52 MPa at 316 C (as tabulated by MatWeb / vendor sheets; same caveat).
+  #  [HAN] Y. Han, J.M. Rosalie, J. Radners, M. Madia, P. von Hartrott, B. Skrotzki, "Influence of Test
+  #        Temperature and Test Frequency on Fatigue Life of Aluminum Alloy EN AW-2618A", Advanced
+  #        Engineering Materials (2026), doi:10.1002/adem.202503187 (open access). Material overaged
+  #        1000 h / 230 C (service-degraded state). Table 3: Rm 351 MPa at RT (T61 as received: 428 MPa).
+  #        Table 4, Basquin N = C sigma_a^-k, R = -1, 20 Hz, P_A = 50%: RT C = 5.3e+33, k = 12.7;
+  #        230 C C = 6.2e+20, k = 7.3 (fitted 1e5..1e7 cycles).
+  # Tables vs temperature T_K (linear interpolation, clamped at the ends):
+  #  sut_T: RT = [HAN] overaged (conservative for material soaked hot over its life); 149/204/260/316 C =
+  #         [ASM]; 230 C = [ASM] interpolated (160 MPa, below [HAN]'s 191 MPa for 1000 h, so conservative).
+  #  se_T:  fully reversed fatigue strength at fatigue_life_cycles from the [HAN] Basquin fits: RT 106.1 MPa,
+  #         230 C 56.5 MPa (an extrapolation one decade beyond the 1e7 run-out). Between RT and 230 C linear in
+  #         T (ASSUMED, only those two temperatures were tested); above 230 C scaled with the [ASM] sut_T
+  #         ratio (ASSUMED; conservative: fatigue strength usually falls less steeply than long-exposure
+  #         tensile strength). No further surface factor: [HAN] polished to Rz ~0.4 um, comparable to a
+  #         machined piston (their statement).
+  # fatigue_life_cycles 1e8 = ~890 h of continuous WOT at the 3750 rpm peak-pressure speed, i.e. longer than a
+  # typical full-load durability run (ASSUMED design life). sut / se scalars repeat the RT table values.
+  al_2618_t61:
+    E: 74.0e+9
+    rho: 2770.0
+    sut: 351.0e+6
+    se: 106.1e+6
+    fatigue_life_cycles: 1.0e+8
+    T_K:   [293.15,   422.15,   477.15,   503.15,   533.15,   589.15]
+    sut_T: [351.0e+6, 345.0e+6, 221.0e+6, 160.2e+6, 90.0e+6,  52.0e+6]
+    se_T:  [106.1e+6, 75.6e+6,  62.7e+6,  56.5e+6,  31.8e+6,  18.4e+6]
   al_block: {E: 72.0e+9, rho: 2680.0}

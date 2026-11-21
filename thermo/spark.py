@@ -18,7 +18,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-from gasdyn.friction import fmep_chen_flynn
+from gasdyn.friction import fmep_total
 from kin.slider_crank import cylinder_volume
 from thermo import twozone as tz
 from thermo.cycle import CYCLE_DEG, run_closed
@@ -98,7 +98,7 @@ class SparkModel:
         p_max = float(np.max(cl.col(tz.O_P)))
         sp = 2.0 * self.geom.stroke * rpm / SEC_PER_MIN
         W = float(cl.col(tz.O_W)[-1])
-        obj = W - fmep_chen_flynn(p_max, sp, self.gspec["friction"]) * self.geom.swept_volume
+        obj = W - fmep_total(p_max, sp, self.gspec["friction"]) * self.geom.swept_volume
         ca10, ca50, ca90 = burn_points(cl)
         return {"cl": cl, "W_closed": W, "p_max": p_max, "objective": obj, "ca10": ca10, "ca50": ca50,
                 "ca90": ca90, "knock": knock_analysis(cl, rpm, self.kspec), "adv": adv}

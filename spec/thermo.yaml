@@ -44,8 +44,25 @@ heat_transfer:
   head_area_factor: 1.30      # pent-roof head area / piston area
   piston_area_factor: 1.10    # crown area / piston area (valve reliefs, bowl)
   T_head: 480.0               # K
-  T_piston: 530.0
+  T_piston: 505.0             # K, M6: area-mean crown temperature of the jet-cooled piston FEA at the max-flux
+                              # WOT speed (fea/parts/piston.py, converged 530 -> 503 -> 505; was 530 assumed)
   T_liner: 420.0
+piston_cooling_jets:          # M6 (ADR 0006): under-crown oil jets. Design values, all MODELLED; see thermo/oiljet.py
+  enabled: true
+  orifices_per_cylinder: 2    # twin-orifice nozzle: one jet each side of the conrod small end (keeps the
+                              # piston quarter-model symmetry; a vertical jet on the axis would hit the small end)
+  orifice_diameter: 2.0e-3    # m (Stevens & Webb radial constants are tabulated for 2.2 mm; see spec/fea.yaml)
+  target_offset: 0.022        # m, impingement point from the piston axis along the thrust axis (x = 0 plane)
+  min_small_end_clearance: 0.003   # m, jet edge to conrod small-end outer radius (geometric check in fea/)
+  nozzle_to_crown_mean: 0.090 # m, cycle-mean jet length, nozzle exit to crown underside (ASSUMED layout)
+  supply_pressure: 3.0e+5     # Pa gauge, regulated gallery pressure at the nozzle (ASSUMED, typical 2-4 bar)
+  discharge_coefficient: 0.70 # Q = Cd A sqrt(2 dp / rho), short sharp-edged orifice (ASSUMED)
+  on_above_rpm: 2000.0        # check valve: jets flow above this speed, closed below (ASSUMED)
+  pump_efficiency: 0.50       # overall efficiency of the variable-displacement oil pump (ASSUMED)
+  # Oil properties: Varghese & Agarwal, SAE 2004-28-0061 input set (15W-40 at 100 C): rho 847 kg/m^3,
+  # cp 2.219 kJ/(kg K), k 0.137 W/(m K). Viscosity is NOT repeated here: spec/dynamics.yaml
+  # bearings.oil_viscosity (5W-30 at ~110 C) is the single source. Oil temperature: spec/fea.yaml T_oil.
+  oil: {rho: 847.0, cp: 2219.0, k: 0.137}
 numerics:
   step_deg: 0.1
   max_cycles: 30

@@ -25,7 +25,7 @@ import numpy as np
 
 from gasdyn.elements import Intercooler, MapCompressor, MapTurbine, Wastegate, pipe_end_state
 from gasdyn.engine import EngineModel
-from gasdyn.friction import fmep_chen_flynn
+from gasdyn.friction import fmep_total
 from redline.spec import geometry
 from sim.maps import M4Plant
 from thermo.m7spec import combustion_spec
@@ -150,7 +150,7 @@ class TurboEngine:
         imep = float(np.mean([r["imep"] for r in rec]))
         p_max = float(np.mean([r["p_max"] for r in rec]))
         sp = 2.0 * self.geom.stroke * rpm / SEC_PER_MIN
-        bmep = imep - fmep_chen_flynn(p_max, sp, self.gspec["friction"])
+        bmep = imep - fmep_total(p_max, sp, self.gspec["friction"])
         return bmep * self.geom.displacement / (2.0 * math.pi * REV_PER_CYCLE)
 
     def _cycle(self, icyc, rec):

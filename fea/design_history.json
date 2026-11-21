@@ -1,0 +1,653 @@
+[
+  {
+    "date": "2026-11-21",
+    "part": "conrod",
+    "changes": {
+      "flange_width": [
+        0.017,
+        0.02
+      ],
+      "web_thickness": [
+        0.0055,
+        0.003861
+      ]
+    },
+    "sf_before": {
+      "buckling": 5.713,
+      "fatigue": 1.362
+    },
+    "sf_after": {
+      "buckling": 5.873,
+      "fatigue": 1.637
+    },
+    "iterations": [
+      {
+        "iter": 0,
+        "params": {
+          "flange_width": 0.017,
+          "web_thickness": 0.0055
+        },
+        "sf": {
+          "buckling": 5.712676226107492,
+          "fatigue": 1.3619253161984621
+        },
+        "peak_Pa": 356185097.77110445,
+        "level": 1,
+        "mass": {
+          "piston_assembly_kg": 0.33224726062458054,
+          "conrod_kg": 0.4836080391526498,
+          "piston_rel_err": 0.006809880680546998,
+          "conrod_rel_err": 0.007516748234687176,
+          "reciprocating_kg": 0.48495456868060216
+        }
+      },
+      {
+        "iter": 1,
+        "params": {
+          "flange_width": 0.018,
+          "web_thickness": 0.004954
+        },
+        "sf": {
+          "buckling": 5.766778843124617,
+          "fatigue": 1.405769196866963
+        },
+        "peak_Pa": 327591588.35544944,
+        "level": 1,
+        "mass": {
+          "piston_assembly_kg": 0.33224726062458054,
+          "conrod_kg": 0.4836102902170706,
+          "piston_rel_err": 0.006809880680546998,
+          "conrod_rel_err": 0.00752143795223037,
+          "reciprocating_kg": 0.4851294284573649
+        }
+      },
+      {
+        "iter": 2,
+        "params": {
+          "flange_width": 0.019,
+          "web_thickness": 0.004408
+        },
+        "sf": {
+          "buckling": 5.820171625139007,
+          "fatigue": 1.470045874929179
+        },
+        "peak_Pa": 294220055.7599162,
+        "level": 1,
+        "mass": {
+          "piston_assembly_kg": 0.33224726062458054,
+          "conrod_kg": 0.4836125412814912,
+          "piston_rel_err": 0.006809880680546998,
+          "conrod_rel_err": 0.0075261276697733415,
+          "reciprocating_kg": 0.4853042882341276
+        }
+      },
+      {
+        "iter": 3,
+        "params": {
+          "flange_width": 0.02,
+          "web_thickness": 0.003861
+        },
+        "sf": {
+          "buckling": 5.872612329307299,
+          "fatigue": 1.637435497827966
+        },
+        "peak_Pa": 281323666.7700818,
+        "level": 1,
+        "mass": {
+          "piston_assembly_kg": 0.33224726062458054,
+          "conrod_kg": 0.48360259855314924,
+          "piston_rel_err": 0.006809880680546998,
+          "conrod_rel_err": 0.0075054136523942105,
+          "reciprocating_kg": 0.4854727266166062
+        }
+      }
+    ]
+  },
+  {
+    "date": "2026-11-21",
+    "part": "piston",
+    "kind": "architecture redesign: manual iterations (medium mesh, level 1); MODELLED",
+    "reason": "M6 first pass: thin-rib boss architecture failed (finest-mesh fatigue SF 0.44, static 0.71) and could not reach 1.5 within the 0.330 kg budget (probe 1.31 at 0.442 kg).",
+    "material_change": {
+      "from": "al_piston (generic, ASSUMED derating, spec/fea.yaml al_derating)",
+      "to": "al_2618_t61 (forged 2618-T61; cited S_ut(T), S_e(T) tables in spec/engine.yaml)",
+      "from_iter": 3
+    },
+    "iterations": [
+      {
+        "iter": 0,
+        "design": "M6 first pass: boss on thin rib, al_piston + assumed derating (finest mesh)",
+        "changes_vs_previous": {},
+        "sf": {
+          "fatigue": 0.437,
+          "static": 0.704
+        },
+        "piston_assembly_kg": 0.3322,
+        "level": 1
+      },
+      {
+        "iter": 1,
+        "design": "boss pillar (strut 29 mm wide at crown) + belt tie; still al_piston",
+        "changes_vs_previous": {
+          "boss_rib_thickness->boss_strut_width": 0.029,
+          "boss_belt_tie": true
+        },
+        "sf": {
+          "fatigue": 0.522
+        },
+        "piston_assembly_kg": 0.3739,
+        "level": 1
+      },
+      {
+        "iter": 2,
+        "design": "as 1 without tie, crown 7.5 mm; al_piston",
+        "changes_vs_previous": {
+          "boss_belt_tie": false,
+          "crown_thickness": 0.0075
+        },
+        "sf": {
+          "fatigue": 0.836,
+          "static": 1.226
+        },
+        "piston_assembly_kg": 0.3814,
+        "level": 1
+      },
+      {
+        "iter": 3,
+        "design": "pillar = boss width, tie, flat crown bridge; 2618-T61 cited data from here on",
+        "changes_vs_previous": {
+          "crown_bridge": true
+        },
+        "sf": {
+          "fatigue": 0.642,
+          "static": 1.048
+        },
+        "piston_assembly_kg": 0.392,
+        "level": 1
+      },
+      {
+        "iter": 4,
+        "design": "crown haunch 6 mm",
+        "changes_vs_previous": {
+          "haunch": 0.006
+        },
+        "sf": {
+          "fatigue": 0.713,
+          "static": 1.323
+        },
+        "piston_assembly_kg": 0.392,
+        "level": 1
+      },
+      {
+        "iter": 5,
+        "design": "crown 7.0 mm",
+        "changes_vs_previous": {
+          "crown_thickness": 0.007
+        },
+        "sf": {
+          "fatigue": 0.785,
+          "static": 1.391
+        },
+        "piston_assembly_kg": 0.4012,
+        "level": 1
+      },
+      {
+        "iter": 6,
+        "design": "boss radius 17 mm",
+        "changes_vs_previous": {
+          "boss_radius": 0.017
+        },
+        "sf": {
+          "fatigue": 0.914,
+          "static": 1.468
+        },
+        "piston_assembly_kg": 0.4286,
+        "level": 1
+      },
+      {
+        "iter": 7,
+        "design": "haunch 10 / 14 mm (crown thickness back to 5.6)",
+        "changes_vs_previous": {
+          "haunch": [
+            0.01,
+            0.014
+          ]
+        },
+        "sf": {
+          "fatigue": 0.855,
+          "static": 1.349
+        },
+        "piston_assembly_kg": 0.392,
+        "level": 1,
+        "note": "CAD mass did not yet include the haunch"
+      },
+      {
+        "iter": 8,
+        "design": "skirt + side panels modelled in the FEA (crude, no blends), haunch 10",
+        "changes_vs_previous": {
+          "model_skirt_and_panels": true
+        },
+        "sf": {
+          "fatigue": 1.073,
+          "static": 1.733
+        },
+        "piston_assembly_kg": 0.392,
+        "level": 1,
+        "note": "skirt without panels: 0.797, so the panels carry the load"
+      },
+      {
+        "iter": 9,
+        "design": "shared CAD/FEA pillar geometry with haunch; mass cuts: compression height 27.5, top land 5.0, skirt flat 30 (pin 61->56 mm), skirt 16 mm / 2.0 mm; vault bridge",
+        "changes_vs_previous": {
+          "compression_height": 0.0275,
+          "top_land": 0.005,
+          "skirt_flat_half_width": 0.03,
+          "skirt_below_pin": 0.016,
+          "skirt_wall": 0.002,
+          "pillar_crown_radius": 0.008
+        },
+        "sf": {
+          "fatigue": 0.524,
+          "static": 1.094
+        },
+        "piston_assembly_kg": 0.3788,
+        "level": 1,
+        "note": "knife edge where the vault met the pillar flanks"
+      },
+      {
+        "iter": 10,
+        "design": "bridge flattened at 12 mm",
+        "changes_vs_previous": {
+          "bridge_side_height": 0.012
+        },
+        "sf": {
+          "fatigue": 0.84,
+          "static": 1.717
+        },
+        "piston_assembly_kg": 0.3778,
+        "level": 1
+      },
+      {
+        "iter": 11,
+        "design": "side panels up to the crown underside, with blends",
+        "changes_vs_previous": {
+          "side_panel_to_crown": true
+        },
+        "sf": {
+          "fatigue": 0.888,
+          "static": 1.743
+        },
+        "piston_assembly_kg": 0.381,
+        "level": 1
+      },
+      {
+        "iter": 12,
+        "design": "bridge side height 9 mm (+ crown 7 mm: 0.718)",
+        "changes_vs_previous": {
+          "bridge_side_height": 0.009
+        },
+        "sf": {
+          "fatigue": 0.73,
+          "static": 1.542
+        },
+        "piston_assembly_kg": 0.3819,
+        "level": 1,
+        "note": "deeper bridge attracts load: worse"
+      },
+      {
+        "iter": 13,
+        "design": "no bridge, crown 7.0 / 8.5 mm",
+        "changes_vs_previous": {
+          "crown_bridge": false,
+          "crown_thickness": 0.0085
+        },
+        "sf": {
+          "fatigue": 1.008,
+          "static": 1.652
+        },
+        "piston_assembly_kg": 0.3887,
+        "level": 1
+      },
+      {
+        "iter": 14,
+        "design": "no belt tie (crown 8.5)",
+        "changes_vs_previous": {
+          "boss_belt_tie": false
+        },
+        "sf": {
+          "fatigue": 1.187,
+          "static": 1.737
+        },
+        "piston_assembly_kg": 0.3789,
+        "level": 1,
+        "note": "critical: hot crown top over the pin plane, sigma_a 19 MPa at 525 K"
+      },
+      {
+        "iter": 15,
+        "design": "crown ribs across the piston at |x| = 17 mm (feature since removed)",
+        "changes_vs_previous": {
+          "crown_rib_x": [
+            0.017
+          ]
+        },
+        "sf": {
+          "fatigue": 0.691,
+          "static": 1.337
+        },
+        "piston_assembly_kg": 0.3829,
+        "level": 1,
+        "note": "rib-to-pillar corner critical; crown-top point unchanged"
+      },
+      {
+        "iter": 16,
+        "design": "haunch 12 mm",
+        "changes_vs_previous": {
+          "pillar_crown_radius": 0.012
+        },
+        "sf": {
+          "fatigue": 1.184,
+          "static": 1.948
+        },
+        "piston_assembly_kg": 0.3803,
+        "level": 1
+      },
+      {
+        "iter": 17,
+        "design": "boss radius 16.5, crown 7.5",
+        "changes_vs_previous": {
+          "boss_radius": 0.0165,
+          "crown_thickness": 0.0075
+        },
+        "sf": {
+          "fatigue": 1.233,
+          "static": 1.963
+        },
+        "piston_assembly_kg": 0.3843,
+        "level": 1
+      },
+      {
+        "iter": 18,
+        "design": "side panels 4.0 mm",
+        "changes_vs_previous": {
+          "side_panel_thickness": 0.004
+        },
+        "sf": {
+          "fatigue": 1.316,
+          "static": 2.05
+        },
+        "piston_assembly_kg": 0.3928,
+        "level": 1,
+        "note": "over the ~0.380 kg cap"
+      },
+      {
+        "iter": 19,
+        "design": "boss 15.5, crown 6.5, panels 4.0, skirt 1.8",
+        "changes_vs_previous": {
+          "boss_radius": 0.0155,
+          "crown_thickness": 0.0065,
+          "skirt_wall": 0.0018
+        },
+        "sf": {
+          "fatigue": 1.193,
+          "static": 1.801
+        },
+        "piston_assembly_kg": 0.3749,
+        "level": 1,
+        "note": "critical moved to the skirt bottom at the panel; crown centre and thrust-side crown top at 1.24-1.27"
+      }
+    ],
+    "accepted_start_for_loop": {
+      "boss_radius": 0.015,
+      "crown_thickness": 0.0075,
+      "side_panel_thickness": 0.0035,
+      "skirt_wall": 0.0018,
+      "piston_assembly_kg": 0.3766
+    },
+    "budget_change": {
+      "masses.piston_assembly": [
+        0.33,
+        0.377
+      ]
+    }
+  },
+  {
+    "date": "2026-11-21",
+    "part": "conrod",
+    "changes": {
+      "flange_width": [
+        0.02,
+        0.021
+      ],
+      "web_thickness": [
+        0.003861,
+        0.003315
+      ]
+    },
+    "sf_before": {
+      "buckling": 5.888,
+      "fatigue": 1.512
+    },
+    "sf_after": {
+      "buckling": 5.941,
+      "fatigue": 1.508
+    },
+    "iterations": [
+      {
+        "iter": 0,
+        "params": {
+          "flange_width": 0.02,
+          "web_thickness": 0.003861
+        },
+        "sf": {
+          "buckling": 5.8881735102126855,
+          "fatigue": 1.5115030621837147
+        },
+        "peak_Pa": 401711588.8926218,
+        "level": 1,
+        "mass": {
+          "piston_assembly_kg": 0.3766094364217324,
+          "conrod_kg": 0.48360259855314924,
+          "piston_rel_err": -0.0010359776611873484,
+          "conrod_rel_err": 0.0075054136523942105,
+          "reciprocating_kg": 0.5298349024137581
+        }
+      },
+      {
+        "iter": 1,
+        "params": {
+          "flange_width": 0.021,
+          "web_thickness": 0.003315
+        },
+        "sf": {
+          "buckling": 5.940513365277389,
+          "fatigue": 1.5079671839509268
+        },
+        "peak_Pa": 402647331.0230481,
+        "level": 1,
+        "mass": {
+          "piston_assembly_kg": 0.3766094364217324,
+          "conrod_kg": 0.48360484961756744,
+          "piston_rel_err": -0.0010359776611873484,
+          "conrod_rel_err": 0.007510103369932297,
+          "reciprocating_kg": 0.5300097621905194
+        }
+      }
+    ]
+  },
+  {
+    "date": "2026-11-21",
+    "part": "piston",
+    "kind": "thermal design decision + structural rebalance: manual medium-mesh (level 1) probes, then fea.run --all; MODELLED",
+    "reason": "pillar architecture without cooling: finest-mesh fatigue SF 1.25 (target 1.5), critical at the crown top over the pin plane, 524 K, sigma_a 19.0 / sigma_m 36.0 MPa vs S_e 39.7 / S_ut 112.6 MPa; cited 2618 fatigue data end at 503 K; more mass caps at about 1.38.",
+    "decision": "under-crown piston cooling jets (ADR 0006): twin 2.0 mm orifices per cylinder, 3.0 bar, 18.6 m/s, 28.1 L/min engine, Stevens & Webb (1991) impingement h (stagnation 14.4 kW/m^2K); no cooling gallery needed",
+    "thermal_consistency": [
+      {
+        "T_piston_spec_K": 530.0,
+        "fea_crown_mean_K": 501.6,
+        "design": "pre-rebalance geometry, level 1"
+      },
+      {
+        "T_piston_spec_K": 503.0,
+        "fea_crown_mean_K": 505.2,
+        "design": "pre-rebalance geometry, level 1"
+      },
+      {
+        "T_piston_spec_K": 505.0,
+        "fea_crown_mean_K": 505.16,
+        "design": "final geometry, level 1"
+      },
+      {
+        "T_piston_spec_K": 505.0,
+        "fea_crown_mean_K": 505.17,
+        "design": "final geometry, finest mesh (fea.run --all)"
+      }
+    ],
+    "iterations": [
+      {
+        "iter": 0,
+        "design": "jets on, T_piston 530 (flux), pre-rebalance geometry",
+        "sf": {
+          "fatigue": 1.327,
+          "static": 2.657
+        },
+        "level": 1,
+        "note": "crown top now SF ~1.8 (crown mean 501.6 K, max 513 K); critical moved to the skirt bottom at the side-panel/skirt-bore junction (404 K, purely mechanical: sigma_a 60 MPa) and the pillar haunch (1.56)"
+      },
+      {
+        "iter": 1,
+        "design": "T_piston 503",
+        "sf": {
+          "fatigue": 1.324,
+          "static": 2.452
+        },
+        "level": 1
+      },
+      {
+        "iter": 2,
+        "design": "all panel blends 2 -> 3 mm (probe)",
+        "changes_vs_previous": {
+          "panel_fillet": 0.003
+        },
+        "sf": {
+          "fatigue": 1.446,
+          "static": 2.45
+        },
+        "level": 1
+      },
+      {
+        "iter": 3,
+        "design": "side panels 3.5 -> 4.0 mm, skirt rebalanced 1.8 -> 1.37 mm (probe)",
+        "changes_vs_previous": {
+          "side_panel_thickness": 0.004,
+          "skirt_wall": 0.001366
+        },
+        "sf": {
+          "fatigue": 1.276,
+          "static": 2.366
+        },
+        "level": 1,
+        "note": "thinner skirt makes the junction worse: the junction wants skirt wall"
+      },
+      {
+        "iter": 4,
+        "design": "side panels 3.0 mm, skirt rebalanced 2.20 mm (probe)",
+        "changes_vs_previous": {
+          "side_panel_thickness": 0.003,
+          "skirt_wall": 0.002203
+        },
+        "sf": {
+          "fatigue": 1.469,
+          "static": 2.518
+        },
+        "level": 1
+      },
+      {
+        "iter": 5,
+        "design": "all panel blends 4 mm (probe)",
+        "changes_vs_previous": {
+          "panel_fillet": 0.004
+        },
+        "sf": {
+          "fatigue": 1.507,
+          "static": 2.451
+        },
+        "level": 1
+      },
+      {
+        "iter": 6,
+        "design": "side panels 3.0 + panel-to-skirt blend 4 mm only (panel_skirt_fillet)",
+        "changes_vs_previous": {
+          "side_panel_thickness": 0.003,
+          "skirt_wall": 0.002203,
+          "panel_skirt_fillet": 0.004
+        },
+        "sf": {
+          "fatigue": 1.533,
+          "static": 2.521
+        },
+        "level": 1,
+        "note": "critical: pillar haunch inner edge (473 K)"
+      },
+      {
+        "iter": 7,
+        "design": "panel_skirt_fillet 5 mm, panels 3.25 (probe)",
+        "changes_vs_previous": {
+          "side_panel_thickness": 0.00325,
+          "panel_skirt_fillet": 0.005
+        },
+        "sf": null,
+        "level": 1,
+        "note": "build123d boolean failure at 5 mm; not pursued"
+      },
+      {
+        "iter": 8,
+        "design": "ACCEPTED: panels 3.0, haunch 8 -> 10 mm, skirt rebalanced 2.02 mm, panel_skirt_fillet 4 mm",
+        "changes_vs_previous": {
+          "pillar_crown_radius": 0.01,
+          "skirt_wall": 0.00202
+        },
+        "sf": {
+          "fatigue": 1.616,
+          "static": 2.429
+        },
+        "level": 1,
+        "piston_assembly_kg": 0.3766
+      }
+    ],
+    "changes": {
+      "side_panel_thickness": [
+        0.0035,
+        0.003
+      ],
+      "skirt_wall": [
+        0.0018,
+        0.00202
+      ],
+      "pillar_crown_radius": [
+        0.008,
+        0.01
+      ],
+      "fea.yaml defeature.panel_skirt_fillet": [
+        0.002,
+        0.004
+      ],
+      "thermo.yaml T_piston": [
+        530.0,
+        505.0
+      ]
+    },
+    "final_finest_mesh": {
+      "sf": {
+        "fatigue": 1.573,
+        "static": 2.413
+      },
+      "peaks_MPa": [
+        95.8,
+        99.2,
+        103.5
+      ],
+      "change_finest_two": 0.0419,
+      "critical": "skirt bottom edge at the side-panel/skirt-bore blend, (26.8, 33.6, -16.0) mm, 404 K"
+    }
+  }
+]

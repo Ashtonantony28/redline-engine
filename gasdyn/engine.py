@@ -37,7 +37,7 @@ from dataclasses import dataclass, field
 import numpy as np
 
 from gasdyn import fv
-from gasdyn.friction import fmep_chen_flynn
+from gasdyn.friction import fmep_jets, fmep_total
 from gasdyn.network import Network, numerics_vector
 from gasdyn.spec import gasdyn_spec, valvetrain_spec, with_overrides
 from kin.cam import design_cams
@@ -385,7 +385,7 @@ class EngineModel:
         imep = mean("imep")
         p_max = mean("p_max")
         sp = 2.0 * self.geom.stroke * rpm / SEC_PER_MIN
-        fmep = fmep_chen_flynn(p_max, sp, self.gspec["friction"])
+        fmep = fmep_total(p_max, sp, self.gspec["friction"])
         bmep = imep - fmep
         disp = self.geom.displacement
         torque = bmep * disp / (2.0 * math.pi * REV_PER_CYCLE)
@@ -400,6 +400,7 @@ class EngineModel:
             "rpm": rpm,
             "imep_net_bar": imep / 1e5,
             "fmep_bar": fmep / 1e5,
+            "fmep_jets_bar": fmep_jets(sp, self.gspec["friction"]) / 1e5,
             "bmep_bar": bmep / 1e5,
             "torque_nm": torque,
             "power_kw": power / 1e3,

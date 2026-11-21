@@ -34,7 +34,7 @@ from pathlib import Path
 import numpy as np
 
 from gasdyn.engine import EngineModel, throttle_area
-from gasdyn.friction import fmep_chen_flynn
+from gasdyn.friction import fmep_total
 from redline.spec import ROOT, geometry, load
 from thermo import gasexchange as gx
 from thermo.cycle import run_cycle
@@ -247,7 +247,7 @@ class QuasiSteadyPlant(_Common):
                 opt = self.sm.optimise(st, rpm)
         m = res.metrics
         sp = 2.0 * self.geom.stroke * rpm / SEC_PER_MIN
-        fmep = fmep_chen_flynn(m["p_max_bar"] * PA_PER_BAR, sp, self.gspec["friction"])
+        fmep = fmep_total(m["p_max_bar"] * PA_PER_BAR, sp, self.gspec["friction"])
         bmep = m["imep_net_bar"] * PA_PER_BAR - fmep
         vd = self.geom.swept_volume
         torque = bmep * self.geom.displacement / (2.0 * math.pi * REV_PER_CYCLE)

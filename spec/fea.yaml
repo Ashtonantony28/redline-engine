@@ -1,0 +1,171 @@
+# Redline M6 structural FEA parameters (supplements spec/engine.yaml, spec/cad.yaml, spec/thermo.yaml and
+# spec/dynamics.yaml; never duplicates them). SI units (ADR 0001) except mesh sizes, which are in CAD
+# units (mm) because the meshes are generated from the mm STEP exports. Everything here is a MODELLED
+# design-study assumption: there is no physical engine. Exponents carry explicit signs (PyYAML reads
+# 1e5 as a string).
+
+solver:
+  threads: 4                     # OpenMP threads for ccx and gmsh
+  workdir: out/fea/work          # scratch decks, relative to the repo root
+  outdir: out/fea
+
+targets:                         # PLAN.md sec. 5, M6 exit criteria
+  buckling_sf: 3.0               # conrod shank, Euler/Johnson, both planes
+  fatigue_sf: 1.5                # Goodman, every part (and the main-cap bolts)
+  # Piston static check: S_ut(T) / von Mises (peak pressure + thermal) at every assessed node, S_ut at the
+  # node temperature from the cited alloy table. Same 1.5 as fatigue (no separate PLAN.md number).
+  piston_static_sf: 1.5
+
+convergence:
+  max_change: 0.05               # peak-stress change allowed between the two finest meshes
+  levels: 3
+
+loads:
+  load: full                     # thermo.yaml load case used for the WOT sweep
+  rpm_sweep: {min: 1000.0, max: 7000.0, step: 250.0}   # WOT thermo sweep; worst speed picked per part
+  theta_step_deg: 1.0            # crank-angle grid for load histories (0..720)
+  # Overrun at redline: closed throttle, fuel cut. Cylinder pressure at gas-exchange TDC is taken
+  # equal to the crankcase pressure (dynamics.yaml layout.crankcase_pressure), so the rod sees pure
+  # reciprocating inertia (conservative: any residual cylinder pressure would reduce the tension).
+  overrun_gas_force: zero
+
+materials:                       # supplements to engine.yaml materials (E, rho, sut, se, sy live there)
+  poisson: {steel_rod: 0.29, steel_crank: 0.29, al_piston: 0.33, al_2618_t61: 0.33}
+  piston_thermal:                # keyed by the piston material (spec/cad.yaml materials.piston)
+    al_2618_t61:
+      k: 146.0                   # W/(m K), 2618-T61 at 25 C, Aluminum Association typical (secondary source)
+      alpha: 22.3e-6             # 1/K, 20-100 C, Aluminum Association typical (secondary source)
+      t_ref: 293.15              # K, stress-free reference temperature
+  # Piston strength vs temperature: the cited S_ut(T) / S_e(T) tables of the piston material in
+  # spec/engine.yaml (al_2618_t61). The M1-era ASSUMED derating factors (al_derating) are retired with the
+  # change of alloy. E is held at its room-temperature value (documented simplification).
+  # Main bearing cap: the CAD block is one aluminium casting (engine.yaml al_block has no strength
+  # data), so the cap is modelled as a separate nodular-iron cap. ASSUMED EN-GJS-600-3 class values.
+  main_cap: {E: 1.69e+11, nu: 0.275, rho: 7100.0, sut: 600.0e+6, sy: 370.0e+6, se: 230.0e+6}
+  # Main-cap bolts: ISO 898-1 property class 10.9 (proof 830 MPa, sut 1040 MPa); fully corrected
+  # endurance strength of rolled threads 162 MPa (Shigley, Mechanical Engineering Design, Table 8-17).
+  bolt: {E: 2.07e+11, sp: 830.0e+6, sut: 1040.0e+6, se: 162.0e+6}
+
+conrod:
+  # Meshing-ready reconstruction of cad/conrod.py from the same spec/cad.yaml parameters, with the
+  # blend radii the CAD omits (sharp re-entrant corners would make peak stress mesh-dependent).
+  defeature:
+    eye_shank_blend: 0.010       # m, shank-to-eye blend in the rod plane
+    boss_eye_blend: 0.003        # m, bolt boss to big-end eye
+    flank_fillet: 0.002          # m, flange face (x = flange half width) to eye
+    pocket_corner: 0.004         # m, I-beam pocket corners in the rod plane
+    web_fillet: 0.0015           # m, web to flange inside the pocket
+    pocket_end_gap: 0.002        # m, pocket ends kept off the eyes (CAD pocket ends are tangent to them)
+  mesh: {h_max: [3.0, 2.1, 1.5], curvature_pts: [16, 24, 32], h_min_ratio: 0.1}   # mm
+  buckling:
+    in_plane_K: 1.0              # effective-length factor, bending in the rod swing plane (pinned ends)
+    out_of_plane_K: 0.5          # bending out of the swing plane (ends clamped by pin and crankpin width)
+  roi_exclusion: 0.003           # m, nodes this close to a point support are not assessed (St Venant)
+  iterate:                       # if an SF misses, grow these spec/cad.yaml conrod parameters
+    # The fatigue hot spot is the step where the flange face (flange_width) meets the wider eyes; thicker
+    # flanges/web barely help there (checked), a wider flange removes the step. The added mass is taken
+    # back out of the web so the CAD rod mass stays at its pre-iteration value (M1 budget).
+    params: [flange_width]
+    step: 0.001                  # m per iteration
+    max_iter: 6
+    rebalance: web_thickness
+    rebalance_mass: conrod
+    rebalance_min: 0.003         # m, thinnest acceptable web
+
+crankshaft:
+  # Single throw (cylinder 1 geometry: half main journal, web, pin, web, half main journal), meshed
+  # from a reconstruction of cad/crankshaft.py with the journal and pin fillets of spec/cad.yaml.
+  # Bulk size h_max; the fillets get `fillet_size` on the half ring facing the other journal (pin fillet:
+  # side towards the crank axis; main fillet: side towards the pin), where bending + torsion peak, and
+  # fillet_ring_factor * fillet_size on the rest of the ring. Curvature sizing off (sizes are explicit).
+  mesh: {h_max: [10.0, 8.5, 7.0], fillet_size: [1.5, 1.05, 0.75], curvature_pts: [0, 0, 0], h_min_ratio: 0.02}
+  # chunky 3D throw: ccx's PCG solver is ~2x faster than SPOOLES here; its peak stress differs from the
+  # direct solve by ~0.1% (checked on the coarse mesh), far inside the 5% convergence criterion
+  solver: ITERATIVE CHOLESKY
+  fillet_ring_factor: 2.0
+  fillet_ramp: 0.005             # m, distance over which the fillet size grows back to h_max
+  roi_exclusion: 0.004           # m from the rigid journal end faces (bearing centre planes)
+  band_exclusion: 0.001          # m beyond the pin load band (distributing-coupling nodal loads)
+  pin_load_band: 0.6             # share of the half pin width (from the mid plane) carrying the rod load
+  iterate:
+    params: [pin_fillet_radius, main_fillet_radius]
+    step: 0.0005
+    max_iter: 6
+
+piston:
+  # Quarter model (pin-axis and thrust-axis symmetry planes). Reconstruction of cad/piston.py (M6 redesign:
+  # boss pillars, side panels up to the crown) with: ring grooves filled (groove-root stresses are not
+  # assessed; the lands make the grooved belt nearly as stiff as a solid one), circlip grooves removed, and
+  # the blends below added. Skirt and side panels ARE modelled: the panels carry belt and crown load into the
+  # bosses (the M6 first pass removed them and so understated the crown support); side thrust on the skirt is
+  # still not applied. The pillars (and their blends) are the CAD geometry itself (cad.piston.boss_pillars).
+  # The ring-belt film acts on the whole outer surface (top land, belt and skirt).
+  defeature:
+    crown_under_fillet: 0.004    # m, crown underside to ring-belt inner wall
+    skirt_belt_fillet: 0.002     # m, skirt bore to ring-belt bottom
+    panel_fillet: 0.002          # m, side panel to ring-belt wall / pillar flanks, and the skirt-relief corner
+    panel_skirt_fillet: 0.004    # m, side panel to skirt bore below the belt (cooling-jet redesign, ADR 0006: drawing
+                                 # requirement; 2 mm gave SF 1.47 at the skirt-bottom junction, medium mesh)
+  thermal:
+    # Mean crown heat flux comes from Woschni over the WOT cycle (thermo/) at the spec piston wall
+    # temperature (thermo.yaml heat_transfer.T_piston), scaled by piston_area_factor onto the flat crown.
+    ring_belt_h: 1500.0          # W/(m^2 K), belt -> rings -> liner, sink = thermo.yaml T_liner (ASSUMED)
+    # Underside splash / mist film on every underside face (skirt, panels, pillars, bosses, crown underside).
+    # Value frozen from the M6 first-pass calibration (finest mesh: 1550 W/(m^2 K) made the no-jet area-mean
+    # crown temperature equal the M2 assumption T_piston = 530 K). With the cooling jets the crown
+    # temperature is an OUTPUT; thermo.yaml T_piston is then set to it (consistency check below).
+    underside_h_splash: 1550.0   # W/(m^2 K)
+    pin_bore_h: 800.0            # W/(m^2 K), pin bore to oil (ASSUMED)
+    T_oil: 383.15                # K, ~110 C sump / gallery oil (consistent with dynamics.yaml oil viscosity point)
+    thermal_rpm: max_flux        # pick the WOT speed with the largest mean crown heat flux
+    # Piston cooling jets (hardware in thermo.yaml piston_cooling_jets): on underside faces that face the jet
+    # (outward normal n_z < facing_nz) the film is max(splash, jet), the jet h from Stevens & Webb (1991) at
+    # the face-centroid distance from the nearest jet axis (thermo/oiljet.py). Exponents carry explicit signs.
+    jets:
+      facing_nz: -0.5
+      correlation:               # Stevens & Webb, J. Heat Transfer 113 (1991) 71-78, via Varghese & Agarwal SAE 2004-28-0061
+        C: 2.67
+        re_exp: +0.567
+        pr_exp: +0.4
+        zd_exp: -0.0336          # (z/d); the SAE restatement prints -0.336 (OCR/typo), the 1991 value is -0.0336
+        ud_exp: -0.237           # (u/d) in 1/s (dimensional, as published)
+        re_range: [4.0e+3, 5.2e+4]
+        radial:                  # Nu/Nu0 = [1 + f^-n]^(-1/n), f = a exp(b_exp r/d); d = 2.2 mm row of Table 1
+          a: 1.13
+          b_exp: -0.23           # decaying form (ASSUMED reading, see thermo/oiljet.py); the 2.2 mm row decays
+                                 # faster than a 2.0 mm jet would (b grows with d), so conservative here
+          n: 9.0
+    # Thermal consistency: area-mean crown temperature of the FEA vs thermo.yaml T_piston (the wall
+    # temperature behind the Woschni flux); the converged design must agree to within tol_K.
+    consistency_tol_K: 3.0
+  mesh: {h_max: [3.0, 2.1, 1.5], curvature_pts: [16, 24, 32], h_min_ratio: 0.1}
+  roi_exclusion: 0.003
+  iterate:
+    # With the cooling jets the hot crown top no longer governs (it did before: side panels were the lever
+    # then). The limiters are the skirt-bottom panel junction (wants skirt wall, i.e. less panel) and the
+    # pillar-to-crown haunch; a larger haunch radius raised both (medium-mesh probes, fea/design_history.json).
+    # The added mass comes out of the skirt wall.
+    params: [pillar_crown_radius]
+    step: 0.001
+    max_iter: 6
+    rebalance: skirt_wall        # keep the M1 piston-assembly mass budget by thinning this
+    rebalance_mass: piston_assembly
+    rebalance_min: 0.0015        # m, thinnest acceptable skirt wall
+  # Budget-free probes, evaluated (medium mesh) only if the loop stops short of the target: they show
+  # how far the CAD piston architecture is from the target when the mass budget is ignored.
+  probes:
+    - {side_panel_thickness: 0.0055, crown_thickness: 0.0085}
+    - {side_panel_thickness: 0.0070, crown_thickness: 0.0100, boss_radius: 0.0175}
+
+main_cap:
+  # Geometry lives in spec/cad.yaml main_cap. Bolts: one each side, preloaded to preload_fraction of
+  # proof load. Joint face (crank axis plane) modelled as frictionless normal support (valid while the
+  # joint stays closed; checked analytically with the joint stiffness factor).
+  bolt_stress_area: 61.2e-6      # m^2, M10x1.25 (ISO 898-1 Table 6)
+  bolt_nominal_d: 0.010          # m
+  preload_fraction: 0.75         # of proof load (Shigley eq. 8-31, reusable connection)
+  mesh: {h_max: [4.0, 2.8, 2.0], curvature_pts: [16, 24, 32], h_min_ratio: 0.1}
+  iterate:
+    params: [depth_below_bore]
+    step: 0.001
+    max_iter: 6

@@ -234,7 +234,7 @@ def idle_trace(rpm: float | None = None, spec: dict | None = None, dspec: dict |
     """REAL idle trace: thermo/ cycle at the intake pressure where net IMEP equals the Chen-Flynn FMEP
     (spec/gasdyn.yaml friction), i.e. zero brake torque at idle speed."""
     from scipy.optimize import brentq
-    from gasdyn.friction import fmep_chen_flynn
+    from gasdyn.friction import fmep_total
     from gasdyn.spec import gasdyn_spec
 
     spec = spec or params.engine_spec()
@@ -246,12 +246,12 @@ def idle_trace(rpm: float | None = None, spec: dict | None = None, dspec: dict |
 
     def bmep(p_int):
         tr, met = thermo_trace(rpm, p_int, spec, dspec)
-        return met["imep_net_bar"] * 1.0e5 - fmep_chen_flynn(tr.peak, sp, fr)
+        return met["imep_net_bar"] * 1.0e5 - fmep_total(tr.peak, sp, fr)
 
     lo, hi = idl["p_intake_bracket"]
     p_int = brentq(bmep, float(lo), float(hi), xtol=float(idl["p_intake_tol"]))
     tr, met = thermo_trace(rpm, p_int, spec, dspec)
-    tr.meta["fmep_bar"] = fmep_chen_flynn(tr.peak, sp, fr) / 1.0e5
+    tr.meta["fmep_bar"] = fmep_total(tr.peak, sp, fr) / 1.0e5
     return tr
 
 
