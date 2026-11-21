@@ -1,0 +1,286 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redline Engine Replay</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Ccircle cx='8' cy='8' r='6' fill='%232a78d6'/%3E%3C/svg%3E">
+<style>
+:root {
+  --bg: #f6f6f4; --surface: #ffffff; --ink: #141414; --ink-2: #55544f; --line: #e2e1dc; --grid: #ecebe7;
+  --accent: #2a78d6; --s1: #2a78d6; --s2: #eb6834; --s3: #1baf7a; --s4: #b07fd8; --badge: #fff4e0; --badge-ink: #8a5a00;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #111213; --surface: #1a1b1d; --ink: #ecebe7; --ink-2: #a3a29c; --line: #2c2d30; --grid: #232427;
+    --accent: #5b9bea; --s1: #5b9bea; --s2: #f08a5d; --s3: #3cc893; --s4: #c39be6; --badge: #3a2e14; --badge-ink: #f5c86b;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #111213; --surface: #1a1b1d; --ink: #ecebe7; --ink-2: #a3a29c; --line: #2c2d30; --grid: #232427;
+  --accent: #5b9bea; --s1: #5b9bea; --s2: #f08a5d; --s3: #3cc893; --s4: #c39be6; --badge: #3a2e14; --badge-ink: #f5c86b;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; }
+body { background: var(--bg); color: var(--ink); font: 14px/1.4 system-ui, -apple-system, "Segoe UI", sans-serif; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; padding: 12px 16px 8px; }
+h1 { font-size: 17px; margin: 0; font-weight: 600; }
+.badge { background: var(--badge); color: var(--badge-ink); border-radius: 4px; padding: 1px 7px; font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+.sub { color: var(--ink-2); font-size: 13px; }
+.metrics { display: flex; flex-wrap: wrap; gap: 6px 18px; padding: 0 16px 8px; color: var(--ink-2); font-size: 13px; }
+.metrics b { color: var(--ink); font-variant-numeric: tabular-nums; font-weight: 600; }
+.controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; padding: 0 16px 10px; font-size: 13px; color: var(--ink-2); }
+.controls button, .controls select { font: inherit; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 4px 10px; cursor: pointer; }
+.controls label { display: inline-flex; align-items: center; gap: 6px; }
+.controls input[type=range] { width: 140px; accent-color: var(--accent); }
+main { display: grid; grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr); gap: 12px; padding: 0 16px 16px; height: calc(100% - 118px); min-height: 520px; }
+#view { position: relative; background: var(--surface); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; min-height: 360px; }
+#view canvas { display: block; }
+#angle { position: absolute; left: 12px; bottom: 10px; font-variant-numeric: tabular-nums; color: var(--ink-2); font-size: 13px; }
+#status { position: absolute; inset: 0; display: grid; place-items: center; color: var(--ink-2); }
+.panels { display: grid; grid-template-rows: repeat(4, minmax(0, 1fr)); gap: 10px; min-height: 0; }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 8px; padding: 6px 8px 4px; display: flex; flex-direction: column; min-height: 120px; }
+.panel h2 { font-size: 12.5px; font-weight: 600; margin: 0 0 2px; }
+.panel h2 span { font-weight: 400; color: var(--ink-2); }
+.panel canvas { flex: 1; width: 100%; min-height: 0; }
+footer { padding: 0 16px 14px; color: var(--ink-2); font-size: 12px; }
+@media (max-width: 860px) {
+  main { grid-template-columns: 1fr; height: auto; }
+  #view { height: 58vh; }
+  .panels { grid-template-rows: none; }
+  .panel { height: 190px; }
+}
+</style>
+<script type="importmap">
+{ "imports": { "three": "__THREE_MODULE__", "three/addons/": "__THREE_ADDONS__" } }
+</script>
+</head>
+<body>
+<header>
+  <h1>Redline I4-2.0 NA replay</h1>
+  <span class="badge">MODELLED</span>
+  <span class="sub" id="subtitle"></span>
+</header>
+<div class="metrics" id="metrics"></div>
+<div class="controls">
+  <button id="play" type="button">Pause</button>
+  <label>Slow motion <input id="slow" type="range"> <span id="slowv"></span></label>
+  <label>Cylinder <select id="cyl"></select></label>
+  <label><input id="showHead" type="checkbox"> Head</label>
+  <label><input id="showBlock" type="checkbox" checked> Block</label>
+</div>
+<main>
+  <div id="view"><div id="status">Loading CAD and three.js __THREE_VERSION__...</div><div id="angle"></div></div>
+  <div class="panels">
+    <div class="panel"><h2>P-V diagram <span id="pvlab"></span></h2><canvas id="c-pv"></canvas></div>
+    <div class="panel"><h2>Cylinder pressure <span>vs crank angle, bar</span></h2><canvas id="c-p"></canvas></div>
+    <div class="panel"><h2>Crank torque <span>engine (gas + inertia), N m</span></h2><canvas id="c-t"></canvas></div>
+    <div class="panel"><h2>Valve lift <span id="liftlab"></span></h2><canvas id="c-l"></canvas></div>
+  </div>
+</main>
+<footer id="foot"></footer>
+<script type="application/json" id="replay-config">__CONFIG_JSON__</script>
+<script type="application/json" id="replay-data">__DATA_JSON__</script>
+<script type="application/json" id="replay-glb">__GLB_JSON__</script>
+<script type="module">
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const D = JSON.parse(document.getElementById('replay-data').textContent);
+const CFG = JSON.parse(document.getElementById('replay-config').textContent);
+const GLB = JSON.parse(document.getElementById('replay-glb').textContent);
+const N = D.theta_deg.length, STEP = D.theta_deg[1] - D.theta_deg[0], CYCLE = 720, NC = D.geometry.cylinder_x.length;
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const state = { theta: 0, playing: true, slow: CFG.playback.default_slowdown, cyl: 0, frames: 0, ready: false };
+window.__replay = state;
+
+// ---------------------------------------------------------------- header
+const m = D.metrics;
+document.getElementById('subtitle').textContent = `${D.rpm.toFixed(0)} rpm, wide-open throttle, M4 1D gas-dynamics engine`;
+document.getElementById('metrics').innerHTML =
+  `<span>Brake torque <b>${m.torque_nm.toFixed(1)} N m</b></span><span>Power <b>${m.power_kw.toFixed(1)} kW</b></span>` +
+  `<span>Net IMEP <b>${m.imep_net_bar.toFixed(2)} bar</b></span><span>Peak pressure <b>${m.p_max_bar.toFixed(1)} bar</b></span>` +
+  `<span>BSFC <b>${m.bsfc_g_per_kwh.toFixed(0)} g/kWh</b></span><span>Mean crank torque (indicated) <b>${D.torque_mean_nm.toFixed(1)} N m</b></span>`;
+document.getElementById('foot').textContent = `${D.note} Pressure: ${D.sources.pressure}. Torque: ${D.sources.torque}. ` +
+  `Kinematics: ${D.sources.kinematics}. Valve lift: ${D.sources.valve_lift}. CAD: ${D.sources.cad}.`;
+const cylSel = document.getElementById('cyl');
+for (let c = 0; c < NC; c++) cylSel.add(new Option(`${c + 1}`, c));
+cylSel.onchange = () => { state.cyl = +cylSel.value; drawStatic(); };
+const slow = document.getElementById('slow');
+slow.min = CFG.playback.min_slowdown; slow.max = CFG.playback.max_slowdown; slow.value = state.slow;
+const slowv = document.getElementById('slowv');
+const setSlow = () => { state.slow = +slow.value; slowv.textContent = `1/${state.slow.toFixed(0)}x`; };
+slow.oninput = setSlow; setSlow();
+const play = document.getElementById('play');
+play.onclick = () => { state.playing = !state.playing; play.textContent = state.playing ? 'Pause' : 'Play'; };
+
+// ---------------------------------------------------------------- frame interpolation
+function frame(thetaDeg) {
+  const t = ((thetaDeg % CYCLE) + CYCLE) % CYCLE;
+  const f = t / STEP, i0 = Math.floor(f) % N, i1 = (i0 + 1) % N, w = f - Math.floor(f);
+  return { i0, i1, w, t, lerp: (a) => a[i0] + (a[i1] - a[i0]) * w };
+}
+
+// ---------------------------------------------------------------- 3D scene
+const view = document.getElementById('view');
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+view.prepend(renderer.domElement);
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(35, 1, 0.01, 10);
+camera.position.set(0.62, 0.36, 0.72);
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.target.set(0, 0.11, 0);
+controls.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x444450, 1.6));
+const sun = new THREE.DirectionalLight(0xffffff, 2.2); sun.position.set(0.8, 1.2, 0.9); scene.add(sun);
+const fill = new THREE.DirectionalLight(0xffffff, 0.8); fill.position.set(-0.9, 0.3, -0.6); scene.add(fill);
+// CAD frame is Z-up (x along the crank, ADR 0001); three.js is Y-up
+const cad = new THREE.Group(); cad.rotation.x = -Math.PI / 2; scene.add(cad);
+
+const MATS = {
+  crankshaft: new THREE.MeshStandardMaterial({ color: 0x8c949e, metalness: 0.85, roughness: 0.32 }),
+  conrod: new THREE.MeshStandardMaterial({ color: 0x5c6670, metalness: 0.8, roughness: 0.38 }),
+  piston_assembly: new THREE.MeshStandardMaterial({ color: 0xc9ccd1, metalness: 0.6, roughness: 0.42 }),
+  block: new THREE.MeshStandardMaterial({ color: 0x9aa7b5, metalness: 0.2, roughness: 0.6, transparent: true,
+    opacity: CFG.cad.translucent_opacity, depthWrite: false, side: THREE.DoubleSide }),
+  head: new THREE.MeshStandardMaterial({ color: 0xa8b0a0, metalness: 0.2, roughness: 0.6, transparent: true,
+    opacity: CFG.cad.translucent_opacity * 1.6, depthWrite: false, side: THREE.DoubleSide }),
+};
+function b64ToBuffer(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; }
+function loadPart(name) {
+  return new Promise((res, rej) => new GLTFLoader().parse(b64ToBuffer(GLB[name]), '', (g) => {
+    // undo the exporter's Z-up -> Y-up root rotation: keep geometry in the CAD frame (metres)
+    for (const ch of g.scene.children) { ch.quaternion.identity(); ch.position.set(0, 0, 0); }
+    g.scene.traverse(o => { if (o.isMesh) { o.material = MATS[name]; o.renderOrder = CFG.cad.translucent.includes(name) ? 2 : 0; } });
+    res(g.scene);
+  }, rej));
+}
+const parts = {};
+async function buildScene() {
+  const src = {};
+  for (const n of CFG.cad.parts) src[n] = await loadPart(n);
+  parts.crank = new THREE.Group(); parts.crank.add(src.crankshaft); cad.add(parts.crank);
+  parts.rods = []; parts.pistons = [];
+  for (let c = 0; c < NC; c++) {
+    const rod = new THREE.Group(); rod.add(c ? src.conrod.clone(true) : src.conrod); cad.add(rod); parts.rods.push(rod);
+    const pis = new THREE.Group(); pis.add(c ? src.piston_assembly.clone(true) : src.piston_assembly); cad.add(pis); parts.pistons.push(pis);
+  }
+  parts.block = src.block; parts.head = src.head; cad.add(src.block); cad.add(src.head);
+  const showHead = document.getElementById('showHead'), showBlock = document.getElementById('showBlock');
+  showHead.checked = !CFG.cad.hidden_by_default.includes('head');
+  showBlock.checked = !CFG.cad.hidden_by_default.includes('block');
+  const vis = () => { parts.head.visible = showHead.checked; parts.block.visible = showBlock.checked; };
+  showHead.onchange = vis; showBlock.onchange = vis; vis();
+}
+function pose(thetaDeg) {
+  const F = frame(thetaDeg), g = D.geometry;
+  parts.crank.rotation.x = -thetaDeg * Math.PI / 180;           // ADR 0002: crank turns by -theta about +x
+  for (let c = 0; c < NC; c++) {
+    const rod = parts.rods[c], pis = parts.pistons[c];
+    rod.position.set(g.cylinder_x[c], F.lerp(D.pin_y[c]), F.lerp(D.pin_z[c]));
+    rod.rotation.x = F.lerp(D.rod_angle[c]);
+    pis.position.set(g.cylinder_x[c], 0, F.lerp(D.piston_z[c]));
+  }
+  return F;
+}
+
+// ---------------------------------------------------------------- charts
+class Chart {
+  constructor(id, opt) { this.cv = document.getElementById(id); this.opt = opt; this.layer = document.createElement('canvas'); }
+  resize() {
+    const r = this.cv.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio, 2);
+    for (const c of [this.cv, this.layer]) { c.width = Math.max(1, r.width * dpr); c.height = Math.max(1, r.height * dpr); }
+    this.dpr = dpr; this.w = r.width; this.h = r.height;
+  }
+  frameBox() { return { l: 44, r: this.w - 8, t: 6, b: this.h - 20 }; }
+  drawStatic(series, xr, yr, xlab) {
+    this.xr = xr; this.yr = yr;
+    const c = this.layer.getContext('2d'); c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0); c.clearRect(0, 0, this.w, this.h);
+    const B = this.frameBox(); this.B = B;
+    c.font = '10.5px system-ui, sans-serif'; c.fillStyle = css('--ink-2'); c.strokeStyle = css('--grid'); c.lineWidth = 1;
+    const ticks = (lo, hi, n) => { const s = Math.pow(10, Math.floor(Math.log10((hi - lo) / n))); const st = [1, 2, 5, 10].map(k => k * s).find(k => (hi - lo) / k <= n) || s * 10; const out = []; for (let v = Math.ceil(lo / st) * st; v <= hi + 1e-9; v += st) out.push(v); return out; };
+    c.textAlign = 'right'; c.textBaseline = 'middle';
+    for (const v of ticks(yr[0], yr[1], 4)) { const y = this.Y(v); c.beginPath(); c.moveTo(B.l, y); c.lineTo(B.r, y); c.stroke(); c.fillText(+v.toFixed(2), B.l - 4, y); }
+    c.textAlign = 'center'; c.textBaseline = 'top';
+    for (const v of (this.opt.xticks || ticks(xr[0], xr[1], 6))) { const x = this.X(v); c.beginPath(); c.moveTo(x, B.t); c.lineTo(x, B.b); c.stroke(); c.fillText(+v.toFixed(1), x, B.b + 3); }
+    c.textAlign = 'right'; c.textBaseline = 'bottom'; c.fillText(xlab, B.r - 2, B.b - 2);
+    for (const s of series) {
+      c.strokeStyle = s.color; c.lineWidth = s.width || 1.6; c.globalAlpha = s.alpha || 1; c.setLineDash(s.dash || []);
+      c.beginPath(); for (let i = 0; i < s.x.length; i++) { const x = this.X(s.x[i]), y = this.Y(s.y[i]); i ? c.lineTo(x, y) : c.moveTo(x, y); }
+      if (s.close) c.closePath(); c.stroke(); c.globalAlpha = 1; c.setLineDash([]);
+    }
+    if (this.opt.legend) { c.textAlign = 'left'; c.textBaseline = 'top'; let x = B.l + 6; for (const [lab, col] of this.opt.legend) { c.fillStyle = col; c.fillRect(x, B.t + 4, 10, 3); c.fillStyle = css('--ink-2'); c.fillText(lab, x + 14, B.t); x += c.measureText(lab).width + 30; } }
+  }
+  X(v) { return this.B.l + (v - this.xr[0]) / (this.xr[1] - this.xr[0]) * (this.B.r - this.B.l); }
+  Y(v) { return this.B.b - (v - this.yr[0]) / (this.yr[1] - this.yr[0]) * (this.B.b - this.B.t); }
+  draw(points) {
+    const c = this.cv.getContext('2d'); c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, this.cv.width, this.cv.height); c.drawImage(this.layer, 0, 0);
+    c.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
+    for (const p of points) {
+      if (p.vline) { c.strokeStyle = css('--ink-2'); c.lineWidth = 1; c.beginPath(); c.moveTo(this.X(p.x), this.B.t); c.lineTo(this.X(p.x), this.B.b); c.stroke(); continue; }
+      c.fillStyle = p.color; c.strokeStyle = css('--surface'); c.lineWidth = 2; c.beginPath(); c.arc(this.X(p.x), this.Y(p.y), 4.5, 0, 2 * Math.PI); c.fill(); c.stroke();
+    }
+  }
+}
+const range = (a, pad = 0.05) => { let lo = Infinity, hi = -Infinity; for (const v of a.flat(Infinity)) { lo = Math.min(lo, v); hi = Math.max(hi, v); } const d = (hi - lo) * pad || 1; return [lo - d, hi + d]; };
+const XT = [0, 180, 360, 540, 720];
+const charts = { pv: new Chart('c-pv', {}), p: new Chart('c-p', { xticks: XT }), t: new Chart('c-t', { xticks: XT }), l: new Chart('c-l', { xticks: XT }) };
+const TH = D.theta_deg.concat([CYCLE]);
+const wrap = a => a.concat([a[0]]);
+function drawStatic() {
+  const c = state.cyl, cols = [css('--s1'), css('--s2'), css('--s3'), css('--s4')];
+  for (const ch of Object.values(charts)) ch.resize();
+  document.getElementById('pvlab').textContent = `cylinder ${c + 1}: p [bar] vs V [cm³]`;
+  document.getElementById('liftlab').textContent = `cylinder ${c + 1}, mm (kin.cam)`;
+  charts.pv.drawStatic([{ x: wrap(D.volume_cc[c]), y: wrap(D.p_bar[c]), color: cols[0], close: true }], range(D.volume_cc), [0, range(D.p_bar)[1]], 'V [cm³]');
+  charts.p.opt.legend = D.p_bar.map((_, k) => [`cyl ${k + 1}`, cols[k]]);
+  charts.p.drawStatic(D.p_bar.map((p, k) => ({ x: TH, y: wrap(p), color: cols[k], width: k === c ? 2 : 1, alpha: k === c ? 1 : 0.35 })), [0, CYCLE], [0, range(D.p_bar)[1]], 'crank angle [deg]');
+  charts.t.opt.legend = [['engine', cols[0]], [`cyl ${c + 1}`, cols[1]], ['mean', css('--ink-2')]];
+  charts.t.drawStatic([{ x: TH, y: wrap(D.torque_cyl_nm[c]), color: cols[1], width: 1, alpha: 0.6 },
+                       { x: TH, y: wrap(D.torque_total_nm), color: cols[0] },
+                       { x: [0, CYCLE], y: [D.torque_mean_nm, D.torque_mean_nm], color: css('--ink-2'), width: 1, dash: [4, 3] }],
+                      [0, CYCLE], range([D.torque_total_nm, D.torque_cyl_nm[c]]), 'crank angle [deg]');
+  charts.l.opt.legend = [['intake', cols[0]], ['exhaust', cols[1]]];
+  charts.l.drawStatic([{ x: TH, y: wrap(D.lift_intake_mm[c]), color: cols[0] }, { x: TH, y: wrap(D.lift_exhaust_mm[c]), color: cols[1] }],
+                      [0, CYCLE], [0, range([D.lift_intake_mm, D.lift_exhaust_mm])[1]], 'crank angle [deg]');
+}
+function drawDynamic(F) {
+  const c = state.cyl, cols = [css('--s1'), css('--s2')];
+  charts.pv.draw([{ x: F.lerp(D.volume_cc[c]), y: F.lerp(D.p_bar[c]), color: cols[1] }]);
+  charts.p.draw([{ vline: true, x: F.t }, { x: F.t, y: F.lerp(D.p_bar[c]), color: cols[0] }]);
+  charts.t.draw([{ vline: true, x: F.t }, { x: F.t, y: F.lerp(D.torque_total_nm), color: cols[0] }]);
+  charts.l.draw([{ vline: true, x: F.t }, { x: F.t, y: F.lerp(D.lift_intake_mm[c]), color: cols[0] }, { x: F.t, y: F.lerp(D.lift_exhaust_mm[c]), color: cols[1] }]);
+  document.getElementById('angle').textContent = `crank ${F.t.toFixed(1)} deg (0 = cyl 1 firing TDC)  |  cyl ${c + 1}: ${F.lerp(D.p_bar[c]).toFixed(1)} bar, ` +
+    `engine torque ${F.lerp(D.torque_total_nm).toFixed(0)} N m`;
+}
+
+// ---------------------------------------------------------------- loop
+function resize() {
+  const r = view.getBoundingClientRect();
+  renderer.setSize(r.width, r.height, false); renderer.domElement.style.width = r.width + 'px'; renderer.domElement.style.height = r.height + 'px';
+  camera.aspect = r.width / Math.max(r.height, 1); camera.updateProjectionMatrix();
+  drawStatic();
+}
+let last = performance.now();
+function tick(now) {
+  const dt = Math.min((now - last) / 1000, 0.1); last = now;
+  if (state.playing) state.theta = (state.theta + dt * D.rpm / 60 * 360 / state.slow) % CYCLE;
+  const F = pose(state.theta);
+  drawDynamic(F);
+  controls.update();
+  renderer.render(scene, camera);
+  state.frames++;
+  requestAnimationFrame(tick);
+}
+buildScene().then(() => {
+  document.getElementById('status').remove();
+  new ResizeObserver(resize).observe(view); resize();
+  matchMedia('(prefers-color-scheme: dark)').addEventListener('change', drawStatic);
+  state.ready = true; document.body.dataset.ready = '1';
+  requestAnimationFrame(tick);
+}).catch(e => { document.getElementById('status').textContent = 'Failed to load: ' + e; console.error(e); });
+</script>
+</body>
+</html>

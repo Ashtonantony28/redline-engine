@@ -64,3 +64,19 @@ torsional:
   damper:                        # tuned rubber (Den Hartog) damper on the hub
     ring_inertia: 0.0045         # kg m^2 (inertia ring, ~1.2 kg at ~60 mm radius)
     tuned_mode: 1                # elastic mode index to tune against (1 = first torsional mode)
+
+# REAL cylinder-pressure source (M10, dyn/pressure.py m4_trace / idle_trace): `python -m dyn.report --pressure m4`.
+# Full load: the M4 1D gas-dynamics engine (gasdyn.engine, WOT, spec Wiebe burn) run to its periodic state at
+# each speed the report needs; the closed part comes from the two-zone thermo model inside M4 and the open
+# part from the 1D network trace. Idle: the M4 network is not used at idle (M7 skipped its low-speed, high-
+# residual part-load points), so the quasi-steady thermo/ cycle (M2) is run with the intake pressure solved
+# for zero brake torque (net IMEP = Chen-Flynn FMEP of spec/gasdyn.yaml), i.e. an unloaded idle.
+pressure_m4:
+  cylinder_average: true         # mean of the four cylinders' traces, each aligned to its own firing TDC
+  grid_points: 2881              # 0..720 deg at 0.25 deg
+  idle:
+    T_intake: 315.0              # K (spec/thermo.yaml loads)
+    p_exhaust: 1.02e+5           # Pa, near-ambient exhaust at idle flow
+    T_exhaust: 800.0             # K
+    p_intake_bracket: [0.15e+5, 0.60e+5]   # Pa, root bracket for the zero-brake-torque intake pressure
+    p_intake_tol: 10.0           # Pa

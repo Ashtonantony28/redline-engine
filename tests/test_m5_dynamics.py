@@ -194,3 +194,40 @@ def test_big_end_orbit_film_positive(trace):
     b = bearings.bearing("big_end")
     o = bearings.journal_orbit(th, be.F_pin, w, be.omega_rod, b, w, bearings.film_for(), 2, 720)
     assert 0.0 < o.min_film < b.radial_clearance
+
+
+# ------------------------------------------------------------------ M10: REAL pressure sources
+
+@pytest.fixture(scope="module")
+def m4_full_load():
+    from dyn.pressure import m4_trace
+    return m4_trace(params.engine_spec()["targets"]["torque_rpm"])
+
+
+def test_m4_trace_reproduces_m4_imep(m4_full_load):
+    """The stitched M4 trace (network open part + two-zone closed part) integrates to the M4 run's own
+    net IMEP within 0.5 % (the trace is resampled at 0.25 deg; M4 integrates work on its own grid)."""
+    tr = m4_full_load
+    assert not tr.meta["placeholder"] and tr.meta["converged"]
+    assert forces.imep(tr) / 1e5 == pytest.approx(tr.meta["imep_net_bar"], rel=5e-3)
+    assert tr.peak / 1e5 == pytest.approx(tr.meta["p_max_bar_m4"], rel=1e-2)
+    # firing peak after TDC, and the mean-torque identity still holds on the real trace
+    assert 0.0 < tr.peak_angle_deg < 40.0
+    th = forces.cycle_grid(GRID)
+    _, T = forces.multi_cylinder_torque(th, tr, params.omega_from_rpm(tr.meta["rpm"]))
+    assert T.mean() == pytest.approx(forces.mean_torque_identity(tr), rel=1e-3)
+
+
+def test_idle_trace_zero_brake_torque():
+    """Idle trace: net IMEP equals the Chen-Flynn FMEP (unloaded idle) to 1e-3 bar."""
+    from dyn.pressure import idle_trace
+    tr = idle_trace()
+    assert forces.imep(tr) / 1e5 == pytest.approx(tr.meta["fmep_bar"], abs=1e-3)
+    lo, hi = params.dyn_spec()["pressure_m4"]["idle"]["p_intake_bracket"]
+    assert float(lo) < tr.meta["p_intake"] < float(hi)
+
+
+def test_provider_placeholder_ignores_speed():
+    from dyn.pressure import PressureProvider
+    pv = PressureProvider("placeholder")
+    assert pv("full_load", 1500) is pv("full_load", 7000)

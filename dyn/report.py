@@ -1,7 +1,11 @@
-"""M5 dynamics/NVH report: `python -m dyn.report` prints a summary and writes plots to out/dyn/.
+"""M5 dynamics/NVH report: `python -m dyn.report [--pressure placeholder|m4]` prints a summary and writes
+plots to out/dyn/ (placeholder) or out/dyn/m4/ (real traces).
 
-All numbers are MODELLED (no physical engine). Cylinder pressure comes from the PLACEHOLDER
-single-zone Wiebe generator in dyn/pressure.py until thermo/ (M2) provides real traces.
+All numbers are MODELLED (no physical engine). `--pressure placeholder` (default, fast, used by the M5
+tests) takes cylinder pressure from the single-zone Wiebe stand-in in dyn/pressure.py; `--pressure m4`
+(M10) uses REAL traces: the M4 1D engine at full load at each speed the report needs, and the thermo/
+cycle solved for zero brake torque at idle (dyn.pressure.PressureProvider). With m4 the report also
+prints and writes the change of the key numbers against the placeholder (out/dyn/m4/compare.json).
 """
 from __future__ import annotations
 
@@ -13,7 +17,7 @@ from pathlib import Path
 import numpy as np
 
 from dyn import balance, bearings, flywheel, forces, params, torsional
-from dyn.pressure import placeholder_wiebe_trace
+from dyn.pressure import PressureProvider
 
 OUT_DIR = params.rspec.ROOT / "out" / "dyn"
 GRID = 2880                    # points per 720-deg cycle (0.25 deg) for torque/load work
@@ -25,29 +29,38 @@ C1, C2, C3, C4, C5 = "#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4"
 INK, MUTED = "#0b0b0b", "#52514e"
 
 
-def compute(spec=None, dspec=None, with_orbits: bool = True) -> dict:
+def compute(spec=None, dspec=None, with_orbits: bool = True, pressure: str | PressureProvider = "placeholder") -> dict:
     spec = spec or params.engine_spec()
     dspec = dspec or params.dyn_spec()
     eng = spec["engine"]
     g = params.geometry(spec)
     m = params.masses(spec)
     th = forces.cycle_grid(GRID)
-    traces = {op: placeholder_wiebe_trace(op, spec, dspec) for op in ("full_load", "idle")}
-    res: dict = {"modelled": True, "pressure_source": traces["full_load"].source}
+    prov = pressure if isinstance(pressure, PressureProvider) else PressureProvider(pressure, spec, dspec)
+    torque_rpm = spec["targets"]["torque_rpm"]
+    # the full-load trace at the torque-peak speed stands for "full load" where one trace is needed
+    # (torsional gas-torque orders); with the placeholder every speed shares the same trace
+    traces = {"full_load": prov("full_load", torque_rpm), "idle": prov("idle", eng["idle_rpm"])}
+    res: dict = {"modelled": True, "pressure": prov.kind, "pressure_source": traces["full_load"].source,
+                 "idle_pressure_source": traces["idle"].source}
 
     # (1) forces and torque
     tr = traces["full_load"]
     torque = {}
+    used = {}
     for label, op, rpm in [("idle", "idle", eng["idle_rpm"]),
-                           ("full_load_torque_rpm", "full_load", spec["targets"]["torque_rpm"]),
+                           ("full_load_torque_rpm", "full_load", torque_rpm),
                            ("full_load_redline", "full_load", eng["redline_rpm"])]:
         w = params.omega_from_rpm(rpm)
-        T_cyl, T = forces.multi_cylinder_torque(th, traces[op], w, spec, dspec)
-        f1 = forces.cylinder_forces(th, traces[op], w, spec, dspec)
+        trace = prov(op, rpm)
+        used[label] = trace
+        T_cyl, T = forces.multi_cylinder_torque(th, trace, w, spec, dspec)
+        f1 = forces.cylinder_forces(th, trace, w, spec, dspec)
         torque[label] = {
             "rpm": rpm, "mean_torque_Nm": float(T.mean()),
-            "imep_identity_Nm": forces.mean_torque_identity(traces[op], spec),
-            "imep_bar": forces.imep(traces[op], spec) / 1e5,
+            "imep_identity_Nm": forces.mean_torque_identity(trace, spec),
+            "imep_bar": forces.imep(trace, spec) / 1e5, "peak_pressure_bar": trace.peak / 1e5,
+            "peak_pressure_deg": trace.peak_angle_deg,
             "peak_Nm": float(T.max()), "min_Nm": float(T.min()),
             "inertia_torque_mean_Nm": float(f1.T_inertia.mean()),
             "peak_rod_force_N": float(f1.F_rod.max()), "peak_side_thrust_N": float(np.abs(f1.F_side).max()),
@@ -55,6 +68,7 @@ def compute(spec=None, dspec=None, with_orbits: bool = True) -> dict:
         }
     res["torque"] = torque
     res["peak_pressure_bar"] = {op: t.peak / 1e5 for op, t in traces.items()}
+    res["_traces"] = used
 
     # (2) balance
     thr = np.linspace(0.0, params.REV, REV_GRID, endpoint=False)
@@ -88,7 +102,7 @@ def compute(spec=None, dspec=None, with_orbits: bool = True) -> dict:
     fly = {}
     for label, op, rpm, target in cases:
         w = params.omega_from_rpm(rpm)
-        _, T = forces.multi_cylinder_torque(th, traces[op], w, spec, dspec)
+        _, T = forces.multi_cylinder_torque(th, prov(op, rpm), w, spec, dspec)
         dE = flywheel.fluctuation_energy(th, T)
         I = flywheel.rotating_inertia(None, spec, dspec)
         _, ws = flywheel.simulate_speed(th, T, I, w)
@@ -109,8 +123,9 @@ def compute(spec=None, dspec=None, with_orbits: bool = True) -> dict:
     bres = {}
     for rpm in bs["rpm_cases"]:
         w = params.omega_from_rpm(rpm)
-        be = bearings.big_end_loads(th, tr, w, spec, dspec)
-        ml = bearings.main_bearing_loads(th, tr, w, spec, dspec)
+        tr_b = prov("full_load", rpm)
+        be = bearings.big_end_loads(th, tr_b, w, spec, dspec)
+        ml = bearings.main_bearing_loads(th, tr_b, w, spec, dspec)
         mag_be = np.hypot(*be.F_pin)
         mag_m = np.hypot(ml[:, 0], ml[:, 1])
         worst = int(np.argmax(mag_m.max(1)))
@@ -197,7 +212,9 @@ def plots(res: dict, out: Path, spec=None, dspec=None) -> list[str]:
     out.mkdir(parents=True, exist_ok=True)
     files = []
     lw = 1.6
-    tag = "  (modelled; placeholder pressure)"
+    real = res.get("pressure") == "m4"
+    ptag = "M4/thermo pressure" if real else "placeholder pressure"
+    tag = f"  (modelled; {ptag})"
 
     def save(fig, name):
         fig.tight_layout()
@@ -209,12 +226,18 @@ def plots(res: dict, out: Path, spec=None, dspec=None) -> list[str]:
     th_deg = forces.cycle_grid(GRID) * DEG
     # pressure
     fig, ax = plt.subplots(figsize=(7, 3.6))
-    for op, c in (("full_load", C1), ("idle", C2)):
-        t = placeholder_wiebe_trace(op, spec, dspec)
-        ax.plot(t.theta * DEG, t.p / 1e5, color=c, lw=lw, label=op.replace("_", " "))
-    _style(ax, "PLACEHOLDER cylinder pressure (single-zone Wiebe)" + tag, "crank angle [deg]", "p [bar]")
+    seen = set()
+    for (label, t), c in zip(res["_traces"].items(), (C2, C1, C3)):
+        if id(t) in seen:
+            continue
+        seen.add(id(t))
+        ax.plot(t.theta * DEG, t.p / 1e5, color=c, lw=lw,
+                label=f"{label.replace('_', ' ')} ({res['torque'][label]['rpm']} rpm)" if real else label.split("_")[0])
+    title = ("REAL cylinder pressure: M4 1D engine (full load), thermo/ zero-torque cycle (idle)" if real
+             else "PLACEHOLDER cylinder pressure (single-zone Wiebe)")
+    _style(ax, title + tag, "crank angle [deg]", "p [bar]")
     ax.legend(frameon=False, fontsize=8)
-    save(fig, "pressure_placeholder.png")
+    save(fig, "pressure_m4.png" if real else "pressure_placeholder.png")
 
     # single-cylinder forces
     tq = res["torque"]["full_load_torque_rpm"]
@@ -287,7 +310,7 @@ def plots(res: dict, out: Path, spec=None, dspec=None) -> list[str]:
             ax.set_aspect("equal", adjustable="datalim")
             ax.axhline(0, color=MUTED, lw=0.6)
             ax.axvline(0, color=MUTED, lw=0.6)
-        fig.suptitle(f"Bearing load polars, full load {rpm} rpm (modelled; placeholder pressure)", fontsize=10)
+        fig.suptitle(f"Bearing load polars, full load {rpm} rpm (modelled; {ptag})", fontsize=10)
         save(fig, f"bearing_polar_{rpm}.png")
         if "_ob" in d:
             fig, ax = plt.subplots(figsize=(7, 3.6))
@@ -342,7 +365,8 @@ def _public(obj):
 
 def summary_text(res: dict) -> str:
     L = ["Redline M5 dynamics/NVH report. ALL NUMBERS MODELLED (no physical engine).",
-         f"Cylinder pressure: {res['pressure_source']}", ""]
+         f"Cylinder pressure ({res.get('pressure', 'placeholder')}): full load {res['pressure_source']};"
+         f" idle {res.get('idle_pressure_source', res['pressure_source'])}", ""]
     L.append("(1) Forces and crank torque")
     for k, d in res["torque"].items():
         L.append(f"  {k:22s} {d['rpm']:5d} rpm  IMEP {d['imep_bar']:5.2f} bar  mean T {d['mean_torque_Nm']:7.2f} N m"
@@ -399,18 +423,89 @@ def summary_text(res: dict) -> str:
     return "\n".join(L)
 
 
+# key numbers compared between pressure sources: (label, path into the public summary, unit)
+KEY_NUMBERS = [
+    ("peak pressure, full load @ torque rpm", ("torque", "full_load_torque_rpm", "peak_pressure_bar"), "bar"),
+    ("peak pressure, full load @ redline", ("torque", "full_load_redline", "peak_pressure_bar"), "bar"),
+    ("peak pressure, idle", ("torque", "idle", "peak_pressure_bar"), "bar"),
+    ("IMEP, full load @ torque rpm", ("torque", "full_load_torque_rpm", "imep_bar"), "bar"),
+    ("IMEP, full load @ redline", ("torque", "full_load_redline", "imep_bar"), "bar"),
+    ("IMEP, idle", ("torque", "idle", "imep_bar"), "bar"),
+    ("peak crank torque @ torque rpm", ("torque", "full_load_torque_rpm", "peak_Nm"), "N m"),
+    ("peak crank torque @ redline", ("torque", "full_load_redline", "peak_Nm"), "N m"),
+    ("peak rod force @ torque rpm", ("torque", "full_load_torque_rpm", "peak_rod_force_N"), "N"),
+    ("flywheel dE, idle", ("flywheel", "idle", "dE_J"), "J"),
+    ("C_s idle", ("flywheel", "idle", "cs_energy_method"), "-"),
+    ("C_s full load 1500", ("flywheel", "full_load_1500", "cs_energy_method"), "-"),
+    ("flywheel needed, idle", ("flywheel", "idle", "required_flywheel_inertia"), "kg m^2"),
+    ("flywheel needed, full load 1500", ("flywheel", "full_load_1500", "required_flywheel_inertia"), "kg m^2"),
+    ("big-end max load 4500", ("bearings", "4500", "big_end_max_N"), "N"),
+    ("big-end max load 7000", ("bearings", "7000", "big_end_max_N"), "N"),
+    ("big-end h_min 4500", ("bearings", "4500", "big_end_hmin_um"), "um"),
+    ("big-end h_min 7000", ("bearings", "7000", "big_end_hmin_um"), "um"),
+    ("main h_min 4500 (worst main)", ("bearings", "4500", "main_hmin_um"), "um"),
+    ("main h_min 7000 (worst main)", ("bearings", "7000", "main_hmin_um"), "um"),
+    ("dominant torsional order twist, bare", ("torsional", "dominant", "twist_peak_deg_bare"), "deg"),
+    ("dominant torsional order twist, damped", ("torsional", "dominant", "twist_peak_deg_damped"), "deg"),
+    ("all-order twist peak, bare", ("torsional", "twist_sum_peak_deg_bare"), "deg"),
+    ("all-order twist peak, damped", ("torsional", "twist_sum_peak_deg_damped"), "deg"),
+]
+
+
+def _dig(d, path):
+    for k in path:
+        if not isinstance(d, dict) or k not in d:
+            return None
+        d = d[k]
+    return d
+
+
+def compare(new: dict, ref: dict) -> list[dict]:
+    """Key numbers of `new` (public summary) against `ref` with absolute and relative change."""
+    rows = []
+    for label, path, unit in KEY_NUMBERS:
+        a, b = _dig(ref, path), _dig(new, path)
+        if a is None or b is None:
+            continue
+        rows.append({"quantity": label, "unit": unit, "placeholder": a, "m4": b, "delta": b - a,
+                     "rel": (b / a - 1.0) if a else float("nan")})
+    dom_ref, dom_new = _dig(ref, ("torsional", "dominant", "order")), _dig(new, ("torsional", "dominant", "order"))
+    rows.append({"quantity": "dominant torsional order", "unit": "-", "placeholder": dom_ref, "m4": dom_new,
+                 "delta": (dom_new or 0) - (dom_ref or 0), "rel": float("nan")})
+    return rows
+
+
+def compare_text(rows: list[dict]) -> str:
+    L = ["Key numbers, REAL (M4 / thermo) vs PLACEHOLDER pressure (all MODELLED):",
+         f"  {'quantity':40s} {'placeholder':>12s} {'m4':>12s} {'change':>9s}"]
+    for r in rows:
+        rel = "" if r["rel"] != r["rel"] else f"{r['rel'] * 100:+8.1f}%"
+        L.append(f"  {r['quantity'] + ' [' + r['unit'] + ']':40s} {r['placeholder']:12.4g} {r['m4']:12.4g} {rel:>9s}")
+    return "\n".join(L)
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--pressure", choices=["placeholder", "m4"], default="placeholder",
+                    help="cylinder-pressure source: placeholder Wiebe stand-in or REAL M4/thermo traces")
     ap.add_argument("--no-orbits", action="store_true", help="skip the journal-orbit integration")
     ap.add_argument("--no-plots", action="store_true")
+    ap.add_argument("--no-compare", action="store_true", help="with --pressure m4: skip the placeholder comparison")
     args = ap.parse_args(argv)
-    res = compute(with_orbits=not args.no_orbits)
+    res = compute(with_orbits=not args.no_orbits, pressure=args.pressure)
     print(summary_text(res))
-    OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / "summary.json").write_text(json.dumps(_public(res), indent=2))
+    out = OUT_DIR if args.pressure == "placeholder" else OUT_DIR / args.pressure
+    out.mkdir(parents=True, exist_ok=True)
+    pub = _public(res)
+    (out / "summary.json").write_text(json.dumps(pub, indent=2))
+    if args.pressure != "placeholder" and not args.no_compare:
+        ref = _public(compute(with_orbits=not args.no_orbits, pressure="placeholder"))
+        rows = compare(pub, ref)
+        print("\n" + compare_text(rows))
+        (out / "compare.json").write_text(json.dumps({"modelled": True, "rows": rows}, indent=2))
     if not args.no_plots:
-        files = plots(res, OUT_DIR)
-        print("\nplots: " + ", ".join(Path(f).name for f in files) + f"  -> {OUT_DIR}")
+        files = plots(res, out)
+        print("\nplots: " + ", ".join(Path(f).name for f in files) + f"  -> {out}")
 
 
 if __name__ == "__main__":

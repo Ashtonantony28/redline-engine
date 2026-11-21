@@ -132,3 +132,150 @@ def placeholder_wiebe_trace(op: str = "full_load", spec: dict | None = None,
 
     meta = {"op": op, "q_total_J": q_total, "m_air_kg": m_air, "placeholder": True}
     return PressureTrace.from_degrees(th_deg, p, source=PLACEHOLDER_SOURCE, meta=meta)
+
+
+# ------------------------------------------------------------------------------------------------
+# REAL pressure sources (M10): M4 1D engine at full load, thermo/ cycle at idle
+# ------------------------------------------------------------------------------------------------
+M4_SOURCE = "M4 1D gas-dynamics engine (gasdyn.engine, WOT, two-zone Wiebe closed part)"
+THERMO_IDLE_SOURCE = "M2 quasi-steady two-zone cycle (thermo.cycle), intake pressure solved for zero brake torque"
+
+
+def _recording_engine():
+    """gasdyn EngineModel subclass that keeps each cylinder's latest closed-part result (the
+    pressure between IVC and EVO is computed by the thermo two-zone model outside the 1D network,
+    so the network trace has NaN there)."""
+    from gasdyn.engine import EngineModel
+
+    class RecordingEngine(EngineModel):
+        def _closed(self, c, m, x, T, rpm, st):
+            cl = super()._closed(c, m, x, T, rpm, st)
+            if not hasattr(self, "last_closed"):
+                self.last_closed = {}
+            self.last_closed[c] = cl
+            return cl
+
+    return RecordingEngine
+
+
+def m4_cylinder_traces(rpm: float, throttle_deg: float | None = None, dspec: dict | None = None):
+    """Per-cylinder p(local theta) of the converged M4 run: (theta_deg grid, p [ncyl, n], metrics).
+
+    Open part (valve off its seat): the 1D-network trace binned at spec trace_step_deg, global crank angle
+    shifted by each cylinder's firing phase. Closed part (seat IVC .. seat EVO): the thermo two-zone result
+    computed inside M4 at the last IVC (the converged periodic state)."""
+    from thermo import twozone as tz
+
+    dspec = dspec or params.dyn_spec()
+    eng = _recording_engine()()
+    op = eng.run(float(rpm), throttle_deg=throttle_deg, trace=True)
+    cycle = params.FULL_CYCLE / DEG
+    n = dspec["pressure_m4"]["grid_points"]
+    grid = np.linspace(0.0, cycle, n)
+    p_all = np.empty((eng.ncyl, n))
+    for c in range(eng.ncyl):
+        raw = op.trace["cylinder_p"][:, c]
+        ok = ~np.isnan(raw)
+        loc = np.mod(op.trace_deg[ok] - eng.phase_deg[c], cycle)
+        order = np.argsort(loc)
+        loc, po = loc[order], raw[ok][order]
+        # periodic interpolation of the open-part samples
+        p_open = np.interp(grid, np.concatenate([loc - cycle, loc, loc + cycle]), np.tile(po, 3))
+        cl = eng.last_closed[c]
+        th_c = np.asarray(cl.theta, dtype=float)          # IVC - 720 .. EVO, local deg
+        p_c = cl.col(tz.O_P)
+        g_unwrapped = np.where(grid > eng.ivc_deg, grid - cycle, grid)
+        closed = (g_unwrapped >= th_c[0]) & (g_unwrapped <= th_c[-1])
+        p_open[closed] = np.interp(g_unwrapped[closed], th_c, p_c)
+        p_all[c] = p_open
+    return grid, p_all, op.metrics
+
+
+def m4_trace(rpm: float, throttle_deg: float | None = None, dspec: dict | None = None) -> PressureTrace:
+    """REAL full-load (or throttled) pressure trace from the M4 engine at `rpm` (see m4_cylinder_traces).
+    With spec pressure_m4.cylinder_average the four aligned cylinders are averaged (the dynamics model
+    assumes identical cylinders); otherwise cylinder 1 is used."""
+    dspec = dspec or params.dyn_spec()
+    grid, p_all, met = m4_cylinder_traces(rpm, throttle_deg, dspec)
+    p = p_all.mean(axis=0) if dspec["pressure_m4"]["cylinder_average"] else p_all[0]
+    spread = float(np.ptp(p_all.max(axis=1)) / p_all.max(axis=1).mean())
+    meta = {"rpm": float(rpm), "placeholder": False, "torque_nm": met["torque_nm"], "imep_net_bar": met["imep_net_bar"],
+            "p_max_bar_m4": met["p_max_bar"], "converged": bool(met["converged"]), "peak_spread_between_cylinders": spread}
+    return PressureTrace.from_degrees(grid, p, source=M4_SOURCE, meta=meta)
+
+
+def thermo_trace(rpm: float, p_intake: float, spec: dict | None = None, dspec: dict | None = None):
+    """Quasi-steady thermo/ (M2) cycle at an intake pressure: (PressureTrace, metrics)."""
+    import copy
+    from thermo.cycle import run_cycle
+    from thermo.props import thermo_spec
+
+    dspec = dspec or params.dyn_spec()
+    idl = dspec["pressure_m4"]["idle"]
+    tspec = copy.deepcopy(thermo_spec())
+    tspec["loads"]["dyn_idle"] = {"p_intake": float(p_intake), "T_intake": idl["T_intake"],
+                                  "p_exhaust": idl["p_exhaust"], "T_exhaust": idl["T_exhaust"]}
+    res = run_cycle(float(rpm), "dyn_idle", tspec=tspec, spec=spec)
+    cycle = params.FULL_CYCLE / DEG
+    th = np.mod(np.asarray(res.theta, dtype=float), cycle)
+    order = np.argsort(th, kind="stable")
+    th, p = th[order], np.asarray(res.p, dtype=float)[order]
+    keep = np.concatenate([[True], np.diff(th) > 0])
+    th, p = th[keep], p[keep]
+    n = dspec["pressure_m4"]["grid_points"]
+    grid = np.linspace(0.0, cycle, n)
+    pg = np.interp(grid, np.concatenate([th - cycle, th, th + cycle]), np.tile(p, 3))
+    return PressureTrace.from_degrees(grid, pg, source=THERMO_IDLE_SOURCE,
+                                      meta={"rpm": float(rpm), "p_intake": float(p_intake), "placeholder": False,
+                                            "imep_net_bar": res.metrics["imep_net_bar"]}), res.metrics
+
+
+def idle_trace(rpm: float | None = None, spec: dict | None = None, dspec: dict | None = None) -> PressureTrace:
+    """REAL idle trace: thermo/ cycle at the intake pressure where net IMEP equals the Chen-Flynn FMEP
+    (spec/gasdyn.yaml friction), i.e. zero brake torque at idle speed."""
+    from scipy.optimize import brentq
+    from gasdyn.friction import fmep_chen_flynn
+    from gasdyn.spec import gasdyn_spec
+
+    spec = spec or params.engine_spec()
+    dspec = dspec or params.dyn_spec()
+    rpm = float(rpm or spec["engine"]["idle_rpm"])
+    fr = gasdyn_spec()["friction"]
+    sp = 2.0 * spec["engine"]["stroke"] * rpm / 60.0
+    idl = dspec["pressure_m4"]["idle"]
+
+    def bmep(p_int):
+        tr, met = thermo_trace(rpm, p_int, spec, dspec)
+        return met["imep_net_bar"] * 1.0e5 - fmep_chen_flynn(tr.peak, sp, fr)
+
+    lo, hi = idl["p_intake_bracket"]
+    p_int = brentq(bmep, float(lo), float(hi), xtol=float(idl["p_intake_tol"]))
+    tr, met = thermo_trace(rpm, p_int, spec, dspec)
+    tr.meta["fmep_bar"] = fmep_chen_flynn(tr.peak, sp, fr) / 1.0e5
+    return tr
+
+
+class PressureProvider:
+    """p(theta) per (operating point, rpm). 'placeholder': the single-zone Wiebe stand-in (ignores rpm);
+    'm4': REAL traces, M4 at full load per speed and the thermo/ zero-torque cycle at idle. Cached."""
+
+    def __init__(self, kind: str = "placeholder", spec: dict | None = None, dspec: dict | None = None):
+        if kind not in ("placeholder", "m4"):
+            raise ValueError(kind)
+        self.kind = kind
+        self.spec = spec or params.engine_spec()
+        self.dspec = dspec or params.dyn_spec()
+        self._cache: dict = {}
+
+    def __call__(self, op: str, rpm: float) -> PressureTrace:
+        key = (op, None if self.kind == "placeholder" else float(rpm))
+        if key not in self._cache:
+            if self.kind == "placeholder":
+                self._cache[key] = placeholder_wiebe_trace(op, self.spec, self.dspec)
+            elif op == "idle":
+                self._cache[key] = idle_trace(rpm, self.spec, self.dspec)
+            elif op == "full_load":
+                self._cache[key] = m4_trace(rpm, None, self.dspec)
+            else:
+                raise ValueError(op)
+        return self._cache[key]

@@ -1,0 +1,105 @@
+# Redline M10 vehicle-level parameters: a GENERIC compact (C-segment) sedan carrying the Redline
+# I4-2.0 NA engine with a 6-speed manual gearbox. Not a copy of any production car. SI units
+# (ADR 0001); exponents carry an explicit sign because PyYAML reads 1e5 as a string.
+# Engine data (geometry, idle and redline speed, rotating inertia, fuel LHV) stay in spec/engine.yaml.
+# Every result produced with these numbers is MODELLED: there is no physical car or engine.
+#
+# Typical-value sources (ranges for C-segment cars, values picked inside them):
+#   [G&S]  L. Guzzella, A. Sciarretta, "Vehicle Propulsion Systems", 3rd ed., Springer 2013,
+#          ch. 2 (road load: c_d A 0.6-0.7 m^2 for compacts, c_r 0.008-0.015, rotating-mass factor)
+#          and ch. 3.2 (Willans approximation of engine fuel use).
+#   [Gil]  T. D. Gillespie, "Fundamentals of Vehicle Dynamics", SAE 1992, ch. 4 (rolling resistance
+#          ~0.010-0.013 on passenger tyres, drag coefficients 0.28-0.35, A ~ 2.0-2.3 m^2).
+#   [ETRTO] 205/55 R16 tyre: unloaded diameter 632 mm; dynamic rolling radius ~0.97 x unloaded radius.
+#   [GTR15] UN GTR No. 15 (WLTP), ECE/TRANS/180/Add.15 and amendments: test mass = mass in running
+#          order + 25 kg + optional equipment + 15 % of the maximum payload (Class 3b cycle, PMR > 34 W/kg).
+
+vehicle:
+  name: Redline generic compact sedan (MODELLED)
+  mass_running_order: 1350.0     # kg, incl. 75 kg driver and 90 % fuel (EU definition), ~110 kW C-segment
+  wltp_extra_mass: 25.0          # kg, GTR 15 "+25 kg" on top of mass in running order
+  max_payload: 450.0             # kg, typical C-segment
+  wltp_payload_share: 0.15       # GTR 15 representative payload share (15 % of max payload)
+  frontal_area: 2.20             # m^2 [Gil]
+  drag_coefficient: 0.29         # [Gil], [G&S]
+  rolling_resistance: 0.0100     # c_r, constant (low-rolling-resistance tyre class C/B) [Gil]
+  rolling_resistance_speed: 0.0  # c_r per (m/s)^2, speed-dependent share (none in this model)
+  wheel_radius: 0.307            # m, dynamic rolling radius of 205/55 R16 (0.97 x 316 mm) [ETRTO]
+  wheel_inertia_each: 0.90       # kg m^2, wheel + tyre + brake disc + hub (205/55 R16, steel rim)
+  wheels: 4
+  air_density: 1.20              # kg/m^3 (20 C, 1013 hPa; WLTP road-load reference conditions)
+  gravity: 9.81                  # m/s^2
+  road_grade: 0.0                # rad, flat road
+  driven_axle: front             # front-wheel drive (transverse engine, typical C-segment)
+  driven_axle_static_share: 0.61 # static load share on the driven axle (front-heavy FWD compact)
+  wheelbase: 2.65                # m
+  cg_height: 0.55                # m
+  tyre_friction: 1.0             # peak road friction coefficient, dry asphalt [Gil ch. 2]
+
+driveline:
+  # 6-speed manual, ratios typical of a 2.0 L NA compact (close-ratio lower gears, overdrive 5th/6th).
+  gear_ratios: [3.62, 2.12, 1.45, 1.10, 0.89, 0.74]
+  final_drive: 4.06
+  efficiency: 0.92               # constant wheel/engine power ratio, manual transaxle in gear [G&S ch. 4]
+  gearbox_inertia_input: 0.010   # kg m^2, clutch disc + input shaft, referred to the engine side
+  shift_time: 0.6                # s, torque interruption during an upshift (accel runs)
+  launch:
+    engine_rpm: 1300.0           # rpm held while the clutch slips in WLTP launches (gentle)
+    wot_engine_rpm: 4000.0       # rpm held while the clutch slips in a full-throttle launch
+
+shift:                           # economy shift strategy for the drive cycle (not the GTR 15 Annex 2 algorithm)
+  min_rpm_drive: 1250.0          # lowest engine speed allowed in gear while driving (lugging limit)
+  min_rpm_upshift_target: 1350.0 # an upshift must leave the engine at least here
+  power_reserve: 0.90            # a gear is allowed only if demanded power <= reserve x WOT power at that speed
+  downshift_hysteresis_rpm: 100.0   # keeps the gear until speed drops this far below min_rpm_drive
+  first_gear_max_speed: 4.0      # m/s; below this speed the car launches in 1st with clutch slip
+  standstill_speed: 0.1          # m/s, below this the car is stationary (engine idles, clutch open)
+  accel_upshift_rpm: 6800.0      # rpm, full-throttle runs shift here (below the 7000 rpm redline)
+
+engine_ops:
+  idle_accessory_power: 300.0    # W, alternator + pumps (assumed constant, also while driving)
+  fuel_cut_min_rpm: 1100.0       # rpm, overrun fuel cut active above this speed when torque demand < 0
+  closed_throttle_motoring: true # motoring (fuel cut) torque = - (friction + pumping) torque from the Willans intercept
+  willans_fit: {intercept_poly_order: 2, slope_poly_order: 1}   # fuel MEP = a(N) + b(N) BMEP, polynomials in N
+  willans_exclude_levels: ["wot"]   # WOT points are knock limited (retarded spark) and leave the line
+
+fuel:                            # the engine model burns iso-octane (spec/engine.yaml combustion.fuel)
+  carbon_atoms: 8
+  hydrogen_atoms: 18
+  atomic_mass_C: 12.011          # g/mol (IUPAC conventional)
+  atomic_mass_H: 1.008
+  atomic_mass_O: 15.999
+  density: 0.692                 # kg/L, iso-octane at 20 C (CRC Handbook)
+  # Energy-equivalent market gasoline for comparison with published WLTP figures (EN 228 E5/E10 range).
+  gasoline_density: 0.745        # kg/L (EN 228: 0.720-0.775)
+  gasoline_lhv: 42.9e+6          # J/kg (typical E5; Heywood App. D lists ~44 MJ/kg for pure hydrocarbon gasoline)
+  gasoline_co2_per_litre: 2.33   # kg CO2 per litre E5 gasoline (EU CO2 conversion factor, ~2.33 kg/L)
+
+simulation:
+  dt: 1.0                        # s, WLTP trace step (the cycle is defined at 1 Hz)
+  accel_dt: 0.01                 # s, full-throttle runs
+  accel_max_time: 40.0           # s
+  accel_targets_kmh: {zero_to: 100.0, in_gear_from: 80.0, in_gear_to: 120.0}
+  in_gear_gear: 5                # 1-based gear for the 80-120 km/h elasticity run (typical magazine test uses 4th/5th)
+  wot_fixture: fixtures/wot/wot_coarse.csv
+  wot_fixture_sweep_rpm: [1000, 7000, 500]   # `python -m vehicle.wot_fixture` (sim.wot model, cold-started points)
+  maps_fixture: fixtures/maps/maps_m4.csv
+  wltc_table: vehicle/data/wltc_class3b.csv
+  wltc_reference: {distance_km: 23.27, duration_s: 1800.0, distance_tol_km: 0.01, v_max_kmh: 131.3}
+  # GTR 15 Class 3b phases [start_s, end_s] and published phase distances [km]
+  wltc_phases:
+    low: {span_s: [0, 589], distance_km: 3.095}
+    medium: {span_s: [589, 1022], distance_km: 4.756}
+    high: {span_s: [1022, 1477], distance_km: 7.162}
+    extra_high: {span_s: [1477, 1800], distance_km: 8.254}
+  wltc_phase_distance_tol_km: 0.001
+  coastdown_from_kmh: 120.0      # coast-down anchor (neutral, no engine drag)
+  coastdown_to_kmh: 20.0
+
+plausibility:                    # bands for the tests, with sources
+  # WLTP combined of 2.0 L NA compact petrol cars with manual gearboxes: ~6.0-8.5 L/100 km
+  # (e.g. EU type-approval / EEA CO2 monitoring data 2019-2023 for C-segment 2.0 NA petrol models).
+  wltp_l_per_100km: [6.0, 8.5]
+  # 0-100 km/h of ~110 kW, ~1350 kg cars: ~7.5-10.5 s (power-to-weight ~80 W/kg; published
+  # manufacturer figures for 2.0 NA compacts cluster around 8.5-10 s).
+  zero_to_100_s: [7.5, 10.5]

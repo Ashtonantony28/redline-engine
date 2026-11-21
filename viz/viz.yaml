@@ -1,0 +1,34 @@
+# Redline M10 replay page settings (viz/build.py). Engine data come from spec/engine.yaml, CAD placement
+# from cad/params.py (spec/cad.yaml), traces from the M4 engine. All shown numbers are MODELLED.
+operating_point:
+  rpm: 3000.0                  # engine speed of the replayed cycle (WOT, M4 1D engine)
+  throttle: wot
+frames:
+  step_deg: 1.0                # crank-angle step of the precomputed frames over one 720-deg cycle
+playback:
+  default_slowdown: 40.0       # real time / replay time (3000 rpm is 25 cycles/s; replay at 1/40 speed)
+  min_slowdown: 1.0
+  max_slowdown: 200.0
+cad:
+  glb_dir: out/cad             # `python -m cad.build` exports (glTF binary, metres, Z-up rotated to Y-up)
+  parts: [crankshaft, conrod, piston_assembly, block, head]
+  translucent: [block]         # drawn translucent
+  hidden_by_default: [head]    # toggled from the page
+  translucent_opacity: 0.18
+three:
+  version: 0.160.0             # pinned three.js release on jsDelivr (module build + GLTFLoader/OrbitControls)
+  cdn: https://cdn.jsdelivr.net/npm
+output:
+  dir: viz/replay
+  html: index.html
+  data: data.json
+  screenshot: out/viz/replay.png
+  max_total_mb: 10.0
+check:                         # headless Playwright check (viz/check_replay.mjs)
+  settle_ms: 4000              # wait after load before sampling the animation
+  sample_gap_ms: 1500          # two samples of the crank angle this far apart must differ
+  viewport: [1400, 860]
+  # files the page pulls from the CDN (three r160 module build is a single file); fetched once with curl
+  # into out/viz/vendor/three@<version>/ and served to the headless browser at the same URLs
+  vendor_files: [build/three.module.js, examples/jsm/loaders/GLTFLoader.js,
+                 examples/jsm/utils/BufferGeometryUtils.js, examples/jsm/controls/OrbitControls.js]

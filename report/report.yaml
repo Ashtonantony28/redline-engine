@@ -1,0 +1,10 @@
+# docs/REPORT.md builder settings (report/build.py). Every number in the report is computed from the code,
+# spec files and committed fixtures at build time and labelled MODELLED.
+output: docs/REPORT.md
+figures_dir: out/report          # figures the report regenerates itself from committed fixtures
+thermo_point: {rpm: 3000.0, load: full}
+hil_cycles: [idle, tipin]
+# out/ artefacts produced by tools the report does not rerun (slow, or needing Verilator / the RTL tree)
+external_artefacts:
+  cad_mass_properties: out/cad/mass_properties.json   # python -m cad.build
+  cosim: out/hil/cosim.json                           # make -C hil cosim (Vortex-V Verilator co-sim)

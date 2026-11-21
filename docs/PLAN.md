@@ -1,6 +1,8 @@
 # Redline: inline-4 engine digital twin (CAD, thermodynamics, dynamics, ECU)
 
-Status: DRAFT plan, 2026-11-19. Working name "Redline", suggested repo `Ashtonantony28/redline-engine`.
+Status: approved plan, 2026-11-19. Progress 2026-11-21: M0-M5 and M7-M9 done, M10 core done (vehicle/WLTP,
+three.js replay, technical report `docs/REPORT.md`, M5 dynamics on real M4 pressure traces); M6 FEA in progress;
+M10 stretch (turbo, ECU PCB) not started. Was: DRAFT plan, 2026-11-19. Working name "Redline", suggested repo `Ashtonantony28/redline-engine`.
 Everything runs in the cloud container. No hardware, no dyno, nothing on the user's computer.
 
 ## 1. Options considered
@@ -96,7 +98,7 @@ Conventions: SI units, crank angle 0 deg = TDC firing of cylinder 1, positive to
 | M7 | Knock, quasi-dimensional flame model, emissions; full speed-load maps (BSFC, VE, MBT/KLSA spark, NOx) | `python -m sim.maps` | Maps generated and committed as fixtures; knock limit moves the right way with CR and intake temperature |
 | M8 | ECU firmware on host against the mean-value model, then the crank-angle model | `make -C ecu test && python -m hil.run --target host --cycle tipin` | Lambda within +/-3% in steady state, idle held at 800 +/- 25 rpm, knock control recovers |
 | M9 | HIL on Vortex-V + int8 virtual sensor on Xmlacc; PPO controller comparison | `make -C hil cosim` and `python -m ml.eval` | ECU outputs bit-exact vs host build; cycle budget at 7000 rpm reported; int8 sensor bit-exact vs golden |
-| M10 | Vehicle drive cycle, three.js replay, report. Stretch: turbo variant (option B), ECU PCB in Zener, intake port CFD | `python -m vehicle.wltp` | WLTP consumption and 0-100 reported; replay published |
+| M10 | Vehicle drive cycle, three.js replay, report. Stretch: turbo variant (option B), ECU PCB in Zener, intake port CFD | `python -m vehicle.wltp` | WLTP consumption and 0-100 reported; replay published. *Core done 2026-11-21 (`python -m vehicle.wltp`, `python -m vehicle.accel`, `python -m viz.build --check`, `python -m report.build`); replay built, not yet published; stretch open* |
 
 Milestones run in this order because each one feeds the next: CAD mass properties feed dynamics, the thermo model feeds the gas dynamics, the maps feed the ECU.
 
