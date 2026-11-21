@@ -1,0 +1,90 @@
+# Redline valvetrain parameters for M3 (supplements spec/engine.yaml, which stays the source of
+# truth for timing, lifts and valve sizes). SI units unless the key ends in _deg (ADR 0001).
+# Every value here is a modelled design value: there is no physical engine (CLAUDE.md rule 5).
+timing:
+  # spec ivo/ivc/evo/evc are defined at this valve lift (common 1 mm check-height convention).
+  # Seat-to-seat events are longer; kin.cam reports them.
+  check_lift: 0.0010           # m
+
+cam:
+  base_circle_radius: 0.0190   # m
+  lobe_width: 0.0140           # m, axial width of the cam/bucket line contact
+  main_powers: [2, 10, 14, 18] # even polydyne-style powers of the main event (kin/cam.py)
+  main_half_bracket_ratio: 2.0 # root bracket for the main-event half width solve
+  ramp_mean_velocity_ratio: 0.5 # ramp polynomial part: h_a = ratio * v_r * beta_a (monotone for ~0.42..0.58)
+  intake:
+    lash: 0.00020              # m, cold shim clearance
+    ramp_height: 0.00030       # m
+    ramp_velocity: 0.000688    # m/rad cam (= 0.012 mm per cam degree), constant-velocity section
+    ramp_accel_angle_deg: 10   # cam degrees of polynomial ramp start
+  exhaust:
+    lash: 0.00025
+    ramp_height: 0.00035
+    ramp_velocity: 0.000688
+    ramp_accel_angle_deg: 10
+
+tappet:                        # direct-acting bucket
+  diameter: 0.0330             # m
+  edge_margin: 0.0010          # m, contact must stay this far inside the bucket face edge
+  mass: 0.0300                 # kg, bucket + shim
+
+valve_assembly:
+  intake_valve_mass: 0.0420    # kg, valve only
+  exhaust_valve_mass: 0.0360
+  retainer_keepers_mass: 0.0070
+
+spring:                        # single beehive-free cylindrical spring per valve
+  rate: 36000.0                # N/m
+  installed_preload: 230.0     # N at installed height (valve closed)
+  mass: 0.0240                 # kg, active coils
+  n_masses: 4                  # internal lumped masses for surge
+  surge_damping_ratio: 0.04    # first surge mode (stiffness-proportional damping)
+  installed_height: 0.0360     # m
+  solid_height: 0.0220         # m
+  min_coil_bind_margin: 0.0015 # m, at full lift
+
+stiffness:                     # lumped, linearised
+  cam_contact: 4.0e+7           # N/m: Hertz line contact + bucket crown + camshaft bending
+  stem: 1.2e+8                  # N/m: shim/stem tip + valve stem axial
+  seat: 1.0e+8                  # N/m: valve head / seat insert
+damping_ratio:                 # of the local contact mode (mass on that stiffness)
+  cam_contact: 0.12           # oil-film squeeze + structural; lumped-model practice ~0.05-0.2
+  stem: 0.12
+  seat: 0.10
+  guide: 0.02                  # valve-guide viscous loss, ratio of the single-DOF mode
+
+combustion_chamber:            # piston-to-valve geometry, distances along each valve axis
+  intake_valve_angle_deg: 21   # from the bore axis (pent roof)
+  exhaust_valve_angle_deg: 23
+  # closed valve face to the un-pocketed (flat-top) crown at TDC. Must sit below the mean
+  # chamber height V_c / A_piston (9.05 mm at CR 10.5): the pent-roof valves are in the roof.
+  valve_to_crown_at_tdc: 0.0055  # m
+  intake_pocket_depth: 0.0030    # m, sized for full 40 deg intake advance
+  exhaust_pocket_depth: 0.0005   # m
+  # NOTE pocket volume slightly lowers the effective CR; the thermo model owns CR (M2/M7).
+
+materials:
+  # Chilled cast iron cam lobe against a case-hardened steel bucket.
+  cam: {E: 170.0e+9, nu: 0.27}
+  tappet: {E: 210.0e+9, nu: 0.30}
+
+limits:
+  min_piston_valve_clearance: 0.0010   # m, at every crank angle over the full VVT range
+  float_free_rpm: 7500                 # engine rpm: redline 7000 + margin
+  min_radius_of_curvature: 0.0020      # m, cam nose (no undercut, finite Hertz stress)
+  # Allowable Hertz contact pressure for a chilled cast iron cam vs hardened steel flat
+  # follower. Published allowables for this pair are of order 1.2-1.5 GPa (e.g. R. L. Norton,
+  # "Cam Design and Manufacturing Handbook", 2nd ed., Industrial Press, 2009, chapter on cam
+  # materials / surface fatigue; flat-tappet practice in J. Turkish et al., "Valve Selection
+  # Handbook"). Design value taken at the low end of that range; check against the source
+  # before using for anything real.
+  hertz_limit: 1.2e+9                   # Pa
+
+simulation:
+  sweep_rpm: [3000, 12000, 100]   # engine rpm: start, stop, step for the dynamic float sweep
+  refine_rpm_step: 10             # engine rpm, second pass around the float onset
+  hertz_rpm: [800, 7000]          # idle .. redline band for the Hertz check (quasi-static at idle)
+  revolutions: 2                  # cam revolutions simulated; results from the last one
+  step_safety: 0.15               # omega_max * dt for the semi-implicit Euler integrator
+  vvt_steps: 41                   # phaser positions sampled over the VVT range
+  crank_samples: 7201             # crank-angle samples per 720 deg cycle for clearance

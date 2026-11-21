@@ -30,7 +30,8 @@ valves:
   stem_diameter: 0.0055
   intake_max_lift: 0.0105
   exhaust_max_lift: 0.0095
-  # cam timing, crank degrees; 0 = firing TDC of cylinder 1, 360 = gas-exchange TDC
+  # cam timing at 1.0 mm check lift (see spec/valvetrain.yaml timing.check_lift), crank degrees;
+  # 0 = firing TDC of cylinder 1, 360 = gas-exchange TDC. Seat-to-seat events come from kin.cam.
   ivo_deg: 348    # 12 BTDC (gas exchange)
   ivc_deg: 588    # 48 ABDC
   evo_deg: 132    # 48 BBDC
