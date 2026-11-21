@@ -1,0 +1,280 @@
+"""Knock (TPIC8101, U12) and wideband lambda (CJ125, U13) on a shared 5 V SPI bus, plus the LSU heater.
+
+Knock: TI TPIC8101 (SLIS110C) band-pass filters, rectifies and integrates the knock sensor over the
+window the MCU opens with INT/HOLD (PE12); the integral is read over SPI and passed to
+ecu_knock_window(cyl, counts). Input network per Figure 4 / 5 with R1 = R2 = 47k (gain 1, > 25k),
+Vref 22 nF (8.3.1.3), OUT 2.2 nF (8.3.1.4). Clock: MCO1 = HSE 8 MHz, AC-coupled into XIN with the
+1 MOhm bias resistor of Figure 5.
+
+Lambda: Bosch CJ125 for an LSU 4.9. Its external network is the rusEFI hw_modular cj125_Module
+(netlist extracted from that schematic), with the LSU 4.2 / 4.9 analog switches replaced by the
+fixed LSU 4.9 values (RS-VM 301 ohm). VERIFY the whole CJ125 block: the Bosch datasheet is not
+public and both pin table and network come from that secondary source.
+
+Level shifting: TPIC8101 needs VIH = 0.7 VDD = 3.5 V (SLIS110C 7.5), above the MCU's 3.3 V, so
+SCLK / MOSI / both chip selects / INT_HOLD go through SN74AHCT125-Q1 buffers (U14, U22; TTL VIH 2.0 V)
+at 5 V. MISO comes back at 5 V into PB14 (5 V tolerant pin) through 1k.
+
+Heater: low-side DMTH6016LK3Q (Q8) driven at 5 V by U10 (UCC27524A-Q1) from TIM4_CH4; the CJ125
+watches gate (DIAHG) and drain (DIAHD) for heater diagnosis. Heater + is VBAT on the connector.
+"""
+
+load("@stdlib/interfaces.zen", "Spi")
+load(
+    "./parts.zen",
+    "C_100N",
+    "C_1N",
+    "C_1U",
+    "C_220P",
+    "C_22N",
+    "C_2N2",
+    "C_33N",
+    "C_3N3",
+    "C_470P",
+    "C_4U7",
+    "LIMITS",
+    "LOADS",
+    "R_100K",
+    "R_10K",
+    "R_1K",
+    "R_1M",
+    "R_20K",
+    "R_21K6",
+    "R_22R",
+    "R_301R",
+    "R_470K",
+    "R_47K",
+    "R_4K7",
+    "R_61R9",
+    "R_6K8",
+    "place",
+)
+
+Placed = Module("./placed.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+VBAT = io(Power(voltage="0V to 38.9V"))
+V5 = io(Power(voltage="4.75V to 5.25V"))
+GND = io(Ground)
+
+SPI2 = io(Spi)  # 3.3 V side; CS = knock chip select
+LAM_CS = io(Net)
+KNK_INTHOLD = io(Net)
+KNK_CLK = io(Net)
+KNOCK_ADC = io(Net)
+LAMBDA_UA = io(Net)
+LAMBDA_UR = io(Net)
+HTR_CMD = io(Net)
+KNOCK_P = io(Net)
+KNOCK_N = io(Net)
+LSU_UN = io(Net)
+LSU_IP = io(Net)
+LSU_VM = io(Net)
+LSU_IA = io(Net)
+LSU_HTR_N = io(Net)
+
+SCLK_5V = Net()
+MOSI_5V = Net()
+MISO_5V = Net()
+KNK_CS_5V = Net()
+LAM_CS_5V = Net()
+INTHOLD_5V = Net()
+
+T = LIMITS["TPIC8101"]
+check(T["vih_frac"] * V5.voltage.max > 3.3, "TPIC8101 would accept 3.3 V logic: level shifter unnecessary")
+check(LIMITS["SN74AHCT125-Q1"]["vih"] < 0.8 * 3.3, "AHCT125 VIH above 3.3 V logic high")
+check(T["vout_max"] * 20.0 / 30.0 <= 3.2, "knock OUT divider exceeds VDDA")
+check(47e3 >= T["rin_min"], "TPIC8101 input resistors below 25k")
+check(LOADS["heater_i_max"] <= 0.5 * LIMITS["DMTH6016LK3Q"]["id_ta25"], "heater current above half the FET rating")
+
+# --- level shifters ---
+place(
+    Placed,
+    "U14",
+    "SN74AHCT125-Q1",
+    "TSSOP-14_4.4x5mm_P0.65mm",
+    {"VCC": V5, "1A": SPI2.CLK, "2A": SPI2.MOSI, "3A": SPI2.CS, "4A": LAM_CS, "1OE": GND, "2OE": GND, "3OE": GND,
+     "4OE": GND, "GND": GND, "1Y": SCLK_5V, "2Y": MOSI_5V, "3Y": KNK_CS_5V, "4Y": LAM_CS_5V},
+    mpn="SN74AHCT125QPWRQ1",
+    manufacturer="Texas Instruments",
+)
+place(
+    Placed,
+    "U22",
+    "SN74AHCT125-Q1",
+    "TSSOP-14_4.4x5mm_P0.65mm",
+    {"VCC": V5, "1A": KNK_INTHOLD, "2A": GND, "3A": GND, "4A": GND, "1OE": GND, "2OE": V5, "3OE": V5,
+     "4OE": V5, "GND": GND, "1Y": INTHOLD_5V, "2Y": NotConnected(), "3Y": NotConnected(), "4Y": NotConnected()},
+    mpn="SN74AHCT125QPWRQ1",
+    manufacturer="Texas Instruments",
+)
+Capacitor(name="C_U14", P1=V5, P2=GND, **C_100N)
+Capacitor(name="C_U22", P1=V5, P2=GND, **C_100N)
+Resistor(name="R_MISO", P1=MISO_5V, P2=SPI2.MISO, **R_1K)
+Resistor(name="R_MISO_PD", P1=MISO_5V, P2=GND, **R_100K)  # rusEFI R15: defined level while tri-stated
+
+# --- TPIC8101 (U12) ---
+CH1N = Net()
+CH1P = Net()
+CH1FB = Net()
+CH2N = Net()
+KNK_VREF = Net()
+KNK_OUT = Net()
+KNK_XIN = Net()
+KNK_XOUT = Net()
+KNK_CK = Net()
+KNK_AP = Net()
+KNK_AN = Net()
+place(
+    Placed,
+    "U12",
+    "TPIC8101",
+    "SOIC-20W_7.5x12.8mm_P1.27mm",
+    {
+        "VDD": V5,
+        "CH1P": CH1P,
+        "CH1N": CH1N,
+        "CH1FB": CH1FB,
+        "CH2P": KNK_VREF,
+        "CH2N": CH2N,
+        "CH2FB": CH2N,  # unused channel as a follower
+        "VREF": KNK_VREF,
+        "GND": GND,
+        "OUT": KNK_OUT,
+        "INT_HOLD": INTHOLD_5V,
+        "CS": KNK_CS_5V,
+        "SCLK": SCLK_5V,
+        "SDI": MOSI_5V,
+        "SDO": MISO_5V,
+        "XIN": KNK_XIN,
+        "XOUT": KNK_XOUT,
+        "TEST": NotConnected(),  # open for normal operation
+    },
+    mpn="TPIC8101DWRQ1",
+    manufacturer="Texas Instruments",
+)
+Capacitor(name="C_U12_VDD1", P1=V5, P2=GND, **C_4U7)
+Capacitor(name="C_U12_VDD2", P1=V5, P2=GND, **C_100N)
+Capacitor(name="C_KNK_VREF", P1=KNK_VREF, P2=GND, **C_22N)
+Capacitor(name="C_KNK_OUT", P1=KNK_OUT, P2=GND, **C_2N2)
+Resistor(name="R_KNK_OUT_TOP", P1=KNK_OUT, P2=KNOCK_ADC, **R_10K)
+Resistor(name="R_KNK_OUT_BOT", P1=KNOCK_ADC, P2=GND, **R_20K)
+Capacitor(name="C_KNK_AP", P1=KNOCK_P, P2=KNK_AP, **C_3N3)
+Resistor(name="R_KNK_R1N", P1=KNK_AP, P2=CH1N, **R_47K)
+Resistor(name="R_KNK_R2", P1=CH1N, P2=CH1FB, **R_47K)
+Capacitor(name="C_KNK_AN", P1=KNOCK_N, P2=KNK_AN, **C_3N3)
+Resistor(name="R_KNK_R1P", P1=KNK_AN, P2=CH1P, **R_47K)
+Resistor(name="R_KNK_BIAS", P1=CH1P, P2=KNK_VREF, **R_47K)
+Resistor(name="R_KNK_CK", P1=KNK_CLK, P2=KNK_CK, **R_1K)
+Capacitor(name="C_KNK_CK", P1=KNK_CK, P2=KNK_XIN, **C_470P)
+Resistor(name="R_KNK_BIAS_X", P1=KNK_XIN, P2=KNK_XOUT, **R_1M)
+
+# --- CJ125 (U13), rusEFI cj125_Module network ---
+CJ_RST = Net()
+CJ_CF = Net()
+CJ_RF = Net()
+CJ_UA = Net()
+CJ_UA_F = Net()
+CJ_UR = Net()
+CJ_UR_F = Net()
+CJ_OSZ = Net()
+CJ_UP = Net()
+CJ_US = Net()
+CJ_RS = Net()
+CJ_RM = Net()
+CJ_RM2 = Net()
+CJ_CM = Net()
+HTR_GATE = Net()
+CJ_DIAHD = Net()
+place(
+    Placed,
+    "U13",
+    "CJ125",
+    "LQFP-32_7x7mm_P0.8mm",
+    {
+        "UB": VBAT,
+        "VCC": V5,
+        "VCCS": V5,
+        "VCCSS": V5,
+        "UN": LSU_UN,
+        "IP": LSU_IP,
+        "VM": LSU_VM,
+        "IA": LSU_IA,
+        "UP": CJ_UP,
+        "US": CJ_US,
+        "RS": CJ_RS,
+        "RM": CJ_RM,
+        "CM": CJ_CM,
+        "GND": GND,
+        "GNDS": GND,
+        "UA": CJ_UA,
+        "UR": CJ_UR,
+        "RF": CJ_RF,
+        "CF": CJ_CF,
+        "OSZ": CJ_OSZ,
+        "DIAHG": HTR_GATE,
+        "DIAHD": CJ_DIAHD,
+        "RST": CJ_RST,
+        "SS": LAM_CS_5V,
+        "SI": MOSI_5V,
+        "SO": MISO_5V,
+        "SCLK": SCLK_5V,
+    },
+    mpn="CJ125",
+    manufacturer="Bosch",
+)
+Capacitor(name="C_CJ_UB", P1=VBAT, P2=GND, **(C_33N | {"voltage": "100V", "package": "0805"}))  # rusEFI C4
+Capacitor(name="C_CJ_VCC1", P1=V5, P2=GND, **C_33N)  # rusEFI C3
+Capacitor(name="C_CJ_VCC2", P1=V5, P2=GND, **C_100N)
+Resistor(name="R_CJ_RST", P1=CJ_RST, P2=V5, **R_10K)  # R11
+Capacitor(name="C_CJ_RST", P1=CJ_RST, P2=GND, **C_1N)  # C5
+Capacitor(name="C_CJ_CF", P1=CJ_CF, P2=GND, **C_100N)  # C6
+Resistor(name="R_CJ_RF", P1=CJ_RF, P2=CJ_CF, **R_100K)  # R12
+Resistor(name="R_CJ_UA", P1=CJ_UA, P2=CJ_UA_F, **R_1K)  # R16
+Capacitor(name="C_CJ_UA", P1=CJ_UA_F, P2=GND, **C_33N)  # C8
+Resistor(name="R_CJ_UA_TOP", P1=CJ_UA_F, P2=LAMBDA_UA, **R_6K8)  # R19
+Resistor(name="R_CJ_UA_BOT", P1=LAMBDA_UA, P2=GND, **R_10K)  # R18: 0.595 -> 5 V in = 2.98 V
+Resistor(name="R_CJ_UR", P1=CJ_UR, P2=CJ_UR_F, **R_1K)  # R14
+Capacitor(name="C_CJ_UR", P1=CJ_UR_F, P2=GND, **C_33N)  # C7
+Resistor(name="R_CJ_UR_TOP", P1=CJ_UR_F, P2=LAMBDA_UR, **R_6K8)  # added: same divider as UA
+Resistor(name="R_CJ_UR_BOT", P1=LAMBDA_UR, P2=GND, **R_10K)
+Resistor(name="R_CJ_OSZ", P1=CJ_OSZ, P2=GND, **R_10K)  # R13
+Resistor(name="R_CJ_SHUNT", P1=LSU_IA, P2=LSU_IP, **R_61R9)  # R9 pump-current shunt
+Resistor(name="R_CJ_UP_IA", P1=CJ_UP, P2=LSU_IA, **R_470K)  # R5
+Resistor(name="R_CJ_UP_UN", P1=CJ_UP, P2=LSU_UN, **R_100K)  # R4
+Resistor(name="R_CJ_UP_US", P1=CJ_UP, P2=CJ_US, **R_4K7)  # R8
+Capacitor(name="C_CJ_UN", P1=LSU_UN, P2=GND, **C_220P)  # C1
+Resistor(name="R_CJ_RS", P1=CJ_RS, P2=LSU_VM, **R_301R)  # R2 + R3, LSU 4.9
+Resistor(name="R_CJ_RM", P1=CJ_RM, P2=CJ_RM2, **R_21K6)  # R6 (+ R7 below)
+Resistor(name="R_CJ_RM2", P1=CJ_RM2, P2=CJ_CM, **R_10K)  # R7 (rusEFI: R7 then C2 to CM)
+Capacitor(name="C_CJ_CM", P1=CJ_CM, P2=GND, **C_100N)  # VERIFY: C2 placement (CM pin network)
+Resistor(name="R_CJ_DIAHD", P1=CJ_DIAHD, P2=LSU_HTR_N, **R_6K8)  # R10
+
+# --- LSU heater (Q8, U10) ---
+HTR_DRV = Net()
+place(
+    Placed,
+    "U10",
+    "UCC27524A-Q1",
+    "SOIC-8_3.9x4.9mm_P1.27mm",
+    {"VDD": V5, "INA": HTR_CMD, "INB": GND, "ENA": V5, "ENB": GND, "GND": GND, "OUTA": HTR_DRV,
+     "OUTB": NotConnected()},
+    mpn="UCC27524AQDRQ1",
+    manufacturer="Texas Instruments",
+)
+Capacitor(name="C_U10_VDD1", P1=V5, P2=GND, **C_1U)
+Capacitor(name="C_U10_VDD2", P1=V5, P2=GND, **C_100N)
+Resistor(name="R_HTR_G", P1=HTR_DRV, P2=HTR_GATE, **R_22R)
+Resistor(name="R_HTR_PD", P1=HTR_GATE, P2=GND, **R_10K)  # rusEFI R17
+place(
+    Placed,
+    "Q8",
+    "Q_NMOS_GDS",
+    "TO-252-2",
+    {"G": HTR_GATE, "D": LSU_HTR_N, "S": GND},
+    prefix="Q",
+    mpn="DMTH6016LK3Q-13",
+    manufacturer="Diodes Incorporated",
+    kind="mosfet",
+)

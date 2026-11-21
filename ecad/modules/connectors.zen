@@ -1,0 +1,73 @@
+"""Harness connectors: two Molex Micro-Fit 3.0 2 x 12 right-angle headers (5 A per contact).
+
+J1 power and actuators, J2 sensors. Battery, ground and the throttle motor use two contacts each
+(the ETB stall current of 7.5 A is above one contact's rating). Pin numbering is the Molex one:
+1-12 on the first row, 13-24 on the second (KiCad Conn_02x12_Top_Bottom).
+There is one ground net; sensor returns (SGND pins on J2) join it at the connector (star point).
+"""
+
+load("./parts.zen", "place")
+
+Placed = Module("./placed.zen")
+
+VBAT_IN = io(Power(voltage="-14V to 38.9V"), direction="output")
+VBAT = io(Power(voltage="0V to 38.9V"))
+V5_S1 = io(Power(voltage="4.7V to 5.3V"))
+V5_S2 = io(Power(voltage="4.7V to 5.3V"))
+GND = io(Ground)
+
+INJ1 = io(Net)
+INJ2 = io(Net)
+INJ3 = io(Net)
+INJ4 = io(Net)
+IGN1 = io(Net)
+IGN2 = io(Net)
+IGN3 = io(Net)
+IGN4 = io(Net)
+ETB_M_P = io(Net)
+ETB_M_N = io(Net)
+VVT = io(Net)
+PUMP = io(Net)
+LSU_HTR_N = io(Net)
+CAN_H = io(Net)
+CAN_L = io(Net)
+TPS1 = io(Net)
+TPS2 = io(Net)
+PPS1 = io(Net)
+PPS2 = io(Net)
+MAP = io(Net)
+IAT = io(Net)
+CLT = io(Net)
+CRANK_P = io(Net)
+CAM_IN = io(Net)
+KNOCK_P = io(Net)
+KNOCK_N = io(Net)
+LSU_UN = io(Net)
+LSU_IP = io(Net)
+LSU_VM = io(Net)
+LSU_IA = io(Net)
+
+J1_PINS = {
+    1: VBAT_IN, 2: VBAT_IN, 3: GND, 4: GND, 5: INJ1, 6: INJ2, 7: INJ3, 8: INJ4,
+    9: IGN1, 10: IGN2, 11: IGN3, 12: IGN4,
+    13: ETB_M_P, 14: ETB_M_P, 15: ETB_M_N, 16: ETB_M_N, 17: VVT, 18: PUMP,
+    19: LSU_HTR_N, 20: VBAT, 21: CAN_H, 22: CAN_L, 23: GND, 24: GND,
+}
+J2_PINS = {
+    1: V5_S1, 2: V5_S2, 3: GND, 4: GND, 5: TPS1, 6: TPS2, 7: PPS1, 8: PPS2,
+    9: MAP, 10: IAT, 11: CLT, 12: GND,
+    13: CRANK_P, 14: GND, 15: CAM_IN, 16: KNOCK_P, 17: KNOCK_N, 18: LSU_UN,
+    19: LSU_IP, 20: LSU_VM, 21: LSU_IA, 22: GND, 23: V5_S1, 24: GND,
+}
+
+for ref, pins, mpn in (("J1", J1_PINS, "43045-2400"), ("J2", J2_PINS, "43045-2400")):
+    place(
+        Placed,
+        ref,
+        "Conn_02x12_Top_Bottom",
+        "Molex_Micro-Fit_3.0_43045-2400_2x12_P3.00mm_Horizontal",
+        {"Pin_{}".format(k): v for k, v in pins.items()},
+        prefix="J",
+        mpn=mpn,
+        manufacturer="Molex",
+    )

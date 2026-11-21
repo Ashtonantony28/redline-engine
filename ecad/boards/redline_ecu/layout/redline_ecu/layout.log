@@ -1,0 +1,1190 @@
+INFO: Parsing JSON netlist from /tmp/.tmpSxTjd5/netlist.json
+DEBUG: Found module COM with layout_path: None
+DEBUG: Found module COM.C_CAN_SPLIT with layout_path: None
+DEBUG: Found module COM.C_U15_VCC with layout_path: None
+DEBUG: Found module COM.C_U15_VIO with layout_path: None
+DEBUG: Found module COM.C_VBUS with layout_path: None
+DEBUG: Found module COM.J3 with layout_path: None
+DEBUG: Found module COM.J4 with layout_path: None
+DEBUG: Found module COM.R_CAN_TH with layout_path: None
+DEBUG: Found module COM.R_CAN_TL with layout_path: None
+DEBUG: Found module COM.R_CC1 with layout_path: None
+DEBUG: Found module COM.R_CC2 with layout_path: None
+DEBUG: Found module COM.U15 with layout_path: None
+DEBUG: Found module COM.U20 with layout_path: None
+DEBUG: Found module COM.U21 with layout_path: None
+DEBUG: Found module CONN with layout_path: None
+DEBUG: Found module CONN.J1 with layout_path: None
+DEBUG: Found module CONN.J2 with layout_path: None
+DEBUG: Found module ETB with layout_path: None
+DEBUG: Found module ETB.C_CP with layout_path: None
+DEBUG: Found module ETB.C_DVDD with layout_path: None
+DEBUG: Found module ETB.C_ISENSE with layout_path: None
+DEBUG: Found module ETB.C_VCP with layout_path: None
+DEBUG: Found module ETB.C_VM1 with layout_path: None
+DEBUG: Found module ETB.C_VM2 with layout_path: None
+DEBUG: Found module ETB.R_DISABLE with layout_path: None
+DEBUG: Found module ETB.R_IPROPI with layout_path: None
+DEBUG: Found module ETB.R_ISENSE with layout_path: None
+DEBUG: Found module ETB.R_NFAULT with layout_path: None
+DEBUG: Found module ETB.R_NSLEEP with layout_path: None
+DEBUG: Found module ETB.R_SR with layout_path: None
+DEBUG: Found module ETB.U7 with layout_path: None
+DEBUG: Found module KL with layout_path: None
+DEBUG: Found module KL.C_CJ_CF with layout_path: None
+DEBUG: Found module KL.C_CJ_CM with layout_path: None
+DEBUG: Found module KL.C_CJ_RST with layout_path: None
+DEBUG: Found module KL.C_CJ_UA with layout_path: None
+DEBUG: Found module KL.C_CJ_UB with layout_path: None
+DEBUG: Found module KL.C_CJ_UN with layout_path: None
+DEBUG: Found module KL.C_CJ_UR with layout_path: None
+DEBUG: Found module KL.C_CJ_VCC1 with layout_path: None
+DEBUG: Found module KL.C_CJ_VCC2 with layout_path: None
+DEBUG: Found module KL.C_KNK_AN with layout_path: None
+DEBUG: Found module KL.C_KNK_AP with layout_path: None
+DEBUG: Found module KL.C_KNK_CK with layout_path: None
+DEBUG: Found module KL.C_KNK_OUT with layout_path: None
+DEBUG: Found module KL.C_KNK_VREF with layout_path: None
+DEBUG: Found module KL.C_U10_VDD1 with layout_path: None
+DEBUG: Found module KL.C_U10_VDD2 with layout_path: None
+DEBUG: Found module KL.C_U12_VDD1 with layout_path: None
+DEBUG: Found module KL.C_U12_VDD2 with layout_path: None
+DEBUG: Found module KL.C_U14 with layout_path: None
+DEBUG: Found module KL.C_U22 with layout_path: None
+DEBUG: Found module KL.Q8 with layout_path: None
+DEBUG: Found module KL.R_CJ_DIAHD with layout_path: None
+DEBUG: Found module KL.R_CJ_OSZ with layout_path: None
+DEBUG: Found module KL.R_CJ_RF with layout_path: None
+DEBUG: Found module KL.R_CJ_RM with layout_path: None
+DEBUG: Found module KL.R_CJ_RM2 with layout_path: None
+DEBUG: Found module KL.R_CJ_RS with layout_path: None
+DEBUG: Found module KL.R_CJ_RST with layout_path: None
+DEBUG: Found module KL.R_CJ_SHUNT with layout_path: None
+DEBUG: Found module KL.R_CJ_UA with layout_path: None
+DEBUG: Found module KL.R_CJ_UA_BOT with layout_path: None
+DEBUG: Found module KL.R_CJ_UA_TOP with layout_path: None
+DEBUG: Found module KL.R_CJ_UP_IA with layout_path: None
+DEBUG: Found module KL.R_CJ_UP_UN with layout_path: None
+DEBUG: Found module KL.R_CJ_UP_US with layout_path: None
+DEBUG: Found module KL.R_CJ_UR with layout_path: None
+DEBUG: Found module KL.R_CJ_UR_BOT with layout_path: None
+DEBUG: Found module KL.R_CJ_UR_TOP with layout_path: None
+DEBUG: Found module KL.R_HTR_G with layout_path: None
+DEBUG: Found module KL.R_HTR_PD with layout_path: None
+DEBUG: Found module KL.R_KNK_BIAS with layout_path: None
+DEBUG: Found module KL.R_KNK_BIAS_X with layout_path: None
+DEBUG: Found module KL.R_KNK_CK with layout_path: None
+DEBUG: Found module KL.R_KNK_OUT_BOT with layout_path: None
+DEBUG: Found module KL.R_KNK_OUT_TOP with layout_path: None
+DEBUG: Found module KL.R_KNK_R1N with layout_path: None
+DEBUG: Found module KL.R_KNK_R1P with layout_path: None
+DEBUG: Found module KL.R_KNK_R2 with layout_path: None
+DEBUG: Found module KL.R_MISO with layout_path: None
+DEBUG: Found module KL.R_MISO_PD with layout_path: None
+DEBUG: Found module KL.U10 with layout_path: None
+DEBUG: Found module KL.U12 with layout_path: None
+DEBUG: Found module KL.U13 with layout_path: None
+DEBUG: Found module KL.U14 with layout_path: None
+DEBUG: Found module KL.U22 with layout_path: None
+DEBUG: Found module MCU with layout_path: None
+DEBUG: Found module MCU.C_HSE_IN with layout_path: None
+DEBUG: Found module MCU.C_HSE_OUT with layout_path: None
+DEBUG: Found module MCU.C_NRST with layout_path: None
+DEBUG: Found module MCU.C_VCAP_48 with layout_path: None
+DEBUG: Found module MCU.C_VCAP_73 with layout_path: None
+DEBUG: Found module MCU.C_VDDA_100N with layout_path: None
+DEBUG: Found module MCU.C_VDDA_1U with layout_path: None
+DEBUG: Found module MCU.C_VDD_100 with layout_path: None
+DEBUG: Found module MCU.C_VDD_11 with layout_path: None
+DEBUG: Found module MCU.C_VDD_27 with layout_path: None
+DEBUG: Found module MCU.C_VDD_50 with layout_path: None
+DEBUG: Found module MCU.C_VDD_6 with layout_path: None
+DEBUG: Found module MCU.C_VDD_75 with layout_path: None
+DEBUG: Found module MCU.C_VDD_BULK with layout_path: None
+DEBUG: Found module MCU.FB1 with layout_path: None
+DEBUG: Found module MCU.LED_FAULT with layout_path: None
+DEBUG: Found module MCU.LED_STATUS with layout_path: None
+DEBUG: Found module MCU.R_BOOT0 with layout_path: None
+DEBUG: Found module MCU.R_LED_FAULT with layout_path: None
+DEBUG: Found module MCU.R_LED_STATUS with layout_path: None
+DEBUG: Found module MCU.SW1 with layout_path: None
+DEBUG: Found module MCU.U1 with layout_path: None
+DEBUG: Found module MCU.Y1 with layout_path: None
+DEBUG: Found module OUT with layout_path: None
+DEBUG: Found module OUT.C_U8_VDD1 with layout_path: None
+DEBUG: Found module OUT.C_U8_VDD2 with layout_path: None
+DEBUG: Found module OUT.C_U9_VDD1 with layout_path: None
+DEBUG: Found module OUT.C_U9_VDD2 with layout_path: None
+DEBUG: Found module OUT.D3 with layout_path: None
+DEBUG: Found module OUT.Q2 with layout_path: None
+DEBUG: Found module OUT.Q3 with layout_path: None
+DEBUG: Found module OUT.Q4 with layout_path: None
+DEBUG: Found module OUT.Q5 with layout_path: None
+DEBUG: Found module OUT.Q6 with layout_path: None
+DEBUG: Found module OUT.Q7 with layout_path: None
+DEBUG: Found module OUT.R_IGN1 with layout_path: None
+DEBUG: Found module OUT.R_IGN2 with layout_path: None
+DEBUG: Found module OUT.R_IGN3 with layout_path: None
+DEBUG: Found module OUT.R_IGN4 with layout_path: None
+DEBUG: Found module OUT.R_INJ1_IN with layout_path: None
+DEBUG: Found module OUT.R_INJ1_PD with layout_path: None
+DEBUG: Found module OUT.R_INJ2_IN with layout_path: None
+DEBUG: Found module OUT.R_INJ2_PD with layout_path: None
+DEBUG: Found module OUT.R_INJ3_IN with layout_path: None
+DEBUG: Found module OUT.R_INJ3_PD with layout_path: None
+DEBUG: Found module OUT.R_INJ4_IN with layout_path: None
+DEBUG: Found module OUT.R_INJ4_PD with layout_path: None
+DEBUG: Found module OUT.R_PUMP_IN with layout_path: None
+DEBUG: Found module OUT.R_PUMP_PD with layout_path: None
+DEBUG: Found module OUT.R_VVT_IN with layout_path: None
+DEBUG: Found module OUT.R_VVT_PD with layout_path: None
+DEBUG: Found module OUT.U8 with layout_path: None
+DEBUG: Found module OUT.U9 with layout_path: None
+DEBUG: Found module PWR with layout_path: None
+DEBUG: Found module PWR.C1 with layout_path: None
+DEBUG: Found module PWR.C2 with layout_path: None
+DEBUG: Found module PWR.C_5V1 with layout_path: None
+DEBUG: Found module PWR.C_5V2 with layout_path: None
+DEBUG: Found module PWR.C_BOOT with layout_path: None
+DEBUG: Found module PWR.C_BUCK_HF1 with layout_path: None
+DEBUG: Found module PWR.C_BUCK_HF2 with layout_path: None
+DEBUG: Found module PWR.C_BUCK_IN with layout_path: None
+DEBUG: Found module PWR.C_FF with layout_path: None
+DEBUG: Found module PWR.C_RB_VCAP with layout_path: None
+DEBUG: Found module PWR.C_U4_IN with layout_path: None
+DEBUG: Found module PWR.C_U4_OUT with layout_path: None
+DEBUG: Found module PWR.C_U5_ADJ with layout_path: None
+DEBUG: Found module PWR.C_U5_IN with layout_path: None
+DEBUG: Found module PWR.C_U5_OUT with layout_path: None
+DEBUG: Found module PWR.C_U6_ADJ with layout_path: None
+DEBUG: Found module PWR.C_U6_IN with layout_path: None
+DEBUG: Found module PWR.C_U6_OUT with layout_path: None
+DEBUG: Found module PWR.C_VBAT_HF with layout_path: None
+DEBUG: Found module PWR.C_VBAT_SENSE with layout_path: None
+DEBUG: Found module PWR.C_VCC with layout_path: None
+DEBUG: Found module PWR.C_VIN_EMI with layout_path: None
+DEBUG: Found module PWR.D1 with layout_path: None
+DEBUG: Found module PWR.D2 with layout_path: None
+DEBUG: Found module PWR.L1 with layout_path: None
+DEBUG: Found module PWR.LED_PWR with layout_path: None
+DEBUG: Found module PWR.Q1 with layout_path: None
+DEBUG: Found module PWR.R_FBB with layout_path: None
+DEBUG: Found module PWR.R_FBT with layout_path: None
+DEBUG: Found module PWR.R_PWR_LED with layout_path: None
+DEBUG: Found module PWR.R_VBAT_BOT with layout_path: None
+DEBUG: Found module PWR.R_VBAT_TOP with layout_path: None
+DEBUG: Found module PWR.TP_SW with layout_path: None
+DEBUG: Found module PWR.U2 with layout_path: None
+DEBUG: Found module PWR.U3 with layout_path: None
+DEBUG: Found module PWR.U4 with layout_path: None
+DEBUG: Found module PWR.U5 with layout_path: None
+DEBUG: Found module PWR.U6 with layout_path: None
+DEBUG: Found module SENS with layout_path: None
+DEBUG: Found module SENS.C_CAM with layout_path: None
+DEBUG: Found module SENS.C_CLT with layout_path: None
+DEBUG: Found module SENS.C_IAT with layout_path: None
+DEBUG: Found module SENS.C_MAP with layout_path: None
+DEBUG: Found module SENS.C_PPS1 with layout_path: None
+DEBUG: Found module SENS.C_PPS2 with layout_path: None
+DEBUG: Found module SENS.C_S5V1 with layout_path: None
+DEBUG: Found module SENS.C_S5V2 with layout_path: None
+DEBUG: Found module SENS.C_TPS1 with layout_path: None
+DEBUG: Found module SENS.C_TPS2 with layout_path: None
+DEBUG: Found module SENS.C_U11_VCC with layout_path: None
+DEBUG: Found module SENS.C_VR_IN with layout_path: None
+DEBUG: Found module SENS.C_VR_PEAK with layout_path: None
+DEBUG: Found module SENS.R_CAM with layout_path: None
+DEBUG: Found module SENS.R_CAM_PU with layout_path: None
+DEBUG: Found module SENS.R_CLT with layout_path: None
+DEBUG: Found module SENS.R_CLT_PU with layout_path: None
+DEBUG: Found module SENS.R_IAT with layout_path: None
+DEBUG: Found module SENS.R_IAT_PU with layout_path: None
+DEBUG: Found module SENS.R_MAP_BOT with layout_path: None
+DEBUG: Found module SENS.R_MAP_TOP with layout_path: None
+DEBUG: Found module SENS.R_PPS1_BOT with layout_path: None
+DEBUG: Found module SENS.R_PPS1_TOP with layout_path: None
+DEBUG: Found module SENS.R_PPS2_BOT with layout_path: None
+DEBUG: Found module SENS.R_PPS2_TOP with layout_path: None
+DEBUG: Found module SENS.R_S5V1_BOT with layout_path: None
+DEBUG: Found module SENS.R_S5V1_TOP with layout_path: None
+DEBUG: Found module SENS.R_S5V2_BOT with layout_path: None
+DEBUG: Found module SENS.R_S5V2_TOP with layout_path: None
+DEBUG: Found module SENS.R_TPS1_BOT with layout_path: None
+DEBUG: Found module SENS.R_TPS1_TOP with layout_path: None
+DEBUG: Found module SENS.R_TPS2_BOT with layout_path: None
+DEBUG: Found module SENS.R_TPS2_TOP with layout_path: None
+DEBUG: Found module SENS.R_VR_BOT with layout_path: None
+DEBUG: Found module SENS.R_VR_IN with layout_path: None
+DEBUG: Found module SENS.R_VR_TOP with layout_path: None
+DEBUG: Found module SENS.U11 with layout_path: None
+DEBUG: Found module SENS.U16 with layout_path: None
+DEBUG: Found module SENS.U17 with layout_path: None
+DEBUG: Found module SENS.U18 with layout_path: None
+DEBUG: Found module SENS.U19 with layout_path: None
+DEBUG: Found module TP1 with layout_path: None
+DEBUG: Found module TP10 with layout_path: None
+DEBUG: Found module TP11 with layout_path: None
+DEBUG: Found module TP12 with layout_path: None
+DEBUG: Found module TP2 with layout_path: None
+DEBUG: Found module TP3 with layout_path: None
+DEBUG: Found module TP4 with layout_path: None
+DEBUG: Found module TP5 with layout_path: None
+DEBUG: Found module TP6 with layout_path: None
+DEBUG: Found module TP7 with layout_path: None
+DEBUG: Found module TP8 with layout_path: None
+DEBUG: Found module TP9 with layout_path: None
+INFO: --------------------------------------------------------------------------------
+INFO: Running step: ImportNetlist
+INFO: --------------------------------------------------------------------------------
+INFO: Starting ImportNetlist...
+INFO: Running lens-based netlist sync
+INFO: Starting lens-based layout sync
+INFO: Source: 230 footprints, 8 groups, 211 nets
+INFO: OLD FPV path=COM.C_CAN_SPLIT.C ref=C3 value="4.7nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=COM.C_U15_VCC.C ref=C4 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=COM.C_U15_VIO.C ref=C5 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=COM.C_VBUS.C ref=C6 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=COM.J3.X ref=J3 value=TYPE-C-31-M-12 fpid=workspace_lib_footprints:USB_C_Receptacle_HRO_TYPE-C-31-M-12 fields=["Manufacturer=Korean Hroparts", "Mpn=TYPE-C-31-M-12", "Prefix=J"]
+INFO: OLD FPV path=COM.J4.X ref=J4 value=TC2030-IDC-NL fpid=workspace_lib_footprints:Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical bom=false fields=["Manufacturer=Tag-Connect", "Mpn=TC2030-IDC-NL", "Prefix=J"]
+INFO: OLD FPV path=COM.R_CAN_TH.R ref=R1 value="60.4 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0805_2012Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=R", "Resistance=60.4 1%", "Type=resistor"]
+INFO: OLD FPV path=COM.R_CAN_TL.R ref=R2 value="60.4 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0805_2012Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=R", "Resistance=60.4 1%", "Type=resistor"]
+INFO: OLD FPV path=COM.R_CC1.R ref=R3 value="5.1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=5.1k 1%", "Type=resistor"]
+INFO: OLD FPV path=COM.R_CC2.R ref=R4 value="5.1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=5.1k 1%", "Type=resistor"]
+INFO: OLD FPV path=COM.U15.X ref=U15 value=TCAN1044AVDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TCAN1044AVDRQ1", "Prefix=U"]
+INFO: OLD FPV path=COM.U20.X ref=U20 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: OLD FPV path=COM.U21.X ref=U21 value=ESD2CAN24DBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=ESD2CAN24DBZRQ1", "Prefix=U"]
+INFO: OLD FPV path=CONN.J1.X ref=J1 value=43045-2400 fpid=workspace_lib_footprints:Molex_Micro-Fit_3.0_43045-2400_2x12_P3.00mm_Horizontal fields=["KiLib_Generator=connector/Molex", "Manufacturer=Molex", "Mpn=43045-2400", "Prefix=J"]
+INFO: OLD FPV path=CONN.J2.X ref=J2 value=43045-2400 fpid=workspace_lib_footprints:Molex_Micro-Fit_3.0_43045-2400_2x12_P3.00mm_Horizontal fields=["KiLib_Generator=connector/Molex", "Manufacturer=Molex", "Mpn=43045-2400", "Prefix=J"]
+INFO: OLD FPV path=ETB.C_CP.C ref=C7 value="47nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=47nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=ETB.C_DVDD.C ref=C8 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: OLD FPV path=ETB.C_ISENSE.C ref=C9 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=ETB.C_VCP.C ref=C10 value="1uF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=ETB.C_VM1.C ref=C11 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=ETB.C_VM2.C ref=C12 value="1uF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=ETB.R_DISABLE.R ref=R5 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=ETB.R_IPROPI.R ref=R6 value="390 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=390 1%", "Type=resistor"]
+INFO: OLD FPV path=ETB.R_ISENSE.R ref=R7 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=ETB.R_NFAULT.R ref=R8 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=ETB.R_NSLEEP.R ref=R9 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=ETB.R_SR.R ref=R10 value="68k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=68k 1%", "Type=resistor"]
+INFO: OLD FPV path=ETB.U7.X ref=U7 value=DRV8873HQPWPRQ1 fpid=workspace_lib_footprints:HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=DRV8873HQPWPRQ1", "Prefix=U"]
+INFO: OLD FPV path=H1 ref=H1 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["KiLib_Generator=mounting_hardware/mounting_hole", "Prefix=H"]
+INFO: OLD FPV path=H2 ref=H2 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["KiLib_Generator=mounting_hardware/mounting_hole", "Prefix=H"]
+INFO: OLD FPV path=H3 ref=H3 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["KiLib_Generator=mounting_hardware/mounting_hole", "Prefix=H"]
+INFO: OLD FPV path=H4 ref=H4 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["KiLib_Generator=mounting_hardware/mounting_hole", "Prefix=H"]
+INFO: OLD FPV path=KL.C_CJ_CF.C ref=C13 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_CJ_CM.C ref=C14 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_CJ_RST.C ref=C15 value="1nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1nF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_CJ_UA.C ref=C16 value="33nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=33nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_CJ_UB.C ref=C17 value="33nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=33nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=KL.C_CJ_UN.C ref=C18 value="220pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=220pF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_CJ_UR.C ref=C19 value="33nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=33nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_CJ_VCC1.C ref=C20 value="33nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=33nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_CJ_VCC2.C ref=C21 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_KNK_AN.C ref=C22 value="3.3nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=3.3nF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_KNK_AP.C ref=C23 value="3.3nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=3.3nF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_KNK_CK.C ref=C24 value="470pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=470pF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_KNK_OUT.C ref=C25 value="2.2nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=2.2nF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_KNK_VREF.C ref=C26 value="22nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=22nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_U10_VDD1.C ref=C27 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: OLD FPV path=KL.C_U10_VDD2.C ref=C28 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_U12_VDD1.C ref=C29 value="4.7uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: OLD FPV path=KL.C_U12_VDD2.C ref=C30 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_U14.C ref=C31 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.C_U22.C ref=C32 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=KL.Q8.X ref=Q8 value=DMTH6016LK3Q-13 fpid=workspace_lib_footprints:TO-252-2 fields=["KiLib_Generator=package/TO_SOT/SMD", "Manufacturer=Diodes Incorporated", "Mpn=DMTH6016LK3Q-13", "Prefix=Q", "Type=mosfet"]
+INFO: OLD FPV path=KL.R_CJ_DIAHD.R ref=R11 value="6.8k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=6.8k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_OSZ.R ref=R12 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_RF.R ref=R13 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_RM.R ref=R14 value="21.5k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=21.5k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_RM2.R ref=R15 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_RS.R ref=R16 value="301 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=301 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_RST.R ref=R17 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_SHUNT.R ref=R18 value="61.9 0.1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=61.9 0.1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UA.R ref=R19 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UA_BOT.R ref=R20 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UA_TOP.R ref=R21 value="6.8k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=6.8k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UP_IA.R ref=R22 value="470k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=470k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UP_UN.R ref=R23 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UP_US.R ref=R24 value="4.7k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=4.7k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UR.R ref=R25 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UR_BOT.R ref=R26 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_CJ_UR_TOP.R ref=R27 value="6.8k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=6.8k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_HTR_G.R ref=R28 value="22 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=22 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_HTR_PD.R ref=R29 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_BIAS.R ref=R30 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_BIAS_X.R ref=R31 value="1M 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1M 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_CK.R ref=R32 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_OUT_BOT.R ref=R33 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_OUT_TOP.R ref=R34 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_R1N.R ref=R35 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_R1P.R ref=R36 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_KNK_R2.R ref=R37 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_MISO.R ref=R38 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.R_MISO_PD.R ref=R39 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=KL.U10.X ref=U10 value=UCC27524AQDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=UCC27524AQDRQ1", "Prefix=U"]
+INFO: OLD FPV path=KL.U12.X ref=U12 value=TPIC8101DWRQ1 fpid=workspace_lib_footprints:SOIC-20W_7.5x12.8mm_P1.27mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPIC8101DWRQ1", "Prefix=U"]
+INFO: OLD FPV path=KL.U13.X ref=U13 value=CJ125 fpid=workspace_lib_footprints:LQFP-32_7x7mm_P0.8mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Bosch", "Mpn=CJ125", "Prefix=U"]
+INFO: OLD FPV path=KL.U14.X ref=U14 value=SN74AHCT125QPWRQ1 fpid=workspace_lib_footprints:TSSOP-14_4.4x5mm_P0.65mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=SN74AHCT125QPWRQ1", "Prefix=U"]
+INFO: OLD FPV path=KL.U22.X ref=U22 value=SN74AHCT125QPWRQ1 fpid=workspace_lib_footprints:TSSOP-14_4.4x5mm_P0.65mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=SN74AHCT125QPWRQ1", "Prefix=U"]
+INFO: OLD FPV path=MCU.C_HSE_IN.C ref=C33 value="12pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=12pF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_HSE_OUT.C ref=C34 value="12pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=12pF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_NRST.C ref=C35 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VCAP_48.C ref=C36 value="2.2uF 10V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=2.2uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=10V"]
+INFO: OLD FPV path=MCU.C_VCAP_73.C ref=C37 value="2.2uF 10V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=2.2uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=10V"]
+INFO: OLD FPV path=MCU.C_VDDA_100N.C ref=C39 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VDDA_1U.C ref=C38 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: OLD FPV path=MCU.C_VDD_100.C ref=C45 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VDD_11.C ref=C41 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VDD_27.C ref=C42 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VDD_50.C ref=C43 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VDD_6.C ref=C40 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VDD_75.C ref=C44 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=MCU.C_VDD_BULK.C ref=C46 value="10uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=10uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: OLD FPV path=MCU.FB1.FB ref=FB1 value="600 1A 100MHz" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Current=1A", "Frequency=100MHz", "Impedance=600", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=FB", "Type=ferrite_bead"]
+INFO: OLD FPV path=MCU.LED_FAULT.LED ref=D4 value="LED RED" fpid=stdlib_kicad-footprints_LED_SMD:LED_0603_1608Metric fields=["Color=red", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=D", "Type=led"]
+INFO: OLD FPV path=MCU.LED_STATUS.LED ref=D5 value="LED BLUE" fpid=stdlib_kicad-footprints_LED_SMD:LED_0603_1608Metric fields=["Color=blue", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=D", "Type=led"]
+INFO: OLD FPV path=MCU.R_BOOT0.R ref=R40 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=MCU.R_LED_FAULT.R ref=R41 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=MCU.R_LED_STATUS.R ref=R42 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=MCU.SW1.X ref=SW1 value=TS-1088-AR02016 fpid=workspace_lib_footprints:SW_SPST_TS-1088-xR020 fields=["Manufacturer=XKB", "Mpn=TS-1088-AR02016", "Prefix=SW"]
+INFO: OLD FPV path=MCU.U1.X ref=U1 value=STM32H743VIT6 fpid=workspace_lib_footprints:LQFP-100_14x14mm_P0.5mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=STMicroelectronics", "Mpn=STM32H743VIT6", "Prefix=U"]
+INFO: OLD FPV path=MCU.Y1.Y ref=Y1 value=8MHz fpid=stdlib_kicad-footprints_Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm fields=["Frequency=8MHz", "KiLib_Generator=crystal_resonator_oscillator", "Manufacturer=Yangxing", "Mpn=X322508MSB4SI", "Package=3225_4Pin", "Prefix=Y", "Type=crystal"]
+INFO: OLD FPV path=OUT.C_U8_VDD1.C ref=C47 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: OLD FPV path=OUT.C_U8_VDD2.C ref=C48 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=OUT.C_U9_VDD1.C ref=C49 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: OLD FPV path=OUT.C_U9_VDD2.C ref=C50 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=OUT.D3.X ref=D3 value=SBR3U60P1 fpid=workspace_lib_footprints:D_PowerDI-123 fields=["Manufacturer=Diodes Incorporated", "Mpn=SBR3U60P1-7", "Prefix=D", "Type=rectifier"]
+INFO: OLD FPV path=OUT.Q2.X ref=Q2 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: OLD FPV path=OUT.Q3.X ref=Q3 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: OLD FPV path=OUT.Q4.X ref=Q4 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: OLD FPV path=OUT.Q5.X ref=Q5 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: OLD FPV path=OUT.Q6.X ref=Q6 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: OLD FPV path=OUT.Q7.X ref=Q7 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: OLD FPV path=OUT.R_IGN1.R ref=R43 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_IGN2.R ref=R44 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_IGN3.R ref=R45 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_IGN4.R ref=R46 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ1_IN.R ref=R47 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ1_PD.R ref=R48 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ2_IN.R ref=R49 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ2_PD.R ref=R50 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ3_IN.R ref=R51 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ3_PD.R ref=R52 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ4_IN.R ref=R53 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_INJ4_PD.R ref=R54 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_PUMP_IN.R ref=R55 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_PUMP_PD.R ref=R56 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_VVT_IN.R ref=R57 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.R_VVT_PD.R ref=R58 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=OUT.U8.X ref=U8 value=UCC27524AQDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=UCC27524AQDRQ1", "Prefix=U"]
+INFO: OLD FPV path=OUT.U9.X ref=U9 value=UCC27524AQDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=UCC27524AQDRQ1", "Prefix=U"]
+INFO: OLD FPV path=PWR.C1.X ref=C1 value="47uF 50V" fpid=workspace_lib_footprints:CP_Elec_8x10 fields=["KiLib_Generator=capacitor/SMD/elec_round_polarized", "Manufacturer=Panasonic", "Mpn=EEE-FK1H470P", "Prefix=C", "Type=capacitor"]
+INFO: OLD FPV path=PWR.C2.X ref=C2 value="47uF 50V" fpid=workspace_lib_footprints:CP_Elec_8x10 fields=["KiLib_Generator=capacitor/SMD/elec_round_polarized", "Manufacturer=Panasonic", "Mpn=EEE-FK1H470P", "Prefix=C", "Type=capacitor"]
+INFO: OLD FPV path=PWR.C_5V1.C ref=C51 value="22uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_1206_3216Metric fields=["Capacitance=22uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: OLD FPV path=PWR.C_5V2.C ref=C52 value="22uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_1206_3216Metric fields=["Capacitance=22uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: OLD FPV path=PWR.C_BOOT.C ref=C53 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=PWR.C_BUCK_HF1.C ref=C54 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=PWR.C_BUCK_HF2.C ref=C55 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=PWR.C_BUCK_IN.C ref=C56 value="4.7uF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_1206_3216Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=PWR.C_FF.C ref=C57 value="20pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=20pF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=PWR.C_RB_VCAP.C ref=C58 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=PWR.C_U4_IN.C ref=C59 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: OLD FPV path=PWR.C_U4_OUT.C ref=C60 value="10uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=10uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: OLD FPV path=PWR.C_U5_ADJ.C ref=C61 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=PWR.C_U5_IN.C ref=C62 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=PWR.C_U5_OUT.C ref=C63 value="4.7uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: OLD FPV path=PWR.C_U6_ADJ.C ref=C64 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=PWR.C_U6_IN.C ref=C65 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=PWR.C_U6_OUT.C ref=C66 value="4.7uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: OLD FPV path=PWR.C_VBAT_HF.C ref=C67 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=PWR.C_VBAT_SENSE.C ref=C68 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=PWR.C_VCC.C ref=C69 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: OLD FPV path=PWR.C_VIN_EMI.C ref=C70 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: OLD FPV path=PWR.D1.D ref=D1 value="24V TVS Diode" fpid=stdlib_kicad-footprints_Diode_SMD:D_SMC fields=["Direction=Bidirectional", "Manufacturer=Littelfuse", "Mpn=SMCJ24CA", "Package=DO-214AB", "Prefix=D", "Reverse Clamping Voltage=38.9V", "Reverse Standoff Voltage=24V", "Type=tvs"]
+INFO: OLD FPV path=PWR.D2.X ref=D2 value=B5819W fpid=workspace_lib_footprints:D_SOD-123 fields=["Manufacturer=Diodes Incorporated", "Mpn=B5819W", "Prefix=D", "Type=rectifier"]
+INFO: OLD FPV path=PWR.L1.X ref=L1 value=3.3uH fpid=workspace_lib_footprints:L_Sunlord_SWPA4030S fields=["KiLib_Generator=inductor/SMD", "Manufacturer=Sunlord", "Mpn=SWPA4030S3R3MT", "Prefix=L", "Type=inductor"]
+INFO: OLD FPV path=PWR.LED_PWR.LED ref=D6 value="LED GREEN" fpid=stdlib_kicad-footprints_LED_SMD:LED_0603_1608Metric fields=["Color=green", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=D", "Type=led"]
+INFO: OLD FPV path=PWR.Q1.X ref=Q1 value=DMTH6016LK3Q-13 fpid=workspace_lib_footprints:TO-252-2 fields=["KiLib_Generator=package/TO_SOT/SMD", "Manufacturer=Diodes Incorporated", "Mpn=DMTH6016LK3Q-13", "Prefix=Q", "Type=mosfet"]
+INFO: OLD FPV path=PWR.R_FBB.R ref=R59 value="24.9k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=24.9k 1%", "Type=resistor"]
+INFO: OLD FPV path=PWR.R_FBT.R ref=R60 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: OLD FPV path=PWR.R_PWR_LED.R ref=R61 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=PWR.R_VBAT_BOT.R ref=R62 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=PWR.R_VBAT_TOP.R ref=R63 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: OLD FPV path=PWR.TP_SW.TP ref=TP13 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=PWR.U2.X ref=U2 value=LM74700QDBVRQ1 fpid=workspace_lib_footprints:SOT-23-6 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=LM74700QDBVRQ1", "Prefix=U"]
+INFO: OLD FPV path=PWR.U3.X ref=U3 value=LMR36015FSCQRNXRQ1 fpid=workspace_lib_footprints:Texas_RNX0012C_VQFN-14-11-1EP_2x3mm_P0.5mm_EP0.25x1.825mm fields=["KiLib_Generator=package/no_lead", "Manufacturer=Texas Instruments", "Mpn=LMR36015FSCQRNXRQ1", "Prefix=U"]
+INFO: OLD FPV path=PWR.U4.X ref=U4 value=LDL1117S33R fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=STMicroelectronics", "Mpn=LDL1117S33R", "Prefix=U"]
+INFO: OLD FPV path=PWR.U5.X ref=U5 value=TPS7B4250QDBVRQ1 fpid=workspace_lib_footprints:SOT-23-5 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPS7B4250QDBVRQ1", "Prefix=U"]
+INFO: OLD FPV path=PWR.U6.X ref=U6 value=TPS7B4250QDBVRQ1 fpid=workspace_lib_footprints:SOT-23-5 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPS7B4250QDBVRQ1", "Prefix=U"]
+INFO: OLD FPV path=SENS.C_CAM.C ref=C71 value="1nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1nF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_CLT.C ref=C72 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_IAT.C ref=C73 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_MAP.C ref=C74 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_PPS1.C ref=C75 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_PPS2.C ref=C76 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_S5V1.C ref=C77 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_S5V2.C ref=C78 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_TPS1.C ref=C79 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_TPS2.C ref=C80 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_U11_VCC.C ref=C81 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_VR_IN.C ref=C82 value="1nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1nF", "Dielectric=C0G", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.C_VR_PEAK.C ref=C83 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: OLD FPV path=SENS.R_CAM.R ref=R64 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_CAM_PU.R ref=R65 value="4.7k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=4.7k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_CLT.R ref=R66 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_CLT_PU.R ref=R67 value="2.49k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=2.49k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_IAT.R ref=R68 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_IAT_PU.R ref=R69 value="2.49k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=2.49k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_MAP_BOT.R ref=R70 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_MAP_TOP.R ref=R71 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_PPS1_BOT.R ref=R72 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_PPS1_TOP.R ref=R73 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_PPS2_BOT.R ref=R74 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_PPS2_TOP.R ref=R75 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_S5V1_BOT.R ref=R76 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_S5V1_TOP.R ref=R77 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_S5V2_BOT.R ref=R78 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_S5V2_TOP.R ref=R79 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_TPS1_BOT.R ref=R80 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_TPS1_TOP.R ref=R81 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_TPS2_BOT.R ref=R82 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_TPS2_TOP.R ref=R83 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_VR_BOT.R ref=R84 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_VR_IN.R ref=R85 value="22k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=1206", "Prefix=R", "Resistance=22k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.R_VR_TOP.R ref=R86 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["KiLib_Generator=SMD_2terminal_chip_molded", "Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: OLD FPV path=SENS.U11.X ref=U11 value=LM1815M/NOPB fpid=workspace_lib_footprints:SOIC-14_3.9x8.7mm_P1.27mm fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=LM1815M/NOPB", "Prefix=U"]
+INFO: OLD FPV path=SENS.U16.X ref=U16 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: OLD FPV path=SENS.U17.X ref=U17 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: OLD FPV path=SENS.U18.X ref=U18 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: OLD FPV path=SENS.U19.X ref=U19 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["KiLib_Generator=package/gullwing", "Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: OLD FPV path=TP1.TP ref=TP1 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP10.TP ref=TP10 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP11.TP ref=TP11 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP12.TP ref=TP12 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP2.TP ref=TP2 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP3.TP ref=TP3 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP4.TP ref=TP4 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP5.TP ref=TP5 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP6.TP ref=TP6 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP7.TP ref=TP7 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP8.TP ref=TP8 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD FPV path=TP9.TP ref=TP9 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: OLD GRV path=COM members=[COM.C_CAN_SPLIT.C, COM.C_U15_VCC.C, COM.C_U15_VIO.C, COM.C_VBUS.C, COM.J3.X, COM.J4.X, COM.R_CAN_TH.R, COM.R_CAN_TL.R, COM.R_CC1.R, COM.R_CC2.R, COM.U15.X, COM.U20.X, COM.U21.X]
+INFO: OLD GRV path=CONN members=[CONN.J1.X, CONN.J2.X]
+INFO: OLD GRV path=ETB members=[ETB.C_CP.C, ETB.C_DVDD.C, ETB.C_ISENSE.C, ETB.C_VCP.C, ETB.C_VM1.C, ETB.C_VM2.C, ETB.R_DISABLE.R, ETB.R_IPROPI.R, ETB.R_ISENSE.R, ETB.R_NFAULT.R, ETB.R_NSLEEP.R, ETB.R_SR.R, ETB.U7.X]
+INFO: OLD GRV path=KL members=[KL.C_CJ_CF.C, KL.C_CJ_CM.C, KL.C_CJ_RST.C, KL.C_CJ_UA.C, KL.C_CJ_UB.C, KL.C_CJ_UN.C, KL.C_CJ_UR.C, KL.C_CJ_VCC1.C, KL.C_CJ_VCC2.C, KL.C_KNK_AN.C, KL.C_KNK_AP.C, KL.C_KNK_CK.C, KL.C_KNK_OUT.C, KL.C_KNK_VREF.C, KL.C_U10_VDD1.C, KL.C_U10_VDD2.C, KL.C_U12_VDD1.C, KL.C_U12_VDD2.C, KL.C_U14.C, KL.C_U22.C, KL.Q8.X, KL.R_CJ_DIAHD.R, KL.R_CJ_OSZ.R, KL.R_CJ_RF.R, KL.R_CJ_RM.R, KL.R_CJ_RM2.R, KL.R_CJ_RS.R, KL.R_CJ_RST.R, KL.R_CJ_SHUNT.R, KL.R_CJ_UA.R, KL.R_CJ_UA_BOT.R, KL.R_CJ_UA_TOP.R, KL.R_CJ_UP_IA.R, KL.R_CJ_UP_UN.R, KL.R_CJ_UP_US.R, KL.R_CJ_UR.R, KL.R_CJ_UR_BOT.R, KL.R_CJ_UR_TOP.R, KL.R_HTR_G.R, KL.R_HTR_PD.R, KL.R_KNK_BIAS.R, KL.R_KNK_BIAS_X.R, KL.R_KNK_CK.R, KL.R_KNK_OUT_BOT.R, KL.R_KNK_OUT_TOP.R, KL.R_KNK_R1N.R, KL.R_KNK_R1P.R, KL.R_KNK_R2.R, KL.R_MISO.R, KL.R_MISO_PD.R, KL.U10.X, KL.U12.X, KL.U13.X, KL.U14.X, KL.U22.X]
+INFO: OLD GRV path=MCU members=[MCU.C_HSE_IN.C, MCU.C_HSE_OUT.C, MCU.C_NRST.C, MCU.C_VCAP_48.C, MCU.C_VCAP_73.C, MCU.C_VDDA_100N.C, MCU.C_VDDA_1U.C, MCU.C_VDD_100.C, MCU.C_VDD_11.C, MCU.C_VDD_27.C, MCU.C_VDD_50.C, MCU.C_VDD_6.C, MCU.C_VDD_75.C, MCU.C_VDD_BULK.C, MCU.FB1.FB, MCU.LED_FAULT.LED, MCU.LED_STATUS.LED, MCU.R_BOOT0.R, MCU.R_LED_FAULT.R, MCU.R_LED_STATUS.R, MCU.SW1.X, MCU.U1.X, MCU.Y1.Y]
+INFO: OLD GRV path=OUT members=[OUT.C_U8_VDD1.C, OUT.C_U8_VDD2.C, OUT.C_U9_VDD1.C, OUT.C_U9_VDD2.C, OUT.D3.X, OUT.Q2.X, OUT.Q3.X, OUT.Q4.X, OUT.Q5.X, OUT.Q6.X, OUT.Q7.X, OUT.R_IGN1.R, OUT.R_IGN2.R, OUT.R_IGN3.R, OUT.R_IGN4.R, OUT.R_INJ1_IN.R, OUT.R_INJ1_PD.R, OUT.R_INJ2_IN.R, OUT.R_INJ2_PD.R, OUT.R_INJ3_IN.R, OUT.R_INJ3_PD.R, OUT.R_INJ4_IN.R, OUT.R_INJ4_PD.R, OUT.R_PUMP_IN.R, OUT.R_PUMP_PD.R, OUT.R_VVT_IN.R, OUT.R_VVT_PD.R, OUT.U8.X, OUT.U9.X]
+INFO: OLD GRV path=PWR members=[PWR.C1.X, PWR.C2.X, PWR.C_5V1.C, PWR.C_5V2.C, PWR.C_BOOT.C, PWR.C_BUCK_HF1.C, PWR.C_BUCK_HF2.C, PWR.C_BUCK_IN.C, PWR.C_FF.C, PWR.C_RB_VCAP.C, PWR.C_U4_IN.C, PWR.C_U4_OUT.C, PWR.C_U5_ADJ.C, PWR.C_U5_IN.C, PWR.C_U5_OUT.C, PWR.C_U6_ADJ.C, PWR.C_U6_IN.C, PWR.C_U6_OUT.C, PWR.C_VBAT_HF.C, PWR.C_VBAT_SENSE.C, PWR.C_VCC.C, PWR.C_VIN_EMI.C, PWR.D1.D, PWR.D2.X, PWR.L1.X, PWR.LED_PWR.LED, PWR.Q1.X, PWR.R_FBB.R, PWR.R_FBT.R, PWR.R_PWR_LED.R, PWR.R_VBAT_BOT.R, PWR.R_VBAT_TOP.R, PWR.TP_SW.TP, PWR.U2.X, PWR.U3.X, PWR.U4.X, PWR.U5.X, PWR.U6.X]
+INFO: OLD GRV path=SENS members=[SENS.C_CAM.C, SENS.C_CLT.C, SENS.C_IAT.C, SENS.C_MAP.C, SENS.C_PPS1.C, SENS.C_PPS2.C, SENS.C_S5V1.C, SENS.C_S5V2.C, SENS.C_TPS1.C, SENS.C_TPS2.C, SENS.C_U11_VCC.C, SENS.C_VR_IN.C, SENS.C_VR_PEAK.C, SENS.R_CAM.R, SENS.R_CAM_PU.R, SENS.R_CLT.R, SENS.R_CLT_PU.R, SENS.R_IAT.R, SENS.R_IAT_PU.R, SENS.R_MAP_BOT.R, SENS.R_MAP_TOP.R, SENS.R_PPS1_BOT.R, SENS.R_PPS1_TOP.R, SENS.R_PPS2_BOT.R, SENS.R_PPS2_TOP.R, SENS.R_S5V1_BOT.R, SENS.R_S5V1_TOP.R, SENS.R_S5V2_BOT.R, SENS.R_S5V2_TOP.R, SENS.R_TPS1_BOT.R, SENS.R_TPS1_TOP.R, SENS.R_TPS2_BOT.R, SENS.R_TPS2_TOP.R, SENS.R_VR_BOT.R, SENS.R_VR_IN.R, SENS.R_VR_TOP.R, SENS.U11.X, SENS.U16.X, SENS.U17.X, SENS.U18.X, SENS.U19.X]
+INFO: OLD FPC path=COM.C_CAN_SPLIT.C x=170650000 y=52180000 orient=0.0 layer=F.Cu ref_x=170650000 ref_y=50500000 val_x=170650000 val_y=53860000
+INFO: OLD FPC path=COM.C_U15_VCC.C x=159740000 y=44275000 orient=0.0 layer=F.Cu ref_x=159740000 ref_y=42845000 val_x=159740000 val_y=45705000
+INFO: OLD FPC path=COM.C_U15_VIO.C x=162750000 y=44275000 orient=0.0 layer=F.Cu ref_x=162750000 ref_y=42845000 val_x=162750000 val_y=45705000
+INFO: OLD FPC path=COM.C_VBUS.C x=167190000 y=43860000 orient=0.0 layer=F.Cu ref_x=167190000 ref_y=42430000 val_x=167190000 val_y=45290000
+INFO: OLD FPC path=COM.J3.X x=163580000 y=55910000 orient=0.0 layer=F.Cu ref_x=163580000 ref_y=50265000 val_x=163580000 val_y=61010000
+INFO: OLD FPC path=COM.J4.X x=169210000 y=48590000 orient=0.0 layer=F.Cu ref_x=169210000 ref_y=51290000 val_x=169210000 val_y=46290000
+INFO: OLD FPC path=COM.R_CAN_TH.R x=167390000 y=45590000 orient=0.0 layer=F.Cu ref_x=167390000 ref_y=43940000 val_x=167390000 val_y=47240000
+INFO: OLD FPC path=COM.R_CAN_TL.R x=170800000 y=45590000 orient=0.0 layer=F.Cu ref_x=170800000 ref_y=43940000 val_x=170800000 val_y=47240000
+INFO: OLD FPC path=COM.R_CC1.R x=170600000 y=43860000 orient=0.0 layer=F.Cu ref_x=170600000 ref_y=42430000 val_x=170600000 val_y=45290000
+INFO: OLD FPC path=COM.R_CC2.R x=173610000 y=43860000 orient=0.0 layer=F.Cu ref_x=173610000 ref_y=42430000 val_x=173610000 val_y=45290000
+INFO: OLD FPC path=COM.U15.X x=161960000 y=47890000 orient=0.0 layer=F.Cu ref_x=161960000 ref_y=44490000 val_x=161960000 val_y=51290000
+INFO: OLD FPC path=COM.U20.X x=170880000 y=58360000 orient=0.0 layer=F.Cu ref_x=170880000 ref_y=55960000 val_x=170880000 val_y=60760000
+INFO: OLD FPC path=COM.U21.X x=170880000 y=54910000 orient=0.0 layer=F.Cu ref_x=170880000 ref_y=52510000 val_x=170880000 val_y=57310000
+INFO: OLD FPC path=CONN.J1.X x=132000000 y=114445000 orient=0.0 layer=F.Cu ref_x=148500000 ref_y=104325000 val_x=148500000 val_y=120145000
+INFO: OLD FPC path=CONN.J2.X x=132000000 y=100725000 orient=0.0 layer=F.Cu ref_x=148500000 ref_y=90605000 val_x=148500000 val_y=106425000
+INFO: OLD FPC path=ETB.C_CP.C x=189150000 y=55805000 orient=0.0 layer=F.Cu ref_x=189150000 ref_y=54125000 val_x=189150000 val_y=57485000
+INFO: OLD FPC path=ETB.C_DVDD.C x=197155000 y=62395000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=60965000 val_x=197155000 val_y=63825000
+INFO: OLD FPC path=ETB.C_ISENSE.C x=197155000 y=60885000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=59455000 val_x=197155000 val_y=62315000
+INFO: OLD FPC path=ETB.C_VCP.C x=192600000 y=55805000 orient=0.0 layer=F.Cu ref_x=192600000 ref_y=54125000 val_x=192600000 val_y=57485000
+INFO: OLD FPC path=ETB.C_VM1.C x=196050000 y=55805000 orient=0.0 layer=F.Cu ref_x=196050000 ref_y=54125000 val_x=196050000 val_y=57485000
+INFO: OLD FPC path=ETB.C_VM2.C x=197375000 y=64155000 orient=0.0 layer=F.Cu ref_x=197375000 ref_y=62475000 val_x=197375000 val_y=65835000
+INFO: OLD FPC path=ETB.R_DISABLE.R x=197155000 y=59375000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=57945000 val_x=197155000 val_y=60805000
+INFO: OLD FPC path=ETB.R_IPROPI.R x=197155000 y=57865000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=56435000 val_x=197155000 val_y=59295000
+INFO: OLD FPC path=ETB.R_ISENSE.R x=188930000 y=54045000 orient=0.0 layer=F.Cu ref_x=188930000 ref_y=52615000 val_x=188930000 val_y=55475000
+INFO: OLD FPC path=ETB.R_NFAULT.R x=192380000 y=54045000 orient=0.0 layer=F.Cu ref_x=192380000 ref_y=52615000 val_x=192380000 val_y=55475000
+INFO: OLD FPC path=ETB.R_NSLEEP.R x=195830000 y=54045000 orient=0.0 layer=F.Cu ref_x=195830000 ref_y=52615000 val_x=195830000 val_y=55475000
+INFO: OLD FPC path=ETB.R_SR.R x=198840000 y=54045000 orient=0.0 layer=F.Cu ref_x=198840000 ref_y=52615000 val_x=198840000 val_y=55475000
+INFO: OLD FPC path=ETB.U7.X x=191725000 y=60985000 orient=0.0 layer=F.Cu ref_x=191725000 ref_y=56135000 val_x=191725000 val_y=65835000
+INFO: OLD FPC path=H1 x=201900000 y=115245000 orient=0.0 layer=F.Cu ref_x=201900000 ref_y=111095000 val_x=201900000 val_y=119395000
+INFO: OLD FPC path=H2 x=151450000 y=55575000 orient=0.0 layer=F.Cu ref_x=151450000 ref_y=51425000 val_x=151450000 val_y=59725000
+INFO: OLD FPC path=H3 x=180590000 y=56610000 orient=0.0 layer=F.Cu ref_x=180590000 ref_y=52460000 val_x=180590000 val_y=60760000
+INFO: OLD FPC path=H4 x=190900000 y=47815000 orient=0.0 layer=F.Cu ref_x=190900000 ref_y=43665000 val_x=190900000 val_y=51965000
+INFO: OLD FPC path=KL.C_CJ_CF.C x=141310000 y=66685000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=65255000 val_x=141310000 val_y=68115000
+INFO: OLD FPC path=KL.C_CJ_CM.C x=149160000 y=72400000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=70970000 val_x=149160000 val_y=73830000
+INFO: OLD FPC path=KL.C_CJ_RST.C x=136850000 y=67845000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=66415000 val_x=136850000 val_y=69275000
+INFO: OLD FPC path=KL.C_CJ_UA.C x=151720000 y=86515000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=85085000 val_x=151720000 val_y=87945000
+INFO: OLD FPC path=KL.C_CJ_UB.C x=151940000 y=88275000 orient=0.0 layer=F.Cu ref_x=151940000 ref_y=86595000 val_x=151940000 val_y=89955000
+INFO: OLD FPC path=KL.C_CJ_UN.C x=149160000 y=76105000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=74675000 val_x=149160000 val_y=77535000
+INFO: OLD FPC path=KL.C_CJ_UR.C x=152610000 y=78115000 orient=0.0 layer=F.Cu ref_x=152610000 ref_y=76685000 val_x=152610000 val_y=79545000
+INFO: OLD FPC path=KL.C_CJ_VCC1.C x=141310000 y=65175000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=63745000 val_x=141310000 val_y=66605000
+INFO: OLD FPC path=KL.C_CJ_VCC2.C x=144320000 y=66685000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=65255000 val_x=144320000 val_y=68115000
+INFO: OLD FPC path=KL.C_KNK_AN.C x=149160000 y=70890000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=69460000 val_x=149160000 val_y=72320000
+INFO: OLD FPC path=KL.C_KNK_AP.C x=152170000 y=72400000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=70970000 val_x=152170000 val_y=73830000
+INFO: OLD FPC path=KL.C_KNK_CK.C x=136850000 y=66335000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=64905000 val_x=136850000 val_y=67765000
+INFO: OLD FPC path=KL.C_KNK_OUT.C x=151720000 y=85005000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=83575000 val_x=151720000 val_y=86435000
+INFO: OLD FPC path=KL.C_KNK_VREF.C x=149160000 y=74595000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=73165000 val_x=149160000 val_y=76025000
+INFO: OLD FPC path=KL.C_U10_VDD1.C x=152170000 y=76105000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=74675000 val_x=152170000 val_y=77535000
+INFO: OLD FPC path=KL.C_U10_VDD2.C x=144320000 y=65175000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=63745000 val_x=144320000 val_y=66605000
+INFO: OLD FPC path=KL.C_U12_VDD1.C x=149380000 y=77865000 orient=0.0 layer=F.Cu ref_x=149380000 ref_y=76185000 val_x=149380000 val_y=79545000
+INFO: OLD FPC path=KL.C_U12_VDD2.C x=147330000 y=66685000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=65255000 val_x=147330000 val_y=68115000
+INFO: OLD FPC path=KL.C_U14.C x=149160000 y=69380000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=67950000 val_x=149160000 val_y=70810000
+INFO: OLD FPC path=KL.C_U22.C x=152170000 y=70890000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=69460000 val_x=152170000 val_y=72320000
+INFO: OLD FPC path=KL.Q8.X x=134310000 y=72270000 orient=0.0 layer=F.Cu ref_x=134310000 ref_y=67770000 val_x=134310000 val_y=76770000
+INFO: OLD FPC path=KL.R_CJ_DIAHD.R x=136850000 y=64825000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=63395000 val_x=136850000 val_y=66255000
+INFO: OLD FPC path=KL.R_CJ_OSZ.R x=151720000 y=83495000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=82065000 val_x=151720000 val_y=84925000
+INFO: OLD FPC path=KL.R_CJ_RF.R x=152170000 y=74595000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=73165000 val_x=152170000 val_y=76025000
+INFO: OLD FPC path=KL.R_CJ_RM.R x=147330000 y=65175000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=63745000 val_x=147330000 val_y=66605000
+INFO: OLD FPC path=KL.R_CJ_RM2.R x=150340000 y=66685000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=65255000 val_x=150340000 val_y=68115000
+INFO: OLD FPC path=KL.R_CJ_RS.R x=152170000 y=69380000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=67950000 val_x=152170000 val_y=70810000
+INFO: OLD FPC path=KL.R_CJ_RST.R x=151720000 y=81985000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=80555000 val_x=151720000 val_y=83415000
+INFO: OLD FPC path=KL.R_CJ_SHUNT.R x=150340000 y=65175000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=63745000 val_x=150340000 val_y=66605000
+INFO: OLD FPC path=KL.R_CJ_UA.R x=151720000 y=80475000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=79045000 val_x=151720000 val_y=81905000
+INFO: OLD FPC path=KL.R_CJ_UA_BOT.R x=141310000 y=63665000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=62235000 val_x=141310000 val_y=65095000
+INFO: OLD FPC path=KL.R_CJ_UA_TOP.R x=144320000 y=63665000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=62235000 val_x=144320000 val_y=65095000
+INFO: OLD FPC path=KL.R_CJ_UP_IA.R x=147330000 y=63665000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=62235000 val_x=147330000 val_y=65095000
+INFO: OLD FPC path=KL.R_CJ_UP_UN.R x=150340000 y=63665000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=62235000 val_x=150340000 val_y=65095000
+INFO: OLD FPC path=KL.R_CJ_UP_US.R x=136850000 y=63315000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=61885000 val_x=136850000 val_y=64745000
+INFO: OLD FPC path=KL.R_CJ_UR.R x=153350000 y=66685000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=65255000 val_x=153350000 val_y=68115000
+INFO: OLD FPC path=KL.R_CJ_UR_BOT.R x=153350000 y=65175000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=63745000 val_x=153350000 val_y=66605000
+INFO: OLD FPC path=KL.R_CJ_UR_TOP.R x=153350000 y=63665000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=62235000 val_x=153350000 val_y=65095000
+INFO: OLD FPC path=KL.R_HTR_G.R x=129400000 y=62260000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=60830000 val_x=129400000 val_y=63690000
+INFO: OLD FPC path=KL.R_HTR_PD.R x=132410000 y=62260000 orient=0.0 layer=F.Cu ref_x=132410000 ref_y=60830000 val_x=132410000 val_y=63690000
+INFO: OLD FPC path=KL.R_KNK_BIAS.R x=141310000 y=62155000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=60725000 val_x=141310000 val_y=63585000
+INFO: OLD FPC path=KL.R_KNK_BIAS_X.R x=144320000 y=62155000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=60725000 val_x=144320000 val_y=63585000
+INFO: OLD FPC path=KL.R_KNK_CK.R x=147330000 y=62155000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=60725000 val_x=147330000 val_y=63585000
+INFO: OLD FPC path=KL.R_KNK_OUT_BOT.R x=150340000 y=62155000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=60725000 val_x=150340000 val_y=63585000
+INFO: OLD FPC path=KL.R_KNK_OUT_TOP.R x=153350000 y=62155000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=60725000 val_x=153350000 val_y=63585000
+INFO: OLD FPC path=KL.R_KNK_R1N.R x=136850000 y=61805000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=60375000 val_x=136850000 val_y=63235000
+INFO: OLD FPC path=KL.R_KNK_R1P.R x=154730000 y=86515000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=85085000 val_x=154730000 val_y=87945000
+INFO: OLD FPC path=KL.R_KNK_R2.R x=154730000 y=85005000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=83575000 val_x=154730000 val_y=86435000
+INFO: OLD FPC path=KL.R_MISO.R x=154730000 y=83495000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=82065000 val_x=154730000 val_y=84925000
+INFO: OLD FPC path=KL.R_MISO_PD.R x=154730000 y=81985000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=80555000 val_x=154730000 val_y=83415000
+INFO: OLD FPC path=KL.U10.X x=131620000 y=65875000 orient=0.0 layer=F.Cu ref_x=131620000 ref_y=62475000 val_x=131620000 val_y=69275000
+INFO: OLD FPC path=KL.U12.X x=133850000 y=82605000 orient=0.0 layer=F.Cu ref_x=133850000 ref_y=75255000 val_x=133850000 val_y=89955000
+INFO: OLD FPC path=KL.U13.X x=145010000 y=84075000 orient=0.0 layer=F.Cu ref_x=145010000 ref_y=78195000 val_x=145010000 val_y=89955000
+INFO: OLD FPC path=KL.U14.X x=143730000 y=76095000 orient=0.0 layer=F.Cu ref_x=143730000 ref_y=72645000 val_x=143730000 val_y=79545000
+INFO: OLD FPC path=KL.U22.X x=143730000 y=70380000 orient=0.0 layer=F.Cu ref_x=143730000 ref_y=66930000 val_x=143730000 val_y=73830000
+INFO: OLD FPC path=MCU.C_HSE_IN.C x=199230000 y=69425000 orient=0.0 layer=F.Cu ref_x=199230000 ref_y=67995000 val_x=199230000 val_y=70855000
+INFO: OLD FPC path=MCU.C_HSE_OUT.C x=202280000 y=71015000 orient=0.0 layer=F.Cu ref_x=202280000 ref_y=69585000 val_x=202280000 val_y=72445000
+INFO: OLD FPC path=MCU.C_NRST.C x=206440000 y=84925000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=83495000 val_x=206440000 val_y=86355000
+INFO: OLD FPC path=MCU.C_VCAP_48.C x=202240000 y=69425000 orient=0.0 layer=F.Cu ref_x=202240000 ref_y=67995000 val_x=202240000 val_y=70855000
+INFO: OLD FPC path=MCU.C_VCAP_73.C x=205290000 y=71015000 orient=0.0 layer=F.Cu ref_x=205290000 ref_y=69585000 val_x=205290000 val_y=72445000
+INFO: OLD FPC path=MCU.C_VDDA_100N.C x=206440000 y=83415000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=81985000 val_x=206440000 val_y=84845000
+INFO: OLD FPC path=MCU.C_VDDA_1U.C x=205250000 y=69425000 orient=0.0 layer=F.Cu ref_x=205250000 ref_y=67995000 val_x=205250000 val_y=70855000
+INFO: OLD FPC path=MCU.C_VDD_100.C x=206440000 y=81905000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=80475000 val_x=206440000 val_y=83335000
+INFO: OLD FPC path=MCU.C_VDD_11.C x=206440000 y=80395000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=78965000 val_x=206440000 val_y=81825000
+INFO: OLD FPC path=MCU.C_VDD_27.C x=206440000 y=78885000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=77455000 val_x=206440000 val_y=80315000
+INFO: OLD FPC path=MCU.C_VDD_50.C x=206440000 y=77375000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=75945000 val_x=206440000 val_y=78805000
+INFO: OLD FPC path=MCU.C_VDD_6.C x=206440000 y=75865000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=74435000 val_x=206440000 val_y=77295000
+INFO: OLD FPC path=MCU.C_VDD_75.C x=206440000 y=74355000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=72925000 val_x=206440000 val_y=75785000
+INFO: OLD FPC path=MCU.C_VDD_BULK.C x=206660000 y=88275000 orient=0.0 layer=F.Cu ref_x=206660000 ref_y=86595000 val_x=206660000 val_y=89955000
+INFO: OLD FPC path=MCU.FB1.FB x=206440000 y=72845000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=71415000 val_x=206440000 val_y=74275000
+INFO: OLD FPC path=MCU.LED_FAULT.LED x=199270000 y=70975000 orient=0.0 layer=F.Cu ref_x=199270000 ref_y=69545000 val_x=199270000 val_y=72405000
+INFO: OLD FPC path=MCU.LED_STATUS.LED x=206480000 y=86475000 orient=0.0 layer=F.Cu ref_x=206480000 ref_y=85045000 val_x=206480000 val_y=87905000
+INFO: OLD FPC path=MCU.R_BOOT0.R x=199230000 y=67915000 orient=0.0 layer=F.Cu ref_x=199230000 ref_y=66485000 val_x=199230000 val_y=69345000
+INFO: OLD FPC path=MCU.R_LED_FAULT.R x=202240000 y=67915000 orient=0.0 layer=F.Cu ref_x=202240000 ref_y=66485000 val_x=202240000 val_y=69345000
+INFO: OLD FPC path=MCU.R_LED_STATUS.R x=205250000 y=67915000 orient=0.0 layer=F.Cu ref_x=205250000 ref_y=66485000 val_x=205250000 val_y=69345000
+INFO: OLD FPC path=MCU.SW1.X x=190450000 y=69995000 orient=0.0 layer=F.Cu ref_x=190450000 ref_y=67345000 val_x=190450000 val_y=72645000
+INFO: OLD FPC path=MCU.U1.X x=196180000 y=80525000 orient=0.0 layer=F.Cu ref_x=196180000 ref_y=71095000 val_x=196180000 val_y=89955000
+INFO: OLD FPC path=MCU.Y1.Y x=195600000 y=69995000 orient=0.0 layer=F.Cu ref_x=195600000 ref_y=67545000 val_x=195600000 val_y=72445000
+INFO: OLD FPC path=OUT.C_U8_VDD1.C x=190310000 y=112380000 orient=0.0 layer=F.Cu ref_x=190310000 ref_y=110950000 val_x=190310000 val_y=113810000
+INFO: OLD FPC path=OUT.C_U8_VDD2.C x=190310000 y=105055000 orient=0.0 layer=F.Cu ref_x=190310000 ref_y=103625000 val_x=190310000 val_y=106485000
+INFO: OLD FPC path=OUT.C_U9_VDD1.C x=177660000 y=95990000 orient=0.0 layer=F.Cu ref_x=177660000 ref_y=94560000 val_x=177660000 val_y=97420000
+INFO: OLD FPC path=OUT.C_U9_VDD2.C x=190680000 y=95990000 orient=0.0 layer=F.Cu ref_x=190680000 ref_y=94560000 val_x=190680000 val_y=97420000
+INFO: OLD FPC path=OUT.D3.X x=173630000 y=95420000 orient=0.0 layer=F.Cu ref_x=173630000 ref_y=93420000 val_x=173630000 val_y=97920000
+INFO: OLD FPC path=OUT.Q2.X x=175530000 y=115095000 orient=0.0 layer=F.Cu ref_x=175530000 ref_y=110595000 val_x=175530000 val_y=119595000
+INFO: OLD FPC path=OUT.Q3.X x=175530000 y=107770000 orient=0.0 layer=F.Cu ref_x=175530000 ref_y=103270000 val_x=175530000 val_y=112270000
+INFO: OLD FPC path=OUT.Q4.X x=184380000 y=115095000 orient=0.0 layer=F.Cu ref_x=184380000 ref_y=110595000 val_x=184380000 val_y=119595000
+INFO: OLD FPC path=OUT.Q5.X x=184380000 y=107770000 orient=0.0 layer=F.Cu ref_x=184380000 ref_y=103270000 val_x=184380000 val_y=112270000
+INFO: OLD FPC path=OUT.Q6.X x=175530000 y=100445000 orient=0.0 layer=F.Cu ref_x=175530000 ref_y=95945000 val_x=175530000 val_y=104945000
+INFO: OLD FPC path=OUT.Q7.X x=184380000 y=100445000 orient=0.0 layer=F.Cu ref_x=184380000 ref_y=95945000 val_x=184380000 val_y=104945000
+INFO: OLD FPC path=OUT.R_IGN1.R x=182260000 y=95590000 orient=0.0 layer=F.Cu ref_x=182260000 ref_y=93760000 val_x=182260000 val_y=97420000
+INFO: OLD FPC path=OUT.R_IGN2.R x=191110000 y=102915000 orient=0.0 layer=F.Cu ref_x=191110000 ref_y=101085000 val_x=191110000 val_y=104745000
+INFO: OLD FPC path=OUT.R_IGN3.R x=186870000 y=95590000 orient=0.0 layer=F.Cu ref_x=186870000 ref_y=93760000 val_x=186870000 val_y=97420000
+INFO: OLD FPC path=OUT.R_IGN4.R x=191110000 y=100605000 orient=0.0 layer=F.Cu ref_x=191110000 ref_y=98775000 val_x=191110000 val_y=102435000
+INFO: OLD FPC path=OUT.R_INJ1_IN.R x=190310000 y=98695000 orient=0.0 layer=F.Cu ref_x=190310000 ref_y=97265000 val_x=190310000 val_y=100125000
+INFO: OLD FPC path=OUT.R_INJ1_PD.R x=193320000 y=112380000 orient=0.0 layer=F.Cu ref_x=193320000 ref_y=110950000 val_x=193320000 val_y=113810000
+INFO: OLD FPC path=OUT.R_INJ2_IN.R x=193320000 y=105055000 orient=0.0 layer=F.Cu ref_x=193320000 ref_y=103625000 val_x=193320000 val_y=106485000
+INFO: OLD FPC path=OUT.R_INJ2_PD.R x=177660000 y=94480000 orient=0.0 layer=F.Cu ref_x=177660000 ref_y=93050000 val_x=177660000 val_y=95910000
+INFO: OLD FPC path=OUT.R_INJ3_IN.R x=190680000 y=94480000 orient=0.0 layer=F.Cu ref_x=190680000 ref_y=93050000 val_x=190680000 val_y=95910000
+INFO: OLD FPC path=OUT.R_INJ3_PD.R x=193690000 y=95990000 orient=0.0 layer=F.Cu ref_x=193690000 ref_y=94560000 val_x=193690000 val_y=97420000
+INFO: OLD FPC path=OUT.R_INJ4_IN.R x=193320000 y=98695000 orient=0.0 layer=F.Cu ref_x=193320000 ref_y=97265000 val_x=193320000 val_y=100125000
+INFO: OLD FPC path=OUT.R_INJ4_PD.R x=193690000 y=94480000 orient=0.0 layer=F.Cu ref_x=193690000 ref_y=93050000 val_x=193690000 val_y=95910000
+INFO: OLD FPC path=OUT.R_PUMP_IN.R x=194920000 y=103315000 orient=0.0 layer=F.Cu ref_x=194920000 ref_y=101885000 val_x=194920000 val_y=104745000
+INFO: OLD FPC path=OUT.R_PUMP_PD.R x=194920000 y=101005000 orient=0.0 layer=F.Cu ref_x=194920000 ref_y=99575000 val_x=194920000 val_y=102435000
+INFO: OLD FPC path=OUT.R_VVT_IN.R x=181460000 y=93680000 orient=0.0 layer=F.Cu ref_x=181460000 ref_y=92250000 val_x=181460000 val_y=95110000
+INFO: OLD FPC path=OUT.R_VVT_PD.R x=186070000 y=93680000 orient=0.0 layer=F.Cu ref_x=186070000 ref_y=92250000 val_x=186070000 val_y=95110000
+INFO: OLD FPC path=OUT.U8.X x=192530000 y=115995000 orient=0.0 layer=F.Cu ref_x=192530000 ref_y=112595000 val_x=192530000 val_y=119395000
+INFO: OLD FPC path=OUT.U9.X x=192530000 y=108670000 orient=0.0 layer=F.Cu ref_x=192530000 ref_y=105270000 val_x=192530000 val_y=112070000
+INFO: OLD FPC path=PWR.C1.X x=163795000 y=84855000 orient=0.0 layer=F.Cu ref_x=163795000 ref_y=79655000 val_x=163795000 val_y=90055000
+INFO: OLD FPC path=PWR.C2.X x=163795000 y=76005000 orient=0.0 layer=F.Cu ref_x=163795000 ref_y=70805000 val_x=163795000 val_y=81205000
+INFO: OLD FPC path=PWR.C_5V1.C x=160560000 y=65855000 orient=0.0 layer=F.Cu ref_x=160560000 ref_y=64005000 val_x=160560000 val_y=67705000
+INFO: OLD FPC path=PWR.C_5V2.C x=180245000 y=65255000 orient=0.0 layer=F.Cu ref_x=180245000 ref_y=63405000 val_x=180245000 val_y=67105000
+INFO: OLD FPC path=PWR.C_BOOT.C x=183575000 y=72925000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=71495000 val_x=183575000 val_y=74355000
+INFO: OLD FPC path=PWR.C_BUCK_HF1.C x=180690000 y=75475000 orient=0.0 layer=F.Cu ref_x=180690000 ref_y=73795000 val_x=180690000 val_y=77155000
+INFO: OLD FPC path=PWR.C_BUCK_HF2.C x=175445000 y=65350000 orient=0.0 layer=F.Cu ref_x=175445000 ref_y=63670000 val_x=175445000 val_y=67030000
+INFO: OLD FPC path=PWR.C_BUCK_IN.C x=171395000 y=65180000 orient=0.0 layer=F.Cu ref_x=171395000 ref_y=63330000 val_x=171395000 val_y=67030000
+INFO: OLD FPC path=PWR.C_FF.C x=183575000 y=69300000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=67870000 val_x=183575000 val_y=70730000
+INFO: OLD FPC path=PWR.C_RB_VCAP.C x=183420000 y=79675000 orient=0.0 layer=F.Cu ref_x=183420000 ref_y=78245000 val_x=183420000 val_y=81105000
+INFO: OLD FPC path=PWR.C_U4_IN.C x=179425000 y=63325000 orient=0.0 layer=F.Cu ref_x=179425000 ref_y=61895000 val_x=179425000 val_y=64755000
+INFO: OLD FPC path=PWR.C_U4_OUT.C x=181945000 y=88275000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=86595000 val_x=181945000 val_y=89955000
+INFO: OLD FPC path=PWR.C_U5_ADJ.C x=170575000 y=63250000 orient=0.0 layer=F.Cu ref_x=170575000 ref_y=61820000 val_x=170575000 val_y=64680000
+INFO: OLD FPC path=PWR.C_U5_IN.C x=181945000 y=86265000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=84585000 val_x=181945000 val_y=87945000
+INFO: OLD FPC path=PWR.C_U5_OUT.C x=181945000 y=84255000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=82575000 val_x=181945000 val_y=85935000
+INFO: OLD FPC path=PWR.C_U6_ADJ.C x=173625000 y=81330000 orient=0.0 layer=F.Cu ref_x=173625000 ref_y=79900000 val_x=173625000 val_y=82760000
+INFO: OLD FPC path=PWR.C_U6_IN.C x=181945000 y=82245000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=80565000 val_x=181945000 val_y=83925000
+INFO: OLD FPC path=PWR.C_U6_OUT.C x=164610000 y=64600000 orient=0.0 layer=F.Cu ref_x=164610000 ref_y=62920000 val_x=164610000 val_y=66280000
+INFO: OLD FPC path=PWR.C_VBAT_HF.C x=159960000 y=63675000 orient=0.0 layer=F.Cu ref_x=159960000 ref_y=61995000 val_x=159960000 val_y=65355000
+INFO: OLD FPC path=PWR.C_VBAT_SENSE.C x=183575000 y=71415000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=69985000 val_x=183575000 val_y=72845000
+INFO: OLD FPC path=PWR.C_VCC.C x=183575000 y=67790000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=66360000 val_x=183575000 val_y=69220000
+INFO: OLD FPC path=PWR.C_VIN_EMI.C x=175445000 y=63340000 orient=0.0 layer=F.Cu ref_x=175445000 ref_y=61660000 val_x=175445000 val_y=65020000
+INFO: OLD FPC path=PWR.D1.D x=174040000 y=77055000 orient=0.0 layer=F.Cu ref_x=174040000 ref_y=72955000 val_x=174040000 val_y=81255000
+INFO: OLD FPC path=PWR.D2.X x=165305000 y=66780000 orient=0.0 layer=F.Cu ref_x=165305000 ref_y=64780000 val_x=165305000 val_y=68880000
+INFO: OLD FPC path=PWR.L1.X x=160560000 y=69305000 orient=0.0 layer=F.Cu ref_x=160560000 ref_y=66355000 val_x=160560000 val_y=72255000
+INFO: OLD FPC path=PWR.LED_PWR.LED x=170615000 y=81290000 orient=0.0 layer=F.Cu ref_x=170615000 ref_y=79860000 val_x=170615000 val_y=82720000
+INFO: OLD FPC path=PWR.Q1.X x=175485000 y=85755000 orient=0.0 layer=F.Cu ref_x=175485000 ref_y=81255000 val_x=175485000 val_y=90255000
+INFO: OLD FPC path=PWR.R_FBB.R x=183420000 y=78165000 orient=0.0 layer=F.Cu ref_x=183420000 ref_y=76735000 val_x=183420000 val_y=79595000
+INFO: OLD FPC path=PWR.R_FBT.R x=182435000 y=63325000 orient=0.0 layer=F.Cu ref_x=182435000 ref_y=61895000 val_x=182435000 val_y=64755000
+INFO: OLD FPC path=PWR.R_PWR_LED.R x=176635000 y=81330000 orient=0.0 layer=F.Cu ref_x=176635000 ref_y=79900000 val_x=176635000 val_y=82760000
+INFO: OLD FPC path=PWR.R_VBAT_BOT.R x=183920000 y=75725000 orient=0.0 layer=F.Cu ref_x=183920000 ref_y=74295000 val_x=183920000 val_y=77155000
+INFO: OLD FPC path=PWR.R_VBAT_TOP.R x=164390000 y=62840000 orient=0.0 layer=F.Cu ref_x=164390000 ref_y=61410000 val_x=164390000 val_y=64270000
+INFO: OLD FPC path=PWR.TP_SW.TP x=183595000 y=65405000 orient=0.0 layer=F.Cu ref_x=183595000 ref_y=63957000 val_x=183595000 val_y=66955000
+INFO: OLD FPC path=PWR.U2.X x=164960000 y=69855000 orient=0.0 layer=F.Cu ref_x=164960000 ref_y=67455000 val_x=164960000 val_y=72255000
+INFO: OLD FPC path=PWR.U3.X x=180440000 y=78455000 orient=0.0 layer=F.Cu ref_x=180440000 ref_y=75805000 val_x=180440000 val_y=81105000
+INFO: OLD FPC path=PWR.U4.X x=173495000 y=70055000 orient=0.0 layer=F.Cu ref_x=173495000 ref_y=65555000 val_x=173495000 val_y=74555000
+INFO: OLD FPC path=PWR.U5.X x=179995000 y=71955000 orient=0.0 layer=F.Cu ref_x=179995000 ref_y=69555000 val_x=179995000 val_y=74355000
+INFO: OLD FPC path=PWR.U6.X x=179995000 y=68330000 orient=0.0 layer=F.Cu ref_x=179995000 ref_y=65930000 val_x=179995000 val_y=70730000
+INFO: OLD FPC path=SENS.C_CAM.C x=133310000 y=48930000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=47500000 val_x=133310000 val_y=50360000
+INFO: OLD FPC path=SENS.C_CLT.C x=133310000 y=47420000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=45990000 val_x=133310000 val_y=48850000
+INFO: OLD FPC path=SENS.C_IAT.C x=133310000 y=45910000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=44480000 val_x=133310000 val_y=47340000
+INFO: OLD FPC path=SENS.C_MAP.C x=136850000 y=45635000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=44205000 val_x=136850000 val_y=47065000
+INFO: OLD FPC path=SENS.C_PPS1.C x=139860000 y=45635000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=44205000 val_x=139860000 val_y=47065000
+INFO: OLD FPC path=SENS.C_PPS2.C x=129400000 y=45480000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=44050000 val_x=129400000 val_y=46910000
+INFO: OLD FPC path=SENS.C_S5V1.C x=140760000 y=58295000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=56865000 val_x=140760000 val_y=59725000
+INFO: OLD FPC path=SENS.C_S5V2.C x=140760000 y=54845000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=53415000 val_x=140760000 val_y=56275000
+INFO: OLD FPC path=SENS.C_TPS1.C x=140760000 y=51395000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=49965000 val_x=140760000 val_y=52825000
+INFO: OLD FPC path=SENS.C_TPS2.C x=140760000 y=56785000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=55355000 val_x=140760000 val_y=58215000
+INFO: OLD FPC path=SENS.C_U11_VCC.C x=140760000 y=53335000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=51905000 val_x=140760000 val_y=54765000
+INFO: OLD FPC path=SENS.C_VR_IN.C x=140760000 y=49885000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=48455000 val_x=140760000 val_y=51315000
+INFO: OLD FPC path=SENS.C_VR_PEAK.C x=141460000 y=47945000 orient=0.0 layer=F.Cu ref_x=141460000 ref_y=46515000 val_x=141460000 val_y=49375000
+INFO: OLD FPC path=SENS.R_CAM.R x=133310000 y=44400000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=42970000 val_x=133310000 val_y=45830000
+INFO: OLD FPC path=SENS.R_CAM_PU.R x=136850000 y=44125000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=42695000 val_x=136850000 val_y=45555000
+INFO: OLD FPC path=SENS.R_CLT.R x=139860000 y=44125000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=42695000 val_x=139860000 val_y=45555000
+INFO: OLD FPC path=SENS.R_CLT_PU.R x=129400000 y=43970000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=42540000 val_x=129400000 val_y=45400000
+INFO: OLD FPC path=SENS.R_IAT.R x=142870000 y=45635000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=44205000 val_x=142870000 val_y=47065000
+INFO: OLD FPC path=SENS.R_IAT_PU.R x=142870000 y=44125000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=42695000 val_x=142870000 val_y=45555000
+INFO: OLD FPC path=SENS.R_MAP_BOT.R x=133310000 y=42890000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=41460000 val_x=133310000 val_y=44320000
+INFO: OLD FPC path=SENS.R_MAP_TOP.R x=136850000 y=42615000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=41185000 val_x=136850000 val_y=44045000
+INFO: OLD FPC path=SENS.R_PPS1_BOT.R x=139860000 y=42615000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=41185000 val_x=139860000 val_y=44045000
+INFO: OLD FPC path=SENS.R_PPS1_TOP.R x=142870000 y=42615000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=41185000 val_x=142870000 val_y=44045000
+INFO: OLD FPC path=SENS.R_PPS2_BOT.R x=129400000 y=42460000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=41030000 val_x=129400000 val_y=43890000
+INFO: OLD FPC path=SENS.R_PPS2_TOP.R x=143770000 y=58295000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=56865000 val_x=143770000 val_y=59725000
+INFO: OLD FPC path=SENS.R_S5V1_BOT.R x=143770000 y=54845000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=53415000 val_x=143770000 val_y=56275000
+INFO: OLD FPC path=SENS.R_S5V1_TOP.R x=143770000 y=51395000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=49965000 val_x=143770000 val_y=52825000
+INFO: OLD FPC path=SENS.R_S5V2_BOT.R x=143770000 y=56785000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=55355000 val_x=143770000 val_y=58215000
+INFO: OLD FPC path=SENS.R_S5V2_TOP.R x=143770000 y=53335000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=51905000 val_x=143770000 val_y=54765000
+INFO: OLD FPC path=SENS.R_TPS1_BOT.R x=143770000 y=49885000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=48455000 val_x=143770000 val_y=51315000
+INFO: OLD FPC path=SENS.R_TPS1_TOP.R x=144470000 y=47945000 orient=0.0 layer=F.Cu ref_x=144470000 ref_y=46515000 val_x=144470000 val_y=49375000
+INFO: OLD FPC path=SENS.R_TPS2_BOT.R x=133310000 y=41380000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=39950000 val_x=133310000 val_y=42810000
+INFO: OLD FPC path=SENS.R_TPS2_TOP.R x=136850000 y=41105000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=39675000 val_x=136850000 val_y=42535000
+INFO: OLD FPC path=SENS.R_VR_BOT.R x=139860000 y=41105000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=39675000 val_x=139860000 val_y=42535000
+INFO: OLD FPC path=SENS.R_VR_IN.R x=137650000 y=47545000 orient=0.0 layer=F.Cu ref_x=137650000 ref_y=45715000 val_x=137650000 val_y=49375000
+INFO: OLD FPC path=SENS.R_VR_TOP.R x=142870000 y=41105000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=39675000 val_x=142870000 val_y=42535000
+INFO: OLD FPC path=SENS.U11.X x=131620000 y=54445000 orient=0.0 layer=F.Cu ref_x=131620000 ref_y=49165000 val_x=131620000 val_y=59725000
+INFO: OLD FPC path=SENS.U16.X x=137300000 y=57325000 orient=0.0 layer=F.Cu ref_x=137300000 ref_y=54925000 val_x=137300000 val_y=59725000
+INFO: OLD FPC path=SENS.U17.X x=137300000 y=53875000 orient=0.0 layer=F.Cu ref_x=137300000 ref_y=51475000 val_x=137300000 val_y=56275000
+INFO: OLD FPC path=SENS.U18.X x=137300000 y=50425000 orient=0.0 layer=F.Cu ref_x=137300000 ref_y=48025000 val_x=137300000 val_y=52825000
+INFO: OLD FPC path=SENS.U19.X x=129850000 y=47960000 orient=0.0 layer=F.Cu ref_x=129850000 ref_y=45560000 val_x=129850000 val_y=50360000
+INFO: OLD FPC path=TP1.TP x=159260000 y=40080000 orient=0.0 layer=F.Cu ref_x=159260000 ref_y=38632000 val_x=159260000 val_y=41630000
+INFO: OLD FPC path=TP10.TP x=203370000 y=64135000 orient=0.0 layer=F.Cu ref_x=203370000 ref_y=62687000 val_x=203370000 val_y=65685000
+INFO: OLD FPC path=TP11.TP x=199450000 y=108745000 orient=0.0 layer=F.Cu ref_x=199450000 ref_y=107297000 val_x=199450000 val_y=110295000
+INFO: OLD FPC path=TP12.TP x=149000000 y=49075000 orient=0.0 layer=F.Cu ref_x=149000000 ref_y=47627000 val_x=149000000 val_y=50625000
+INFO: OLD FPC path=TP2.TP x=178140000 y=50110000 orient=0.0 layer=F.Cu ref_x=178140000 ref_y=48662000 val_x=178140000 val_y=51660000
+INFO: OLD FPC path=TP3.TP x=188450000 y=41315000 orient=0.0 layer=F.Cu ref_x=188450000 ref_y=39867000 val_x=188450000 val_y=42865000
+INFO: OLD FPC path=TP4.TP x=197400000 y=50265000 orient=0.0 layer=F.Cu ref_x=197400000 ref_y=48817000 val_x=197400000 val_y=51815000
+INFO: OLD FPC path=TP5.TP x=163310000 y=40080000 orient=0.0 layer=F.Cu ref_x=163310000 ref_y=38632000 val_x=163310000 val_y=41630000
+INFO: OLD FPC path=TP6.TP x=203370000 y=60085000 orient=0.0 layer=F.Cu ref_x=203370000 ref_y=58637000 val_x=203370000 val_y=61635000
+INFO: OLD FPC path=TP7.TP x=199450000 y=104695000 orient=0.0 layer=F.Cu ref_x=199450000 ref_y=103247000 val_x=199450000 val_y=106245000
+INFO: OLD FPC path=TP8.TP x=203500000 y=108745000 orient=0.0 layer=F.Cu ref_x=203500000 ref_y=107297000 val_x=203500000 val_y=110295000
+INFO: OLD FPC path=TP9.TP x=149000000 y=45025000 orient=0.0 layer=F.Cu ref_x=149000000 ref_y=43577000 val_x=149000000 val_y=46575000
+INFO: Changes: +0 -0 footprints
+INFO: NEW FPV path=COM.C_CAN_SPLIT.C ref=C3 value="4.7nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=COM.C_U15_VCC.C ref=C4 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=COM.C_U15_VIO.C ref=C5 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=COM.C_VBUS.C ref=C6 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=COM.J3.X ref=J3 value=TYPE-C-31-M-12 fpid=workspace_lib_footprints:USB_C_Receptacle_HRO_TYPE-C-31-M-12 fields=["Manufacturer=Korean Hroparts", "Mpn=TYPE-C-31-M-12", "Prefix=J"]
+INFO: NEW FPV path=COM.J4.X ref=J4 value=TC2030-IDC-NL fpid=workspace_lib_footprints:Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical bom=false fields=["Manufacturer=Tag-Connect", "Mpn=TC2030-IDC-NL", "Prefix=J"]
+INFO: NEW FPV path=COM.R_CAN_TH.R ref=R1 value="60.4 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0805_2012Metric fields=["Package=0805", "Prefix=R", "Resistance=60.4 1%", "Type=resistor"]
+INFO: NEW FPV path=COM.R_CAN_TL.R ref=R2 value="60.4 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0805_2012Metric fields=["Package=0805", "Prefix=R", "Resistance=60.4 1%", "Type=resistor"]
+INFO: NEW FPV path=COM.R_CC1.R ref=R3 value="5.1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=5.1k 1%", "Type=resistor"]
+INFO: NEW FPV path=COM.R_CC2.R ref=R4 value="5.1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=5.1k 1%", "Type=resistor"]
+INFO: NEW FPV path=COM.U15.X ref=U15 value=TCAN1044AVDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["Manufacturer=Texas Instruments", "Mpn=TCAN1044AVDRQ1", "Prefix=U"]
+INFO: NEW FPV path=COM.U20.X ref=U20 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: NEW FPV path=COM.U21.X ref=U21 value=ESD2CAN24DBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["Manufacturer=Texas Instruments", "Mpn=ESD2CAN24DBZRQ1", "Prefix=U"]
+INFO: NEW FPV path=CONN.J1.X ref=J1 value=43045-2400 fpid=workspace_lib_footprints:Molex_Micro-Fit_3.0_43045-2400_2x12_P3.00mm_Horizontal fields=["Manufacturer=Molex", "Mpn=43045-2400", "Prefix=J"]
+INFO: NEW FPV path=CONN.J2.X ref=J2 value=43045-2400 fpid=workspace_lib_footprints:Molex_Micro-Fit_3.0_43045-2400_2x12_P3.00mm_Horizontal fields=["Manufacturer=Molex", "Mpn=43045-2400", "Prefix=J"]
+INFO: NEW FPV path=ETB.C_CP.C ref=C7 value="47nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=47nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=ETB.C_DVDD.C ref=C8 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: NEW FPV path=ETB.C_ISENSE.C ref=C9 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=ETB.C_VCP.C ref=C10 value="1uF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=ETB.C_VM1.C ref=C11 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=ETB.C_VM2.C ref=C12 value="1uF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=ETB.R_DISABLE.R ref=R5 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=ETB.R_IPROPI.R ref=R6 value="390 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=390 1%", "Type=resistor"]
+INFO: NEW FPV path=ETB.R_ISENSE.R ref=R7 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=ETB.R_NFAULT.R ref=R8 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=ETB.R_NSLEEP.R ref=R9 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=ETB.R_SR.R ref=R10 value="68k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=68k 1%", "Type=resistor"]
+INFO: NEW FPV path=ETB.U7.X ref=U7 value=DRV8873HQPWPRQ1 fpid=workspace_lib_footprints:HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm fields=["Manufacturer=Texas Instruments", "Mpn=DRV8873HQPWPRQ1", "Prefix=U"]
+INFO: NEW FPV path=H1 ref=H1 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["Prefix=H"]
+INFO: NEW FPV path=H2 ref=H2 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["Prefix=H"]
+INFO: NEW FPV path=H3 ref=H3 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["Prefix=H"]
+INFO: NEW FPV path=H4 ref=H4 value=MountingHole fpid=workspace_lib_footprints:MountingHole_3.2mm_M3 bom=false pos=false fields=["Prefix=H"]
+INFO: NEW FPV path=KL.C_CJ_CF.C ref=C13 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_CJ_CM.C ref=C14 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_CJ_RST.C ref=C15 value="1nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1nF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_CJ_UA.C ref=C16 value="33nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=33nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_CJ_UB.C ref=C17 value="33nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=33nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=KL.C_CJ_UN.C ref=C18 value="220pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=220pF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_CJ_UR.C ref=C19 value="33nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=33nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_CJ_VCC1.C ref=C20 value="33nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=33nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_CJ_VCC2.C ref=C21 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_KNK_AN.C ref=C22 value="3.3nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=3.3nF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_KNK_AP.C ref=C23 value="3.3nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=3.3nF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_KNK_CK.C ref=C24 value="470pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=470pF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_KNK_OUT.C ref=C25 value="2.2nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=2.2nF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_KNK_VREF.C ref=C26 value="22nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=22nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_U10_VDD1.C ref=C27 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: NEW FPV path=KL.C_U10_VDD2.C ref=C28 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_U12_VDD1.C ref=C29 value="4.7uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: NEW FPV path=KL.C_U12_VDD2.C ref=C30 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_U14.C ref=C31 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.C_U22.C ref=C32 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=KL.Q8.X ref=Q8 value=DMTH6016LK3Q-13 fpid=workspace_lib_footprints:TO-252-2 fields=["Manufacturer=Diodes Incorporated", "Mpn=DMTH6016LK3Q-13", "Prefix=Q", "Type=mosfet"]
+INFO: NEW FPV path=KL.R_CJ_DIAHD.R ref=R11 value="6.8k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=6.8k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_OSZ.R ref=R12 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_RF.R ref=R13 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_RM.R ref=R14 value="21.5k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=21.5k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_RM2.R ref=R15 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_RS.R ref=R16 value="301 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=301 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_RST.R ref=R17 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_SHUNT.R ref=R18 value="61.9 0.1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=61.9 0.1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UA.R ref=R19 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UA_BOT.R ref=R20 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UA_TOP.R ref=R21 value="6.8k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=6.8k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UP_IA.R ref=R22 value="470k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=470k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UP_UN.R ref=R23 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UP_US.R ref=R24 value="4.7k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=4.7k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UR.R ref=R25 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UR_BOT.R ref=R26 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_CJ_UR_TOP.R ref=R27 value="6.8k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=6.8k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_HTR_G.R ref=R28 value="22 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=22 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_HTR_PD.R ref=R29 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_BIAS.R ref=R30 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_BIAS_X.R ref=R31 value="1M 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1M 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_CK.R ref=R32 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_OUT_BOT.R ref=R33 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_OUT_TOP.R ref=R34 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_R1N.R ref=R35 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_R1P.R ref=R36 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_KNK_R2.R ref=R37 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_MISO.R ref=R38 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.R_MISO_PD.R ref=R39 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=KL.U10.X ref=U10 value=UCC27524AQDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["Manufacturer=Texas Instruments", "Mpn=UCC27524AQDRQ1", "Prefix=U"]
+INFO: NEW FPV path=KL.U12.X ref=U12 value=TPIC8101DWRQ1 fpid=workspace_lib_footprints:SOIC-20W_7.5x12.8mm_P1.27mm fields=["Manufacturer=Texas Instruments", "Mpn=TPIC8101DWRQ1", "Prefix=U"]
+INFO: NEW FPV path=KL.U13.X ref=U13 value=CJ125 fpid=workspace_lib_footprints:LQFP-32_7x7mm_P0.8mm fields=["Manufacturer=Bosch", "Mpn=CJ125", "Prefix=U"]
+INFO: NEW FPV path=KL.U14.X ref=U14 value=SN74AHCT125QPWRQ1 fpid=workspace_lib_footprints:TSSOP-14_4.4x5mm_P0.65mm fields=["Manufacturer=Texas Instruments", "Mpn=SN74AHCT125QPWRQ1", "Prefix=U"]
+INFO: NEW FPV path=KL.U22.X ref=U22 value=SN74AHCT125QPWRQ1 fpid=workspace_lib_footprints:TSSOP-14_4.4x5mm_P0.65mm fields=["Manufacturer=Texas Instruments", "Mpn=SN74AHCT125QPWRQ1", "Prefix=U"]
+INFO: NEW FPV path=MCU.C_HSE_IN.C ref=C33 value="12pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=12pF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_HSE_OUT.C ref=C34 value="12pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=12pF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_NRST.C ref=C35 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VCAP_48.C ref=C36 value="2.2uF 10V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=2.2uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=10V"]
+INFO: NEW FPV path=MCU.C_VCAP_73.C ref=C37 value="2.2uF 10V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=2.2uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=10V"]
+INFO: NEW FPV path=MCU.C_VDDA_100N.C ref=C39 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VDDA_1U.C ref=C38 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: NEW FPV path=MCU.C_VDD_100.C ref=C45 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VDD_11.C ref=C41 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VDD_27.C ref=C42 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VDD_50.C ref=C43 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VDD_6.C ref=C40 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VDD_75.C ref=C44 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=MCU.C_VDD_BULK.C ref=C46 value="10uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=10uF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: NEW FPV path=MCU.FB1.FB ref=FB1 value="600 1A 100MHz" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Current=1A", "Frequency=100MHz", "Impedance=600", "Package=0603", "Prefix=FB", "Type=ferrite_bead"]
+INFO: NEW FPV path=MCU.LED_FAULT.LED ref=D4 value="LED RED" fpid=stdlib_kicad-footprints_LED_SMD:LED_0603_1608Metric fields=["Color=red", "Package=0603", "Prefix=D", "Type=led"]
+INFO: NEW FPV path=MCU.LED_STATUS.LED ref=D5 value="LED BLUE" fpid=stdlib_kicad-footprints_LED_SMD:LED_0603_1608Metric fields=["Color=blue", "Package=0603", "Prefix=D", "Type=led"]
+INFO: NEW FPV path=MCU.R_BOOT0.R ref=R40 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=MCU.R_LED_FAULT.R ref=R41 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=MCU.R_LED_STATUS.R ref=R42 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=MCU.SW1.X ref=SW1 value=TS-1088-AR02016 fpid=workspace_lib_footprints:SW_SPST_TS-1088-xR020 fields=["Manufacturer=XKB", "Mpn=TS-1088-AR02016", "Prefix=SW"]
+INFO: NEW FPV path=MCU.U1.X ref=U1 value=STM32H743VIT6 fpid=workspace_lib_footprints:LQFP-100_14x14mm_P0.5mm fields=["Manufacturer=STMicroelectronics", "Mpn=STM32H743VIT6", "Prefix=U"]
+INFO: NEW FPV path=MCU.Y1.Y ref=Y1 value=8MHz fpid=stdlib_kicad-footprints_Crystal:Crystal_SMD_3225-4Pin_3.2x2.5mm fields=["Frequency=8MHz", "Manufacturer=Yangxing", "Mpn=X322508MSB4SI", "Package=3225_4Pin", "Prefix=Y", "Type=crystal"]
+INFO: NEW FPV path=OUT.C_U8_VDD1.C ref=C47 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: NEW FPV path=OUT.C_U8_VDD2.C ref=C48 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=OUT.C_U9_VDD1.C ref=C49 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: NEW FPV path=OUT.C_U9_VDD2.C ref=C50 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=OUT.D3.X ref=D3 value=SBR3U60P1 fpid=workspace_lib_footprints:D_PowerDI-123 fields=["Manufacturer=Diodes Incorporated", "Mpn=SBR3U60P1-7", "Prefix=D", "Type=rectifier"]
+INFO: NEW FPV path=OUT.Q2.X ref=Q2 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: NEW FPV path=OUT.Q3.X ref=Q3 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: NEW FPV path=OUT.Q4.X ref=Q4 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: NEW FPV path=OUT.Q5.X ref=Q5 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: NEW FPV path=OUT.Q6.X ref=Q6 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: NEW FPV path=OUT.Q7.X ref=Q7 value=ZXMS6006DGQTA fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=Diodes Incorporated", "Mpn=ZXMS6006DGQTA", "Prefix=Q"]
+INFO: NEW FPV path=OUT.R_IGN1.R ref=R43 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_IGN2.R ref=R44 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_IGN3.R ref=R45 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_IGN4.R ref=R46 value="100 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["Package=1206", "Prefix=R", "Resistance=100 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ1_IN.R ref=R47 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ1_PD.R ref=R48 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ2_IN.R ref=R49 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ2_PD.R ref=R50 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ3_IN.R ref=R51 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ3_PD.R ref=R52 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ4_IN.R ref=R53 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_INJ4_PD.R ref=R54 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_PUMP_IN.R ref=R55 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_PUMP_PD.R ref=R56 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_VVT_IN.R ref=R57 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.R_VVT_PD.R ref=R58 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=OUT.U8.X ref=U8 value=UCC27524AQDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["Manufacturer=Texas Instruments", "Mpn=UCC27524AQDRQ1", "Prefix=U"]
+INFO: NEW FPV path=OUT.U9.X ref=U9 value=UCC27524AQDRQ1 fpid=workspace_lib_footprints:SOIC-8_3.9x4.9mm_P1.27mm fields=["Manufacturer=Texas Instruments", "Mpn=UCC27524AQDRQ1", "Prefix=U"]
+INFO: NEW FPV path=PWR.C1.X ref=C1 value="47uF 50V" fpid=workspace_lib_footprints:CP_Elec_8x10 fields=["Manufacturer=Panasonic", "Mpn=EEE-FK1H470P", "Prefix=C", "Type=capacitor"]
+INFO: NEW FPV path=PWR.C2.X ref=C2 value="47uF 50V" fpid=workspace_lib_footprints:CP_Elec_8x10 fields=["Manufacturer=Panasonic", "Mpn=EEE-FK1H470P", "Prefix=C", "Type=capacitor"]
+INFO: NEW FPV path=PWR.C_5V1.C ref=C51 value="22uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_1206_3216Metric fields=["Capacitance=22uF", "Dielectric=X7R", "Package=1206", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: NEW FPV path=PWR.C_5V2.C ref=C52 value="22uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_1206_3216Metric fields=["Capacitance=22uF", "Dielectric=X7R", "Package=1206", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: NEW FPV path=PWR.C_BOOT.C ref=C53 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=PWR.C_BUCK_HF1.C ref=C54 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=PWR.C_BUCK_HF2.C ref=C55 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=PWR.C_BUCK_IN.C ref=C56 value="4.7uF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_1206_3216Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "Package=1206", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=PWR.C_FF.C ref=C57 value="20pF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=20pF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=PWR.C_RB_VCAP.C ref=C58 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=PWR.C_U4_IN.C ref=C59 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: NEW FPV path=PWR.C_U4_OUT.C ref=C60 value="10uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=10uF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: NEW FPV path=PWR.C_U5_ADJ.C ref=C61 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=PWR.C_U5_IN.C ref=C62 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=PWR.C_U5_OUT.C ref=C63 value="4.7uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: NEW FPV path=PWR.C_U6_ADJ.C ref=C64 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=PWR.C_U6_IN.C ref=C65 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=PWR.C_U6_OUT.C ref=C66 value="4.7uF 16V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=4.7uF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=16V"]
+INFO: NEW FPV path=PWR.C_VBAT_HF.C ref=C67 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=PWR.C_VBAT_SENSE.C ref=C68 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=PWR.C_VCC.C ref=C69 value="1uF 25V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1uF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=25V"]
+INFO: NEW FPV path=PWR.C_VIN_EMI.C ref=C70 value="100nF 100V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0805_2012Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0805", "Prefix=C", "Type=capacitor", "Voltage=100V"]
+INFO: NEW FPV path=PWR.D1.D ref=D1 value="24V TVS Diode" fpid=stdlib_kicad-footprints_Diode_SMD:D_SMC fields=["Direction=Bidirectional", "Manufacturer=Littelfuse", "Mpn=SMCJ24CA", "Package=DO-214AB", "Prefix=D", "Reverse Clamping Voltage=38.9V", "Reverse Standoff Voltage=24V", "Type=tvs"]
+INFO: NEW FPV path=PWR.D2.X ref=D2 value=B5819W fpid=workspace_lib_footprints:D_SOD-123 fields=["Manufacturer=Diodes Incorporated", "Mpn=B5819W", "Prefix=D", "Type=rectifier"]
+INFO: NEW FPV path=PWR.L1.X ref=L1 value=3.3uH fpid=workspace_lib_footprints:L_Sunlord_SWPA4030S fields=["Manufacturer=Sunlord", "Mpn=SWPA4030S3R3MT", "Prefix=L", "Type=inductor"]
+INFO: NEW FPV path=PWR.LED_PWR.LED ref=D6 value="LED GREEN" fpid=stdlib_kicad-footprints_LED_SMD:LED_0603_1608Metric fields=["Color=green", "Package=0603", "Prefix=D", "Type=led"]
+INFO: NEW FPV path=PWR.Q1.X ref=Q1 value=DMTH6016LK3Q-13 fpid=workspace_lib_footprints:TO-252-2 fields=["Manufacturer=Diodes Incorporated", "Mpn=DMTH6016LK3Q-13", "Prefix=Q", "Type=mosfet"]
+INFO: NEW FPV path=PWR.R_FBB.R ref=R59 value="24.9k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=24.9k 1%", "Type=resistor"]
+INFO: NEW FPV path=PWR.R_FBT.R ref=R60 value="100k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=100k 1%", "Type=resistor"]
+INFO: NEW FPV path=PWR.R_PWR_LED.R ref=R61 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=PWR.R_VBAT_BOT.R ref=R62 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=PWR.R_VBAT_TOP.R ref=R63 value="47k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=47k 1%", "Type=resistor"]
+INFO: NEW FPV path=PWR.TP_SW.TP ref=TP13 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=PWR.U2.X ref=U2 value=LM74700QDBVRQ1 fpid=workspace_lib_footprints:SOT-23-6 fields=["Manufacturer=Texas Instruments", "Mpn=LM74700QDBVRQ1", "Prefix=U"]
+INFO: NEW FPV path=PWR.U3.X ref=U3 value=LMR36015FSCQRNXRQ1 fpid=workspace_lib_footprints:Texas_RNX0012C_VQFN-14-11-1EP_2x3mm_P0.5mm_EP0.25x1.825mm fields=["Manufacturer=Texas Instruments", "Mpn=LMR36015FSCQRNXRQ1", "Prefix=U"]
+INFO: NEW FPV path=PWR.U4.X ref=U4 value=LDL1117S33R fpid=workspace_lib_footprints:SOT-223-3_TabPin2 fields=["Manufacturer=STMicroelectronics", "Mpn=LDL1117S33R", "Prefix=U"]
+INFO: NEW FPV path=PWR.U5.X ref=U5 value=TPS7B4250QDBVRQ1 fpid=workspace_lib_footprints:SOT-23-5 fields=["Manufacturer=Texas Instruments", "Mpn=TPS7B4250QDBVRQ1", "Prefix=U"]
+INFO: NEW FPV path=PWR.U6.X ref=U6 value=TPS7B4250QDBVRQ1 fpid=workspace_lib_footprints:SOT-23-5 fields=["Manufacturer=Texas Instruments", "Mpn=TPS7B4250QDBVRQ1", "Prefix=U"]
+INFO: NEW FPV path=SENS.C_CAM.C ref=C71 value="1nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1nF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_CLT.C ref=C72 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_IAT.C ref=C73 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_MAP.C ref=C74 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_PPS1.C ref=C75 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_PPS2.C ref=C76 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_S5V1.C ref=C77 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_S5V2.C ref=C78 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_TPS1.C ref=C79 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_TPS2.C ref=C80 value="10nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=10nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_U11_VCC.C ref=C81 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_VR_IN.C ref=C82 value="1nF 50V C0G" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=1nF", "Dielectric=C0G", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.C_VR_PEAK.C ref=C83 value="100nF 50V X7R" fpid=stdlib_kicad-footprints_Capacitor_SMD:C_0603_1608Metric fields=["Capacitance=100nF", "Dielectric=X7R", "Package=0603", "Prefix=C", "Type=capacitor", "Voltage=50V"]
+INFO: NEW FPV path=SENS.R_CAM.R ref=R64 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_CAM_PU.R ref=R65 value="4.7k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=4.7k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_CLT.R ref=R66 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_CLT_PU.R ref=R67 value="2.49k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=2.49k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_IAT.R ref=R68 value="1k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=1k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_IAT_PU.R ref=R69 value="2.49k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=2.49k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_MAP_BOT.R ref=R70 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_MAP_TOP.R ref=R71 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_PPS1_BOT.R ref=R72 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_PPS1_TOP.R ref=R73 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_PPS2_BOT.R ref=R74 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_PPS2_TOP.R ref=R75 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_S5V1_BOT.R ref=R76 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_S5V1_TOP.R ref=R77 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_S5V2_BOT.R ref=R78 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_S5V2_TOP.R ref=R79 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_TPS1_BOT.R ref=R80 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_TPS1_TOP.R ref=R81 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_TPS2_BOT.R ref=R82 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_TPS2_TOP.R ref=R83 value="13.3k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=13.3k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_VR_BOT.R ref=R84 value="20k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=20k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_VR_IN.R ref=R85 value="22k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_1206_3216Metric fields=["Package=1206", "Prefix=R", "Resistance=22k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.R_VR_TOP.R ref=R86 value="10k 1%" fpid=stdlib_kicad-footprints_Resistor_SMD:R_0603_1608Metric fields=["Package=0603", "Prefix=R", "Resistance=10k 1%", "Type=resistor"]
+INFO: NEW FPV path=SENS.U11.X ref=U11 value=LM1815M/NOPB fpid=workspace_lib_footprints:SOIC-14_3.9x8.7mm_P1.27mm fields=["Manufacturer=Texas Instruments", "Mpn=LM1815M/NOPB", "Prefix=U"]
+INFO: NEW FPV path=SENS.U16.X ref=U16 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: NEW FPV path=SENS.U17.X ref=U17 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: NEW FPV path=SENS.U18.X ref=U18 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: NEW FPV path=SENS.U19.X ref=U19 value=TPD2E2U06QDBZRQ1 fpid=workspace_lib_footprints:SOT-23 fields=["Manufacturer=Texas Instruments", "Mpn=TPD2E2U06QDBZRQ1", "Prefix=U"]
+INFO: NEW FPV path=TP1.TP ref=TP1 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP10.TP ref=TP10 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP11.TP ref=TP11 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP12.TP ref=TP12 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP2.TP ref=TP2 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP3.TP ref=TP3 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP4.TP ref=TP4 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP5.TP ref=TP5 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP6.TP ref=TP6 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP7.TP ref=TP7 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP8.TP ref=TP8 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW FPV path=TP9.TP ref=TP9 value=TestPoint_Small fpid=stdlib_kicad-footprints_TestPoint:TestPoint_Pad_D1.0mm bom=false pos=false fields=["Prefix=TP", "Variant=Pad_D1.0mm"]
+INFO: NEW GRV path=COM members=[COM.C_CAN_SPLIT.C, COM.C_U15_VCC.C, COM.C_U15_VIO.C, COM.C_VBUS.C, COM.J3.X, COM.J4.X, COM.R_CAN_TH.R, COM.R_CAN_TL.R, COM.R_CC1.R, COM.R_CC2.R, COM.U15.X, COM.U20.X, COM.U21.X]
+INFO: NEW GRV path=CONN members=[CONN.J1.X, CONN.J2.X]
+INFO: NEW GRV path=ETB members=[ETB.C_CP.C, ETB.C_DVDD.C, ETB.C_ISENSE.C, ETB.C_VCP.C, ETB.C_VM1.C, ETB.C_VM2.C, ETB.R_DISABLE.R, ETB.R_IPROPI.R, ETB.R_ISENSE.R, ETB.R_NFAULT.R, ETB.R_NSLEEP.R, ETB.R_SR.R, ETB.U7.X]
+INFO: NEW GRV path=KL members=[KL.C_CJ_CF.C, KL.C_CJ_CM.C, KL.C_CJ_RST.C, KL.C_CJ_UA.C, KL.C_CJ_UB.C, KL.C_CJ_UN.C, KL.C_CJ_UR.C, KL.C_CJ_VCC1.C, KL.C_CJ_VCC2.C, KL.C_KNK_AN.C, KL.C_KNK_AP.C, KL.C_KNK_CK.C, KL.C_KNK_OUT.C, KL.C_KNK_VREF.C, KL.C_U10_VDD1.C, KL.C_U10_VDD2.C, KL.C_U12_VDD1.C, KL.C_U12_VDD2.C, KL.C_U14.C, KL.C_U22.C, KL.Q8.X, KL.R_CJ_DIAHD.R, KL.R_CJ_OSZ.R, KL.R_CJ_RF.R, KL.R_CJ_RM.R, KL.R_CJ_RM2.R, KL.R_CJ_RS.R, KL.R_CJ_RST.R, KL.R_CJ_SHUNT.R, KL.R_CJ_UA.R, KL.R_CJ_UA_BOT.R, KL.R_CJ_UA_TOP.R, KL.R_CJ_UP_IA.R, KL.R_CJ_UP_UN.R, KL.R_CJ_UP_US.R, KL.R_CJ_UR.R, KL.R_CJ_UR_BOT.R, KL.R_CJ_UR_TOP.R, KL.R_HTR_G.R, KL.R_HTR_PD.R, KL.R_KNK_BIAS.R, KL.R_KNK_BIAS_X.R, KL.R_KNK_CK.R, KL.R_KNK_OUT_BOT.R, KL.R_KNK_OUT_TOP.R, KL.R_KNK_R1N.R, KL.R_KNK_R1P.R, KL.R_KNK_R2.R, KL.R_MISO.R, KL.R_MISO_PD.R, KL.U10.X, KL.U12.X, KL.U13.X, KL.U14.X, KL.U22.X]
+INFO: NEW GRV path=MCU members=[MCU.C_HSE_IN.C, MCU.C_HSE_OUT.C, MCU.C_NRST.C, MCU.C_VCAP_48.C, MCU.C_VCAP_73.C, MCU.C_VDDA_100N.C, MCU.C_VDDA_1U.C, MCU.C_VDD_100.C, MCU.C_VDD_11.C, MCU.C_VDD_27.C, MCU.C_VDD_50.C, MCU.C_VDD_6.C, MCU.C_VDD_75.C, MCU.C_VDD_BULK.C, MCU.FB1.FB, MCU.LED_FAULT.LED, MCU.LED_STATUS.LED, MCU.R_BOOT0.R, MCU.R_LED_FAULT.R, MCU.R_LED_STATUS.R, MCU.SW1.X, MCU.U1.X, MCU.Y1.Y]
+INFO: NEW GRV path=OUT members=[OUT.C_U8_VDD1.C, OUT.C_U8_VDD2.C, OUT.C_U9_VDD1.C, OUT.C_U9_VDD2.C, OUT.D3.X, OUT.Q2.X, OUT.Q3.X, OUT.Q4.X, OUT.Q5.X, OUT.Q6.X, OUT.Q7.X, OUT.R_IGN1.R, OUT.R_IGN2.R, OUT.R_IGN3.R, OUT.R_IGN4.R, OUT.R_INJ1_IN.R, OUT.R_INJ1_PD.R, OUT.R_INJ2_IN.R, OUT.R_INJ2_PD.R, OUT.R_INJ3_IN.R, OUT.R_INJ3_PD.R, OUT.R_INJ4_IN.R, OUT.R_INJ4_PD.R, OUT.R_PUMP_IN.R, OUT.R_PUMP_PD.R, OUT.R_VVT_IN.R, OUT.R_VVT_PD.R, OUT.U8.X, OUT.U9.X]
+INFO: NEW GRV path=PWR members=[PWR.C1.X, PWR.C2.X, PWR.C_5V1.C, PWR.C_5V2.C, PWR.C_BOOT.C, PWR.C_BUCK_HF1.C, PWR.C_BUCK_HF2.C, PWR.C_BUCK_IN.C, PWR.C_FF.C, PWR.C_RB_VCAP.C, PWR.C_U4_IN.C, PWR.C_U4_OUT.C, PWR.C_U5_ADJ.C, PWR.C_U5_IN.C, PWR.C_U5_OUT.C, PWR.C_U6_ADJ.C, PWR.C_U6_IN.C, PWR.C_U6_OUT.C, PWR.C_VBAT_HF.C, PWR.C_VBAT_SENSE.C, PWR.C_VCC.C, PWR.C_VIN_EMI.C, PWR.D1.D, PWR.D2.X, PWR.L1.X, PWR.LED_PWR.LED, PWR.Q1.X, PWR.R_FBB.R, PWR.R_FBT.R, PWR.R_PWR_LED.R, PWR.R_VBAT_BOT.R, PWR.R_VBAT_TOP.R, PWR.TP_SW.TP, PWR.U2.X, PWR.U3.X, PWR.U4.X, PWR.U5.X, PWR.U6.X]
+INFO: NEW GRV path=SENS members=[SENS.C_CAM.C, SENS.C_CLT.C, SENS.C_IAT.C, SENS.C_MAP.C, SENS.C_PPS1.C, SENS.C_PPS2.C, SENS.C_S5V1.C, SENS.C_S5V2.C, SENS.C_TPS1.C, SENS.C_TPS2.C, SENS.C_U11_VCC.C, SENS.C_VR_IN.C, SENS.C_VR_PEAK.C, SENS.R_CAM.R, SENS.R_CAM_PU.R, SENS.R_CLT.R, SENS.R_CLT_PU.R, SENS.R_IAT.R, SENS.R_IAT_PU.R, SENS.R_MAP_BOT.R, SENS.R_MAP_TOP.R, SENS.R_PPS1_BOT.R, SENS.R_PPS1_TOP.R, SENS.R_PPS2_BOT.R, SENS.R_PPS2_TOP.R, SENS.R_S5V1_BOT.R, SENS.R_S5V1_TOP.R, SENS.R_S5V2_BOT.R, SENS.R_S5V2_TOP.R, SENS.R_TPS1_BOT.R, SENS.R_TPS1_TOP.R, SENS.R_TPS2_BOT.R, SENS.R_TPS2_TOP.R, SENS.R_VR_BOT.R, SENS.R_VR_IN.R, SENS.R_VR_TOP.R, SENS.U11.X, SENS.U16.X, SENS.U17.X, SENS.U18.X, SENS.U19.X]
+INFO: NEW FPC path=COM.C_CAN_SPLIT.C x=170650000 y=52180000 orient=0.0 layer=F.Cu ref_x=170650000 ref_y=50500000 val_x=170650000 val_y=53860000
+INFO: NEW FPC path=COM.C_U15_VCC.C x=159740000 y=44275000 orient=0.0 layer=F.Cu ref_x=159740000 ref_y=42845000 val_x=159740000 val_y=45705000
+INFO: NEW FPC path=COM.C_U15_VIO.C x=162750000 y=44275000 orient=0.0 layer=F.Cu ref_x=162750000 ref_y=42845000 val_x=162750000 val_y=45705000
+INFO: NEW FPC path=COM.C_VBUS.C x=167190000 y=43860000 orient=0.0 layer=F.Cu ref_x=167190000 ref_y=42430000 val_x=167190000 val_y=45290000
+INFO: NEW FPC path=COM.J3.X x=163580000 y=55910000 orient=0.0 layer=F.Cu ref_x=163580000 ref_y=50265000 val_x=163580000 val_y=61010000
+INFO: NEW FPC path=COM.J4.X x=169210000 y=48590000 orient=0.0 layer=F.Cu ref_x=169210000 ref_y=51290000 val_x=169210000 val_y=46290000
+INFO: NEW FPC path=COM.R_CAN_TH.R x=167390000 y=45590000 orient=0.0 layer=F.Cu ref_x=167390000 ref_y=43940000 val_x=167390000 val_y=47240000
+INFO: NEW FPC path=COM.R_CAN_TL.R x=170800000 y=45590000 orient=0.0 layer=F.Cu ref_x=170800000 ref_y=43940000 val_x=170800000 val_y=47240000
+INFO: NEW FPC path=COM.R_CC1.R x=170600000 y=43860000 orient=0.0 layer=F.Cu ref_x=170600000 ref_y=42430000 val_x=170600000 val_y=45290000
+INFO: NEW FPC path=COM.R_CC2.R x=173610000 y=43860000 orient=0.0 layer=F.Cu ref_x=173610000 ref_y=42430000 val_x=173610000 val_y=45290000
+INFO: NEW FPC path=COM.U15.X x=161960000 y=47890000 orient=0.0 layer=F.Cu ref_x=161960000 ref_y=44490000 val_x=161960000 val_y=51290000
+INFO: NEW FPC path=COM.U20.X x=170880000 y=58360000 orient=0.0 layer=F.Cu ref_x=170880000 ref_y=55960000 val_x=170880000 val_y=60760000
+INFO: NEW FPC path=COM.U21.X x=170880000 y=54910000 orient=0.0 layer=F.Cu ref_x=170880000 ref_y=52510000 val_x=170880000 val_y=57310000
+INFO: NEW FPC path=CONN.J1.X x=132000000 y=114445000 orient=0.0 layer=F.Cu ref_x=148500000 ref_y=104325000 val_x=148500000 val_y=120145000
+INFO: NEW FPC path=CONN.J2.X x=132000000 y=100725000 orient=0.0 layer=F.Cu ref_x=148500000 ref_y=90605000 val_x=148500000 val_y=106425000
+INFO: NEW FPC path=ETB.C_CP.C x=189150000 y=55805000 orient=0.0 layer=F.Cu ref_x=189150000 ref_y=54125000 val_x=189150000 val_y=57485000
+INFO: NEW FPC path=ETB.C_DVDD.C x=197155000 y=62395000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=60965000 val_x=197155000 val_y=63825000
+INFO: NEW FPC path=ETB.C_ISENSE.C x=197155000 y=60885000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=59455000 val_x=197155000 val_y=62315000
+INFO: NEW FPC path=ETB.C_VCP.C x=192600000 y=55805000 orient=0.0 layer=F.Cu ref_x=192600000 ref_y=54125000 val_x=192600000 val_y=57485000
+INFO: NEW FPC path=ETB.C_VM1.C x=196050000 y=55805000 orient=0.0 layer=F.Cu ref_x=196050000 ref_y=54125000 val_x=196050000 val_y=57485000
+INFO: NEW FPC path=ETB.C_VM2.C x=197375000 y=64155000 orient=0.0 layer=F.Cu ref_x=197375000 ref_y=62475000 val_x=197375000 val_y=65835000
+INFO: NEW FPC path=ETB.R_DISABLE.R x=197155000 y=59375000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=57945000 val_x=197155000 val_y=60805000
+INFO: NEW FPC path=ETB.R_IPROPI.R x=197155000 y=57865000 orient=0.0 layer=F.Cu ref_x=197155000 ref_y=56435000 val_x=197155000 val_y=59295000
+INFO: NEW FPC path=ETB.R_ISENSE.R x=188930000 y=54045000 orient=0.0 layer=F.Cu ref_x=188930000 ref_y=52615000 val_x=188930000 val_y=55475000
+INFO: NEW FPC path=ETB.R_NFAULT.R x=192380000 y=54045000 orient=0.0 layer=F.Cu ref_x=192380000 ref_y=52615000 val_x=192380000 val_y=55475000
+INFO: NEW FPC path=ETB.R_NSLEEP.R x=195830000 y=54045000 orient=0.0 layer=F.Cu ref_x=195830000 ref_y=52615000 val_x=195830000 val_y=55475000
+INFO: NEW FPC path=ETB.R_SR.R x=198840000 y=54045000 orient=0.0 layer=F.Cu ref_x=198840000 ref_y=52615000 val_x=198840000 val_y=55475000
+INFO: NEW FPC path=ETB.U7.X x=191725000 y=60985000 orient=0.0 layer=F.Cu ref_x=191725000 ref_y=56135000 val_x=191725000 val_y=65835000
+INFO: NEW FPC path=H1 x=201900000 y=115245000 orient=0.0 layer=F.Cu ref_x=201900000 ref_y=111095000 val_x=201900000 val_y=119395000
+INFO: NEW FPC path=H2 x=151450000 y=55575000 orient=0.0 layer=F.Cu ref_x=151450000 ref_y=51425000 val_x=151450000 val_y=59725000
+INFO: NEW FPC path=H3 x=180590000 y=56610000 orient=0.0 layer=F.Cu ref_x=180590000 ref_y=52460000 val_x=180590000 val_y=60760000
+INFO: NEW FPC path=H4 x=190900000 y=47815000 orient=0.0 layer=F.Cu ref_x=190900000 ref_y=43665000 val_x=190900000 val_y=51965000
+INFO: NEW FPC path=KL.C_CJ_CF.C x=141310000 y=66685000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=65255000 val_x=141310000 val_y=68115000
+INFO: NEW FPC path=KL.C_CJ_CM.C x=149160000 y=72400000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=70970000 val_x=149160000 val_y=73830000
+INFO: NEW FPC path=KL.C_CJ_RST.C x=136850000 y=67845000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=66415000 val_x=136850000 val_y=69275000
+INFO: NEW FPC path=KL.C_CJ_UA.C x=151720000 y=86515000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=85085000 val_x=151720000 val_y=87945000
+INFO: NEW FPC path=KL.C_CJ_UB.C x=151940000 y=88275000 orient=0.0 layer=F.Cu ref_x=151940000 ref_y=86595000 val_x=151940000 val_y=89955000
+INFO: NEW FPC path=KL.C_CJ_UN.C x=149160000 y=76105000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=74675000 val_x=149160000 val_y=77535000
+INFO: NEW FPC path=KL.C_CJ_UR.C x=152610000 y=78115000 orient=0.0 layer=F.Cu ref_x=152610000 ref_y=76685000 val_x=152610000 val_y=79545000
+INFO: NEW FPC path=KL.C_CJ_VCC1.C x=141310000 y=65175000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=63745000 val_x=141310000 val_y=66605000
+INFO: NEW FPC path=KL.C_CJ_VCC2.C x=144320000 y=66685000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=65255000 val_x=144320000 val_y=68115000
+INFO: NEW FPC path=KL.C_KNK_AN.C x=149160000 y=70890000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=69460000 val_x=149160000 val_y=72320000
+INFO: NEW FPC path=KL.C_KNK_AP.C x=152170000 y=72400000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=70970000 val_x=152170000 val_y=73830000
+INFO: NEW FPC path=KL.C_KNK_CK.C x=136850000 y=66335000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=64905000 val_x=136850000 val_y=67765000
+INFO: NEW FPC path=KL.C_KNK_OUT.C x=151720000 y=85005000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=83575000 val_x=151720000 val_y=86435000
+INFO: NEW FPC path=KL.C_KNK_VREF.C x=149160000 y=74595000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=73165000 val_x=149160000 val_y=76025000
+INFO: NEW FPC path=KL.C_U10_VDD1.C x=152170000 y=76105000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=74675000 val_x=152170000 val_y=77535000
+INFO: NEW FPC path=KL.C_U10_VDD2.C x=144320000 y=65175000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=63745000 val_x=144320000 val_y=66605000
+INFO: NEW FPC path=KL.C_U12_VDD1.C x=149380000 y=77865000 orient=0.0 layer=F.Cu ref_x=149380000 ref_y=76185000 val_x=149380000 val_y=79545000
+INFO: NEW FPC path=KL.C_U12_VDD2.C x=147330000 y=66685000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=65255000 val_x=147330000 val_y=68115000
+INFO: NEW FPC path=KL.C_U14.C x=149160000 y=69380000 orient=0.0 layer=F.Cu ref_x=149160000 ref_y=67950000 val_x=149160000 val_y=70810000
+INFO: NEW FPC path=KL.C_U22.C x=152170000 y=70890000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=69460000 val_x=152170000 val_y=72320000
+INFO: NEW FPC path=KL.Q8.X x=134310000 y=72270000 orient=0.0 layer=F.Cu ref_x=134310000 ref_y=67770000 val_x=134310000 val_y=76770000
+INFO: NEW FPC path=KL.R_CJ_DIAHD.R x=136850000 y=64825000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=63395000 val_x=136850000 val_y=66255000
+INFO: NEW FPC path=KL.R_CJ_OSZ.R x=151720000 y=83495000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=82065000 val_x=151720000 val_y=84925000
+INFO: NEW FPC path=KL.R_CJ_RF.R x=152170000 y=74595000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=73165000 val_x=152170000 val_y=76025000
+INFO: NEW FPC path=KL.R_CJ_RM.R x=147330000 y=65175000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=63745000 val_x=147330000 val_y=66605000
+INFO: NEW FPC path=KL.R_CJ_RM2.R x=150340000 y=66685000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=65255000 val_x=150340000 val_y=68115000
+INFO: NEW FPC path=KL.R_CJ_RS.R x=152170000 y=69380000 orient=0.0 layer=F.Cu ref_x=152170000 ref_y=67950000 val_x=152170000 val_y=70810000
+INFO: NEW FPC path=KL.R_CJ_RST.R x=151720000 y=81985000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=80555000 val_x=151720000 val_y=83415000
+INFO: NEW FPC path=KL.R_CJ_SHUNT.R x=150340000 y=65175000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=63745000 val_x=150340000 val_y=66605000
+INFO: NEW FPC path=KL.R_CJ_UA.R x=151720000 y=80475000 orient=0.0 layer=F.Cu ref_x=151720000 ref_y=79045000 val_x=151720000 val_y=81905000
+INFO: NEW FPC path=KL.R_CJ_UA_BOT.R x=141310000 y=63665000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=62235000 val_x=141310000 val_y=65095000
+INFO: NEW FPC path=KL.R_CJ_UA_TOP.R x=144320000 y=63665000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=62235000 val_x=144320000 val_y=65095000
+INFO: NEW FPC path=KL.R_CJ_UP_IA.R x=147330000 y=63665000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=62235000 val_x=147330000 val_y=65095000
+INFO: NEW FPC path=KL.R_CJ_UP_UN.R x=150340000 y=63665000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=62235000 val_x=150340000 val_y=65095000
+INFO: NEW FPC path=KL.R_CJ_UP_US.R x=136850000 y=63315000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=61885000 val_x=136850000 val_y=64745000
+INFO: NEW FPC path=KL.R_CJ_UR.R x=153350000 y=66685000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=65255000 val_x=153350000 val_y=68115000
+INFO: NEW FPC path=KL.R_CJ_UR_BOT.R x=153350000 y=65175000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=63745000 val_x=153350000 val_y=66605000
+INFO: NEW FPC path=KL.R_CJ_UR_TOP.R x=153350000 y=63665000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=62235000 val_x=153350000 val_y=65095000
+INFO: NEW FPC path=KL.R_HTR_G.R x=129400000 y=62260000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=60830000 val_x=129400000 val_y=63690000
+INFO: NEW FPC path=KL.R_HTR_PD.R x=132410000 y=62260000 orient=0.0 layer=F.Cu ref_x=132410000 ref_y=60830000 val_x=132410000 val_y=63690000
+INFO: NEW FPC path=KL.R_KNK_BIAS.R x=141310000 y=62155000 orient=0.0 layer=F.Cu ref_x=141310000 ref_y=60725000 val_x=141310000 val_y=63585000
+INFO: NEW FPC path=KL.R_KNK_BIAS_X.R x=144320000 y=62155000 orient=0.0 layer=F.Cu ref_x=144320000 ref_y=60725000 val_x=144320000 val_y=63585000
+INFO: NEW FPC path=KL.R_KNK_CK.R x=147330000 y=62155000 orient=0.0 layer=F.Cu ref_x=147330000 ref_y=60725000 val_x=147330000 val_y=63585000
+INFO: NEW FPC path=KL.R_KNK_OUT_BOT.R x=150340000 y=62155000 orient=0.0 layer=F.Cu ref_x=150340000 ref_y=60725000 val_x=150340000 val_y=63585000
+INFO: NEW FPC path=KL.R_KNK_OUT_TOP.R x=153350000 y=62155000 orient=0.0 layer=F.Cu ref_x=153350000 ref_y=60725000 val_x=153350000 val_y=63585000
+INFO: NEW FPC path=KL.R_KNK_R1N.R x=136850000 y=61805000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=60375000 val_x=136850000 val_y=63235000
+INFO: NEW FPC path=KL.R_KNK_R1P.R x=154730000 y=86515000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=85085000 val_x=154730000 val_y=87945000
+INFO: NEW FPC path=KL.R_KNK_R2.R x=154730000 y=85005000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=83575000 val_x=154730000 val_y=86435000
+INFO: NEW FPC path=KL.R_MISO.R x=154730000 y=83495000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=82065000 val_x=154730000 val_y=84925000
+INFO: NEW FPC path=KL.R_MISO_PD.R x=154730000 y=81985000 orient=0.0 layer=F.Cu ref_x=154730000 ref_y=80555000 val_x=154730000 val_y=83415000
+INFO: NEW FPC path=KL.U10.X x=131620000 y=65875000 orient=0.0 layer=F.Cu ref_x=131620000 ref_y=62475000 val_x=131620000 val_y=69275000
+INFO: NEW FPC path=KL.U12.X x=133850000 y=82605000 orient=0.0 layer=F.Cu ref_x=133850000 ref_y=75255000 val_x=133850000 val_y=89955000
+INFO: NEW FPC path=KL.U13.X x=145010000 y=84075000 orient=0.0 layer=F.Cu ref_x=145010000 ref_y=78195000 val_x=145010000 val_y=89955000
+INFO: NEW FPC path=KL.U14.X x=143730000 y=76095000 orient=0.0 layer=F.Cu ref_x=143730000 ref_y=72645000 val_x=143730000 val_y=79545000
+INFO: NEW FPC path=KL.U22.X x=143730000 y=70380000 orient=0.0 layer=F.Cu ref_x=143730000 ref_y=66930000 val_x=143730000 val_y=73830000
+INFO: NEW FPC path=MCU.C_HSE_IN.C x=199230000 y=69425000 orient=0.0 layer=F.Cu ref_x=199230000 ref_y=67995000 val_x=199230000 val_y=70855000
+INFO: NEW FPC path=MCU.C_HSE_OUT.C x=202280000 y=71015000 orient=0.0 layer=F.Cu ref_x=202280000 ref_y=69585000 val_x=202280000 val_y=72445000
+INFO: NEW FPC path=MCU.C_NRST.C x=206440000 y=84925000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=83495000 val_x=206440000 val_y=86355000
+INFO: NEW FPC path=MCU.C_VCAP_48.C x=202240000 y=69425000 orient=0.0 layer=F.Cu ref_x=202240000 ref_y=67995000 val_x=202240000 val_y=70855000
+INFO: NEW FPC path=MCU.C_VCAP_73.C x=205290000 y=71015000 orient=0.0 layer=F.Cu ref_x=205290000 ref_y=69585000 val_x=205290000 val_y=72445000
+INFO: NEW FPC path=MCU.C_VDDA_100N.C x=206440000 y=83415000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=81985000 val_x=206440000 val_y=84845000
+INFO: NEW FPC path=MCU.C_VDDA_1U.C x=205250000 y=69425000 orient=0.0 layer=F.Cu ref_x=205250000 ref_y=67995000 val_x=205250000 val_y=70855000
+INFO: NEW FPC path=MCU.C_VDD_100.C x=206440000 y=81905000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=80475000 val_x=206440000 val_y=83335000
+INFO: NEW FPC path=MCU.C_VDD_11.C x=206440000 y=80395000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=78965000 val_x=206440000 val_y=81825000
+INFO: NEW FPC path=MCU.C_VDD_27.C x=206440000 y=78885000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=77455000 val_x=206440000 val_y=80315000
+INFO: NEW FPC path=MCU.C_VDD_50.C x=206440000 y=77375000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=75945000 val_x=206440000 val_y=78805000
+INFO: NEW FPC path=MCU.C_VDD_6.C x=206440000 y=75865000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=74435000 val_x=206440000 val_y=77295000
+INFO: NEW FPC path=MCU.C_VDD_75.C x=206440000 y=74355000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=72925000 val_x=206440000 val_y=75785000
+INFO: NEW FPC path=MCU.C_VDD_BULK.C x=206660000 y=88275000 orient=0.0 layer=F.Cu ref_x=206660000 ref_y=86595000 val_x=206660000 val_y=89955000
+INFO: NEW FPC path=MCU.FB1.FB x=206440000 y=72845000 orient=0.0 layer=F.Cu ref_x=206440000 ref_y=71415000 val_x=206440000 val_y=74275000
+INFO: NEW FPC path=MCU.LED_FAULT.LED x=199270000 y=70975000 orient=0.0 layer=F.Cu ref_x=199270000 ref_y=69545000 val_x=199270000 val_y=72405000
+INFO: NEW FPC path=MCU.LED_STATUS.LED x=206480000 y=86475000 orient=0.0 layer=F.Cu ref_x=206480000 ref_y=85045000 val_x=206480000 val_y=87905000
+INFO: NEW FPC path=MCU.R_BOOT0.R x=199230000 y=67915000 orient=0.0 layer=F.Cu ref_x=199230000 ref_y=66485000 val_x=199230000 val_y=69345000
+INFO: NEW FPC path=MCU.R_LED_FAULT.R x=202240000 y=67915000 orient=0.0 layer=F.Cu ref_x=202240000 ref_y=66485000 val_x=202240000 val_y=69345000
+INFO: NEW FPC path=MCU.R_LED_STATUS.R x=205250000 y=67915000 orient=0.0 layer=F.Cu ref_x=205250000 ref_y=66485000 val_x=205250000 val_y=69345000
+INFO: NEW FPC path=MCU.SW1.X x=190450000 y=69995000 orient=0.0 layer=F.Cu ref_x=190450000 ref_y=67345000 val_x=190450000 val_y=72645000
+INFO: NEW FPC path=MCU.U1.X x=196180000 y=80525000 orient=0.0 layer=F.Cu ref_x=196180000 ref_y=71095000 val_x=196180000 val_y=89955000
+INFO: NEW FPC path=MCU.Y1.Y x=195600000 y=69995000 orient=0.0 layer=F.Cu ref_x=195600000 ref_y=67545000 val_x=195600000 val_y=72445000
+INFO: NEW FPC path=OUT.C_U8_VDD1.C x=190310000 y=112380000 orient=0.0 layer=F.Cu ref_x=190310000 ref_y=110950000 val_x=190310000 val_y=113810000
+INFO: NEW FPC path=OUT.C_U8_VDD2.C x=190310000 y=105055000 orient=0.0 layer=F.Cu ref_x=190310000 ref_y=103625000 val_x=190310000 val_y=106485000
+INFO: NEW FPC path=OUT.C_U9_VDD1.C x=177660000 y=95990000 orient=0.0 layer=F.Cu ref_x=177660000 ref_y=94560000 val_x=177660000 val_y=97420000
+INFO: NEW FPC path=OUT.C_U9_VDD2.C x=190680000 y=95990000 orient=0.0 layer=F.Cu ref_x=190680000 ref_y=94560000 val_x=190680000 val_y=97420000
+INFO: NEW FPC path=OUT.D3.X x=173630000 y=95420000 orient=0.0 layer=F.Cu ref_x=173630000 ref_y=93420000 val_x=173630000 val_y=97920000
+INFO: NEW FPC path=OUT.Q2.X x=175530000 y=115095000 orient=0.0 layer=F.Cu ref_x=175530000 ref_y=110595000 val_x=175530000 val_y=119595000
+INFO: NEW FPC path=OUT.Q3.X x=175530000 y=107770000 orient=0.0 layer=F.Cu ref_x=175530000 ref_y=103270000 val_x=175530000 val_y=112270000
+INFO: NEW FPC path=OUT.Q4.X x=184380000 y=115095000 orient=0.0 layer=F.Cu ref_x=184380000 ref_y=110595000 val_x=184380000 val_y=119595000
+INFO: NEW FPC path=OUT.Q5.X x=184380000 y=107770000 orient=0.0 layer=F.Cu ref_x=184380000 ref_y=103270000 val_x=184380000 val_y=112270000
+INFO: NEW FPC path=OUT.Q6.X x=175530000 y=100445000 orient=0.0 layer=F.Cu ref_x=175530000 ref_y=95945000 val_x=175530000 val_y=104945000
+INFO: NEW FPC path=OUT.Q7.X x=184380000 y=100445000 orient=0.0 layer=F.Cu ref_x=184380000 ref_y=95945000 val_x=184380000 val_y=104945000
+INFO: NEW FPC path=OUT.R_IGN1.R x=182260000 y=95590000 orient=0.0 layer=F.Cu ref_x=182260000 ref_y=93760000 val_x=182260000 val_y=97420000
+INFO: NEW FPC path=OUT.R_IGN2.R x=191110000 y=102915000 orient=0.0 layer=F.Cu ref_x=191110000 ref_y=101085000 val_x=191110000 val_y=104745000
+INFO: NEW FPC path=OUT.R_IGN3.R x=186870000 y=95590000 orient=0.0 layer=F.Cu ref_x=186870000 ref_y=93760000 val_x=186870000 val_y=97420000
+INFO: NEW FPC path=OUT.R_IGN4.R x=191110000 y=100605000 orient=0.0 layer=F.Cu ref_x=191110000 ref_y=98775000 val_x=191110000 val_y=102435000
+INFO: NEW FPC path=OUT.R_INJ1_IN.R x=190310000 y=98695000 orient=0.0 layer=F.Cu ref_x=190310000 ref_y=97265000 val_x=190310000 val_y=100125000
+INFO: NEW FPC path=OUT.R_INJ1_PD.R x=193320000 y=112380000 orient=0.0 layer=F.Cu ref_x=193320000 ref_y=110950000 val_x=193320000 val_y=113810000
+INFO: NEW FPC path=OUT.R_INJ2_IN.R x=193320000 y=105055000 orient=0.0 layer=F.Cu ref_x=193320000 ref_y=103625000 val_x=193320000 val_y=106485000
+INFO: NEW FPC path=OUT.R_INJ2_PD.R x=177660000 y=94480000 orient=0.0 layer=F.Cu ref_x=177660000 ref_y=93050000 val_x=177660000 val_y=95910000
+INFO: NEW FPC path=OUT.R_INJ3_IN.R x=190680000 y=94480000 orient=0.0 layer=F.Cu ref_x=190680000 ref_y=93050000 val_x=190680000 val_y=95910000
+INFO: NEW FPC path=OUT.R_INJ3_PD.R x=193690000 y=95990000 orient=0.0 layer=F.Cu ref_x=193690000 ref_y=94560000 val_x=193690000 val_y=97420000
+INFO: NEW FPC path=OUT.R_INJ4_IN.R x=193320000 y=98695000 orient=0.0 layer=F.Cu ref_x=193320000 ref_y=97265000 val_x=193320000 val_y=100125000
+INFO: NEW FPC path=OUT.R_INJ4_PD.R x=193690000 y=94480000 orient=0.0 layer=F.Cu ref_x=193690000 ref_y=93050000 val_x=193690000 val_y=95910000
+INFO: NEW FPC path=OUT.R_PUMP_IN.R x=194920000 y=103315000 orient=0.0 layer=F.Cu ref_x=194920000 ref_y=101885000 val_x=194920000 val_y=104745000
+INFO: NEW FPC path=OUT.R_PUMP_PD.R x=194920000 y=101005000 orient=0.0 layer=F.Cu ref_x=194920000 ref_y=99575000 val_x=194920000 val_y=102435000
+INFO: NEW FPC path=OUT.R_VVT_IN.R x=181460000 y=93680000 orient=0.0 layer=F.Cu ref_x=181460000 ref_y=92250000 val_x=181460000 val_y=95110000
+INFO: NEW FPC path=OUT.R_VVT_PD.R x=186070000 y=93680000 orient=0.0 layer=F.Cu ref_x=186070000 ref_y=92250000 val_x=186070000 val_y=95110000
+INFO: NEW FPC path=OUT.U8.X x=192530000 y=115995000 orient=0.0 layer=F.Cu ref_x=192530000 ref_y=112595000 val_x=192530000 val_y=119395000
+INFO: NEW FPC path=OUT.U9.X x=192530000 y=108670000 orient=0.0 layer=F.Cu ref_x=192530000 ref_y=105270000 val_x=192530000 val_y=112070000
+INFO: NEW FPC path=PWR.C1.X x=163795000 y=84855000 orient=0.0 layer=F.Cu ref_x=163795000 ref_y=79655000 val_x=163795000 val_y=90055000
+INFO: NEW FPC path=PWR.C2.X x=163795000 y=76005000 orient=0.0 layer=F.Cu ref_x=163795000 ref_y=70805000 val_x=163795000 val_y=81205000
+INFO: NEW FPC path=PWR.C_5V1.C x=160560000 y=65855000 orient=0.0 layer=F.Cu ref_x=160560000 ref_y=64005000 val_x=160560000 val_y=67705000
+INFO: NEW FPC path=PWR.C_5V2.C x=180245000 y=65255000 orient=0.0 layer=F.Cu ref_x=180245000 ref_y=63405000 val_x=180245000 val_y=67105000
+INFO: NEW FPC path=PWR.C_BOOT.C x=183575000 y=72925000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=71495000 val_x=183575000 val_y=74355000
+INFO: NEW FPC path=PWR.C_BUCK_HF1.C x=180690000 y=75475000 orient=0.0 layer=F.Cu ref_x=180690000 ref_y=73795000 val_x=180690000 val_y=77155000
+INFO: NEW FPC path=PWR.C_BUCK_HF2.C x=175445000 y=65350000 orient=0.0 layer=F.Cu ref_x=175445000 ref_y=63670000 val_x=175445000 val_y=67030000
+INFO: NEW FPC path=PWR.C_BUCK_IN.C x=171395000 y=65180000 orient=0.0 layer=F.Cu ref_x=171395000 ref_y=63330000 val_x=171395000 val_y=67030000
+INFO: NEW FPC path=PWR.C_FF.C x=183575000 y=69300000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=67870000 val_x=183575000 val_y=70730000
+INFO: NEW FPC path=PWR.C_RB_VCAP.C x=183420000 y=79675000 orient=0.0 layer=F.Cu ref_x=183420000 ref_y=78245000 val_x=183420000 val_y=81105000
+INFO: NEW FPC path=PWR.C_U4_IN.C x=179425000 y=63325000 orient=0.0 layer=F.Cu ref_x=179425000 ref_y=61895000 val_x=179425000 val_y=64755000
+INFO: NEW FPC path=PWR.C_U4_OUT.C x=181945000 y=88275000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=86595000 val_x=181945000 val_y=89955000
+INFO: NEW FPC path=PWR.C_U5_ADJ.C x=170575000 y=63250000 orient=0.0 layer=F.Cu ref_x=170575000 ref_y=61820000 val_x=170575000 val_y=64680000
+INFO: NEW FPC path=PWR.C_U5_IN.C x=181945000 y=86265000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=84585000 val_x=181945000 val_y=87945000
+INFO: NEW FPC path=PWR.C_U5_OUT.C x=181945000 y=84255000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=82575000 val_x=181945000 val_y=85935000
+INFO: NEW FPC path=PWR.C_U6_ADJ.C x=173625000 y=81330000 orient=0.0 layer=F.Cu ref_x=173625000 ref_y=79900000 val_x=173625000 val_y=82760000
+INFO: NEW FPC path=PWR.C_U6_IN.C x=181945000 y=82245000 orient=0.0 layer=F.Cu ref_x=181945000 ref_y=80565000 val_x=181945000 val_y=83925000
+INFO: NEW FPC path=PWR.C_U6_OUT.C x=164610000 y=64600000 orient=0.0 layer=F.Cu ref_x=164610000 ref_y=62920000 val_x=164610000 val_y=66280000
+INFO: NEW FPC path=PWR.C_VBAT_HF.C x=159960000 y=63675000 orient=0.0 layer=F.Cu ref_x=159960000 ref_y=61995000 val_x=159960000 val_y=65355000
+INFO: NEW FPC path=PWR.C_VBAT_SENSE.C x=183575000 y=71415000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=69985000 val_x=183575000 val_y=72845000
+INFO: NEW FPC path=PWR.C_VCC.C x=183575000 y=67790000 orient=0.0 layer=F.Cu ref_x=183575000 ref_y=66360000 val_x=183575000 val_y=69220000
+INFO: NEW FPC path=PWR.C_VIN_EMI.C x=175445000 y=63340000 orient=0.0 layer=F.Cu ref_x=175445000 ref_y=61660000 val_x=175445000 val_y=65020000
+INFO: NEW FPC path=PWR.D1.D x=174040000 y=77055000 orient=0.0 layer=F.Cu ref_x=174040000 ref_y=72955000 val_x=174040000 val_y=81255000
+INFO: NEW FPC path=PWR.D2.X x=165305000 y=66780000 orient=0.0 layer=F.Cu ref_x=165305000 ref_y=64780000 val_x=165305000 val_y=68880000
+INFO: NEW FPC path=PWR.L1.X x=160560000 y=69305000 orient=0.0 layer=F.Cu ref_x=160560000 ref_y=66355000 val_x=160560000 val_y=72255000
+INFO: NEW FPC path=PWR.LED_PWR.LED x=170615000 y=81290000 orient=0.0 layer=F.Cu ref_x=170615000 ref_y=79860000 val_x=170615000 val_y=82720000
+INFO: NEW FPC path=PWR.Q1.X x=175485000 y=85755000 orient=0.0 layer=F.Cu ref_x=175485000 ref_y=81255000 val_x=175485000 val_y=90255000
+INFO: NEW FPC path=PWR.R_FBB.R x=183420000 y=78165000 orient=0.0 layer=F.Cu ref_x=183420000 ref_y=76735000 val_x=183420000 val_y=79595000
+INFO: NEW FPC path=PWR.R_FBT.R x=182435000 y=63325000 orient=0.0 layer=F.Cu ref_x=182435000 ref_y=61895000 val_x=182435000 val_y=64755000
+INFO: NEW FPC path=PWR.R_PWR_LED.R x=176635000 y=81330000 orient=0.0 layer=F.Cu ref_x=176635000 ref_y=79900000 val_x=176635000 val_y=82760000
+INFO: NEW FPC path=PWR.R_VBAT_BOT.R x=183920000 y=75725000 orient=0.0 layer=F.Cu ref_x=183920000 ref_y=74295000 val_x=183920000 val_y=77155000
+INFO: NEW FPC path=PWR.R_VBAT_TOP.R x=164390000 y=62840000 orient=0.0 layer=F.Cu ref_x=164390000 ref_y=61410000 val_x=164390000 val_y=64270000
+INFO: NEW FPC path=PWR.TP_SW.TP x=183595000 y=65405000 orient=0.0 layer=F.Cu ref_x=183595000 ref_y=63957000 val_x=183595000 val_y=66955000
+INFO: NEW FPC path=PWR.U2.X x=164960000 y=69855000 orient=0.0 layer=F.Cu ref_x=164960000 ref_y=67455000 val_x=164960000 val_y=72255000
+INFO: NEW FPC path=PWR.U3.X x=180440000 y=78455000 orient=0.0 layer=F.Cu ref_x=180440000 ref_y=75805000 val_x=180440000 val_y=81105000
+INFO: NEW FPC path=PWR.U4.X x=173495000 y=70055000 orient=0.0 layer=F.Cu ref_x=173495000 ref_y=65555000 val_x=173495000 val_y=74555000
+INFO: NEW FPC path=PWR.U5.X x=179995000 y=71955000 orient=0.0 layer=F.Cu ref_x=179995000 ref_y=69555000 val_x=179995000 val_y=74355000
+INFO: NEW FPC path=PWR.U6.X x=179995000 y=68330000 orient=0.0 layer=F.Cu ref_x=179995000 ref_y=65930000 val_x=179995000 val_y=70730000
+INFO: NEW FPC path=SENS.C_CAM.C x=133310000 y=48930000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=47500000 val_x=133310000 val_y=50360000
+INFO: NEW FPC path=SENS.C_CLT.C x=133310000 y=47420000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=45990000 val_x=133310000 val_y=48850000
+INFO: NEW FPC path=SENS.C_IAT.C x=133310000 y=45910000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=44480000 val_x=133310000 val_y=47340000
+INFO: NEW FPC path=SENS.C_MAP.C x=136850000 y=45635000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=44205000 val_x=136850000 val_y=47065000
+INFO: NEW FPC path=SENS.C_PPS1.C x=139860000 y=45635000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=44205000 val_x=139860000 val_y=47065000
+INFO: NEW FPC path=SENS.C_PPS2.C x=129400000 y=45480000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=44050000 val_x=129400000 val_y=46910000
+INFO: NEW FPC path=SENS.C_S5V1.C x=140760000 y=58295000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=56865000 val_x=140760000 val_y=59725000
+INFO: NEW FPC path=SENS.C_S5V2.C x=140760000 y=54845000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=53415000 val_x=140760000 val_y=56275000
+INFO: NEW FPC path=SENS.C_TPS1.C x=140760000 y=51395000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=49965000 val_x=140760000 val_y=52825000
+INFO: NEW FPC path=SENS.C_TPS2.C x=140760000 y=56785000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=55355000 val_x=140760000 val_y=58215000
+INFO: NEW FPC path=SENS.C_U11_VCC.C x=140760000 y=53335000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=51905000 val_x=140760000 val_y=54765000
+INFO: NEW FPC path=SENS.C_VR_IN.C x=140760000 y=49885000 orient=0.0 layer=F.Cu ref_x=140760000 ref_y=48455000 val_x=140760000 val_y=51315000
+INFO: NEW FPC path=SENS.C_VR_PEAK.C x=141460000 y=47945000 orient=0.0 layer=F.Cu ref_x=141460000 ref_y=46515000 val_x=141460000 val_y=49375000
+INFO: NEW FPC path=SENS.R_CAM.R x=133310000 y=44400000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=42970000 val_x=133310000 val_y=45830000
+INFO: NEW FPC path=SENS.R_CAM_PU.R x=136850000 y=44125000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=42695000 val_x=136850000 val_y=45555000
+INFO: NEW FPC path=SENS.R_CLT.R x=139860000 y=44125000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=42695000 val_x=139860000 val_y=45555000
+INFO: NEW FPC path=SENS.R_CLT_PU.R x=129400000 y=43970000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=42540000 val_x=129400000 val_y=45400000
+INFO: NEW FPC path=SENS.R_IAT.R x=142870000 y=45635000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=44205000 val_x=142870000 val_y=47065000
+INFO: NEW FPC path=SENS.R_IAT_PU.R x=142870000 y=44125000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=42695000 val_x=142870000 val_y=45555000
+INFO: NEW FPC path=SENS.R_MAP_BOT.R x=133310000 y=42890000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=41460000 val_x=133310000 val_y=44320000
+INFO: NEW FPC path=SENS.R_MAP_TOP.R x=136850000 y=42615000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=41185000 val_x=136850000 val_y=44045000
+INFO: NEW FPC path=SENS.R_PPS1_BOT.R x=139860000 y=42615000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=41185000 val_x=139860000 val_y=44045000
+INFO: NEW FPC path=SENS.R_PPS1_TOP.R x=142870000 y=42615000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=41185000 val_x=142870000 val_y=44045000
+INFO: NEW FPC path=SENS.R_PPS2_BOT.R x=129400000 y=42460000 orient=0.0 layer=F.Cu ref_x=129400000 ref_y=41030000 val_x=129400000 val_y=43890000
+INFO: NEW FPC path=SENS.R_PPS2_TOP.R x=143770000 y=58295000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=56865000 val_x=143770000 val_y=59725000
+INFO: NEW FPC path=SENS.R_S5V1_BOT.R x=143770000 y=54845000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=53415000 val_x=143770000 val_y=56275000
+INFO: NEW FPC path=SENS.R_S5V1_TOP.R x=143770000 y=51395000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=49965000 val_x=143770000 val_y=52825000
+INFO: NEW FPC path=SENS.R_S5V2_BOT.R x=143770000 y=56785000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=55355000 val_x=143770000 val_y=58215000
+INFO: NEW FPC path=SENS.R_S5V2_TOP.R x=143770000 y=53335000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=51905000 val_x=143770000 val_y=54765000
+INFO: NEW FPC path=SENS.R_TPS1_BOT.R x=143770000 y=49885000 orient=0.0 layer=F.Cu ref_x=143770000 ref_y=48455000 val_x=143770000 val_y=51315000
+INFO: NEW FPC path=SENS.R_TPS1_TOP.R x=144470000 y=47945000 orient=0.0 layer=F.Cu ref_x=144470000 ref_y=46515000 val_x=144470000 val_y=49375000
+INFO: NEW FPC path=SENS.R_TPS2_BOT.R x=133310000 y=41380000 orient=0.0 layer=F.Cu ref_x=133310000 ref_y=39950000 val_x=133310000 val_y=42810000
+INFO: NEW FPC path=SENS.R_TPS2_TOP.R x=136850000 y=41105000 orient=0.0 layer=F.Cu ref_x=136850000 ref_y=39675000 val_x=136850000 val_y=42535000
+INFO: NEW FPC path=SENS.R_VR_BOT.R x=139860000 y=41105000 orient=0.0 layer=F.Cu ref_x=139860000 ref_y=39675000 val_x=139860000 val_y=42535000
+INFO: NEW FPC path=SENS.R_VR_IN.R x=137650000 y=47545000 orient=0.0 layer=F.Cu ref_x=137650000 ref_y=45715000 val_x=137650000 val_y=49375000
+INFO: NEW FPC path=SENS.R_VR_TOP.R x=142870000 y=41105000 orient=0.0 layer=F.Cu ref_x=142870000 ref_y=39675000 val_x=142870000 val_y=42535000
+INFO: NEW FPC path=SENS.U11.X x=131620000 y=54445000 orient=0.0 layer=F.Cu ref_x=131620000 ref_y=49165000 val_x=131620000 val_y=59725000
+INFO: NEW FPC path=SENS.U16.X x=137300000 y=57325000 orient=0.0 layer=F.Cu ref_x=137300000 ref_y=54925000 val_x=137300000 val_y=59725000
+INFO: NEW FPC path=SENS.U17.X x=137300000 y=53875000 orient=0.0 layer=F.Cu ref_x=137300000 ref_y=51475000 val_x=137300000 val_y=56275000
+INFO: NEW FPC path=SENS.U18.X x=137300000 y=50425000 orient=0.0 layer=F.Cu ref_x=137300000 ref_y=48025000 val_x=137300000 val_y=52825000
+INFO: NEW FPC path=SENS.U19.X x=129850000 y=47960000 orient=0.0 layer=F.Cu ref_x=129850000 ref_y=45560000 val_x=129850000 val_y=50360000
+INFO: NEW FPC path=TP1.TP x=159260000 y=40080000 orient=0.0 layer=F.Cu ref_x=159260000 ref_y=38632000 val_x=159260000 val_y=41630000
+INFO: NEW FPC path=TP10.TP x=203370000 y=64135000 orient=0.0 layer=F.Cu ref_x=203370000 ref_y=62687000 val_x=203370000 val_y=65685000
+INFO: NEW FPC path=TP11.TP x=199450000 y=108745000 orient=0.0 layer=F.Cu ref_x=199450000 ref_y=107297000 val_x=199450000 val_y=110295000
+INFO: NEW FPC path=TP12.TP x=149000000 y=49075000 orient=0.0 layer=F.Cu ref_x=149000000 ref_y=47627000 val_x=149000000 val_y=50625000
+INFO: NEW FPC path=TP2.TP x=178140000 y=50110000 orient=0.0 layer=F.Cu ref_x=178140000 ref_y=48662000 val_x=178140000 val_y=51660000
+INFO: NEW FPC path=TP3.TP x=188450000 y=41315000 orient=0.0 layer=F.Cu ref_x=188450000 ref_y=39867000 val_x=188450000 val_y=42865000
+INFO: NEW FPC path=TP4.TP x=197400000 y=50265000 orient=0.0 layer=F.Cu ref_x=197400000 ref_y=48817000 val_x=197400000 val_y=51815000
+INFO: NEW FPC path=TP5.TP x=163310000 y=40080000 orient=0.0 layer=F.Cu ref_x=163310000 ref_y=38632000 val_x=163310000 val_y=41630000
+INFO: NEW FPC path=TP6.TP x=203370000 y=60085000 orient=0.0 layer=F.Cu ref_x=203370000 ref_y=58637000 val_x=203370000 val_y=61635000
+INFO: NEW FPC path=TP7.TP x=199450000 y=104695000 orient=0.0 layer=F.Cu ref_x=199450000 ref_y=103247000 val_x=199450000 val_y=106245000
+INFO: NEW FPC path=TP8.TP x=203500000 y=108745000 orient=0.0 layer=F.Cu ref_x=203500000 ref_y=107297000 val_x=203500000 val_y=110295000
+INFO: NEW FPC path=TP9.TP x=149000000 y=45025000 orient=0.0 layer=F.Cu ref_x=149000000 ref_y=43577000 val_x=149000000 val_y=46575000
+INFO: Sync completed in 0.159s
+INFO: Lens sync complete: +0 -0 footprints
+INFO: Completed ImportNetlist in 0.162 seconds
+INFO: --------------------------------------------------------------------------------
+INFO: Running step: FinalizeBoard
+INFO: --------------------------------------------------------------------------------
+INFO: Starting FinalizeBoard...
+INFO: Saved layout snapshot to /home/user/redline-engine/ecad/boards/redline_ecu/layout/redline_ecu/snapshot.layout.json
+INFO: Snapshot export took 0.131 seconds
+INFO: Board saving took 0.039 seconds
+INFO: Completed FinalizeBoard in 0.180 seconds

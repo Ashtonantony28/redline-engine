@@ -1,0 +1,403 @@
+"""Redline ECU: engine control board for the Redline I4-2.0 digital twin (M10 stretch, docs/ecad.md).
+
+4 layers, 120 x 90 mm. Every firmware I/O of ecu/include/ecu/*.h maps to a net here; the map is
+ecad/io_map.yaml and ecad/check_design.py proves it against the headers and the netlist.
+
+Verify (from ecad/): `pcb +local build -D warnings boards/redline_ecu/redline_ecu.zen` and
+`python -m pytest -q check_design.py`.
+"""
+
+load(
+    "@stdlib/board_config.zen",
+    "BoardConfig",
+    "Constraints",
+    "Copper",
+    "DesignRules",
+    "Holes",
+    "NetClass",
+    "ViaDimension",
+    "Zones",
+)
+load("@stdlib/interfaces.zen", "DiffPair", "Spi", "Swd", "Usb2")
+load("@stdlib/units.zen", "Impedance")
+load("../../modules/parts.zen", "TEST_PAD")
+
+PowerTree = Module("../../modules/power.zen")
+Mcu = Module("../../modules/mcu.zen")
+Outputs = Module("../../modules/outputs.zen")
+Etb = Module("../../modules/etb.zen")
+Sensors = Module("../../modules/sensors.zen")
+KnockLambda = Module("../../modules/knock_lambda.zen")
+Comms = Module("../../modules/comms.zen")
+Connectors = Module("../../modules/connectors.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+# --- rails ---
+GND = Ground("GND")
+VBAT_IN = Power("VBAT_IN", voltage="-14V to 38.9V")
+VBAT = Power("VBAT", voltage="0V to 38.9V")
+VBUS = Power("VBUS", voltage="4.0V to 5.5V")
+V5 = Power("5V", voltage="4.75V to 5.25V")
+V3V3 = Power("3V3", voltage="3.2V to 3.4V")
+VDDA = Power("VDDA", voltage="3.2V to 3.4V")
+V5_S1 = Power("5V_S1", voltage="4.7V to 5.3V")
+V5_S2 = Power("5V_S2", voltage="4.7V to 5.3V")
+
+# --- MCU-side signals ---
+CRANK = Net("CRANK")
+CAM = Net("CAM")
+INJ_CMD = [Net("INJ{}_CMD".format(i + 1)) for i in range(4)]
+IGN_CMD = [Net("IGN{}_CMD".format(i + 1)) for i in range(4)]
+ETB_IN1 = Net("ETB_IN1")
+ETB_IN2 = Net("ETB_IN2")
+ETB_NSLEEP = Net("ETB_NSLEEP")
+ETB_DISABLE = Net("ETB_DISABLE")
+ETB_NFAULT = Net("ETB_NFAULT")
+ETB_ISENSE = Net("ETB_ISENSE")
+VVT_CMD = Net("VVT_CMD")
+PUMP_CMD = Net("PUMP_CMD")
+HTR_CMD = Net("HTR_CMD")
+ADC = {n: Net(n + "_ADC") for n in ("TPS1", "TPS2", "PPS1", "PPS2", "MAP", "IAT", "CLT", "KNOCK")}
+VBAT_SENSE = Net("VBAT_SENSE")
+S5V1_MON = Net("S5V1_MON")
+S5V2_MON = Net("S5V2_MON")
+LAMBDA_UA = Net("LAMBDA_UA")
+LAMBDA_UR = Net("LAMBDA_UR")
+KNK_CLK = Net("KNK_CLK")
+SPI2 = Spi(CS=Net("KNK_CS"), CLK=Net("SPI2_SCK"), MISO=Net("SPI2_MISO"), MOSI=Net("SPI2_MOSI"))
+LAM_CS = Net("LAM_CS")
+KNK_INTHOLD = Net("KNK_INTHOLD")
+CAN_TX = Net("CAN_TX")
+CAN_RX = Net("CAN_RX")
+USB = Usb2(D=DiffPair(P=Net("USB_P"), N=Net("USB_N"), impedance=Impedance(90)))
+SWD = Swd(SWDIO=Net("SWDIO"), SWCLK=Net("SWCLK"))
+SWO = Net("SWO")
+NRST = Net("NRST")
+BOOT0 = Net("BOOT0")
+
+# --- harness-side signals (connector pins) ---
+INJ = [Net("INJ{}".format(i + 1)) for i in range(4)]
+IGN = [Net("IGN{}".format(i + 1)) for i in range(4)]
+ETB_M_P = Net("ETB_M_P")
+ETB_M_N = Net("ETB_M_N")
+VVT = Net("VVT")
+PUMP = Net("PUMP")
+LSU_HTR_N = Net("LSU_HTR_N")
+CAN_H = Net("CAN_H")
+CAN_L = Net("CAN_L")
+SENS = {n: Net(n) for n in ("TPS1", "TPS2", "PPS1", "PPS2", "MAP", "IAT", "CLT")}
+CRANK_P = Net("CRANK_P")
+CAM_IN = Net("CAM_IN")
+KNOCK_P = Net("KNOCK_P")
+KNOCK_N = Net("KNOCK_N")
+LSU_UN = Net("LSU_UN")
+LSU_IP = Net("LSU_IP")
+LSU_VM = Net("LSU_VM")
+LSU_IA = Net("LSU_IA")
+
+PowerTree(
+    name="PWR",
+    VBAT_IN=VBAT_IN,
+    VBUS=VBUS,
+    VBAT=VBAT,
+    V5=V5,
+    V3V3=V3V3,
+    V5_S1=V5_S1,
+    V5_S2=V5_S2,
+    GND=GND,
+    VBAT_SENSE=VBAT_SENSE,
+)
+
+Mcu(
+    name="MCU",
+    V3V3=V3V3,
+    VDDA=VDDA,
+    GND=GND,
+    CRANK=CRANK,
+    CAM=CAM,
+    INJ1_CMD=INJ_CMD[0],
+    INJ2_CMD=INJ_CMD[1],
+    INJ3_CMD=INJ_CMD[2],
+    INJ4_CMD=INJ_CMD[3],
+    IGN1_CMD=IGN_CMD[0],
+    IGN2_CMD=IGN_CMD[1],
+    IGN3_CMD=IGN_CMD[2],
+    IGN4_CMD=IGN_CMD[3],
+    ETB_IN1=ETB_IN1,
+    ETB_IN2=ETB_IN2,
+    ETB_NSLEEP=ETB_NSLEEP,
+    ETB_DISABLE=ETB_DISABLE,
+    ETB_NFAULT=ETB_NFAULT,
+    ETB_ISENSE=ETB_ISENSE,
+    VVT_CMD=VVT_CMD,
+    PUMP_CMD=PUMP_CMD,
+    HTR_CMD=HTR_CMD,
+    TPS1_ADC=ADC["TPS1"],
+    TPS2_ADC=ADC["TPS2"],
+    PPS1_ADC=ADC["PPS1"],
+    PPS2_ADC=ADC["PPS2"],
+    MAP_ADC=ADC["MAP"],
+    IAT_ADC=ADC["IAT"],
+    CLT_ADC=ADC["CLT"],
+    VBAT_SENSE=VBAT_SENSE,
+    S5V1_MON=S5V1_MON,
+    S5V2_MON=S5V2_MON,
+    LAMBDA_UA=LAMBDA_UA,
+    LAMBDA_UR=LAMBDA_UR,
+    KNOCK_ADC=ADC["KNOCK"],
+    KNK_CLK=KNK_CLK,
+    SPI2=SPI2,
+    LAM_CS=LAM_CS,
+    KNK_INTHOLD=KNK_INTHOLD,
+    CAN_TX=CAN_TX,
+    CAN_RX=CAN_RX,
+    USB=USB,
+    SWD=SWD,
+    SWO=SWO,
+    NRST=NRST,
+    BOOT0=BOOT0,
+)
+
+Outputs(
+    name="OUT",
+    VBAT=VBAT,
+    V5=V5,
+    GND=GND,
+    INJ1_CMD=INJ_CMD[0],
+    INJ2_CMD=INJ_CMD[1],
+    INJ3_CMD=INJ_CMD[2],
+    INJ4_CMD=INJ_CMD[3],
+    INJ1=INJ[0],
+    INJ2=INJ[1],
+    INJ3=INJ[2],
+    INJ4=INJ[3],
+    IGN1_CMD=IGN_CMD[0],
+    IGN2_CMD=IGN_CMD[1],
+    IGN3_CMD=IGN_CMD[2],
+    IGN4_CMD=IGN_CMD[3],
+    IGN1=IGN[0],
+    IGN2=IGN[1],
+    IGN3=IGN[2],
+    IGN4=IGN[3],
+    VVT_CMD=VVT_CMD,
+    VVT_OUT=VVT,
+    PUMP_CMD=PUMP_CMD,
+    PUMP_OUT=PUMP,
+)
+
+Etb(
+    name="ETB",
+    VBAT=VBAT,
+    V3V3=V3V3,
+    GND=GND,
+    ETB_IN1=ETB_IN1,
+    ETB_IN2=ETB_IN2,
+    ETB_NSLEEP=ETB_NSLEEP,
+    ETB_DISABLE=ETB_DISABLE,
+    ETB_NFAULT=ETB_NFAULT,
+    ETB_ISENSE=ETB_ISENSE,
+    ETB_M_P=ETB_M_P,
+    ETB_M_N=ETB_M_N,
+)
+
+Sensors(
+    name="SENS",
+    V5=V5,
+    V3V3=V3V3,
+    VDDA=VDDA,
+    V5_S1=V5_S1,
+    V5_S2=V5_S2,
+    GND=GND,
+    CRANK_P=CRANK_P,
+    CRANK=CRANK,
+    CAM_IN=CAM_IN,
+    CAM=CAM,
+    TPS1=SENS["TPS1"],
+    TPS2=SENS["TPS2"],
+    PPS1=SENS["PPS1"],
+    PPS2=SENS["PPS2"],
+    MAP=SENS["MAP"],
+    TPS1_ADC=ADC["TPS1"],
+    TPS2_ADC=ADC["TPS2"],
+    PPS1_ADC=ADC["PPS1"],
+    PPS2_ADC=ADC["PPS2"],
+    MAP_ADC=ADC["MAP"],
+    IAT=SENS["IAT"],
+    CLT=SENS["CLT"],
+    IAT_ADC=ADC["IAT"],
+    CLT_ADC=ADC["CLT"],
+    S5V1_MON=S5V1_MON,
+    S5V2_MON=S5V2_MON,
+)
+
+KnockLambda(
+    name="KL",
+    VBAT=VBAT,
+    V5=V5,
+    GND=GND,
+    SPI2=SPI2,
+    LAM_CS=LAM_CS,
+    KNK_INTHOLD=KNK_INTHOLD,
+    KNK_CLK=KNK_CLK,
+    KNOCK_ADC=ADC["KNOCK"],
+    LAMBDA_UA=LAMBDA_UA,
+    LAMBDA_UR=LAMBDA_UR,
+    HTR_CMD=HTR_CMD,
+    KNOCK_P=KNOCK_P,
+    KNOCK_N=KNOCK_N,
+    LSU_UN=LSU_UN,
+    LSU_IP=LSU_IP,
+    LSU_VM=LSU_VM,
+    LSU_IA=LSU_IA,
+    LSU_HTR_N=LSU_HTR_N,
+)
+
+Comms(
+    name="COM",
+    V5=V5,
+    V3V3=V3V3,
+    VBUS=VBUS,
+    GND=GND,
+    CAN_TX=CAN_TX,
+    CAN_RX=CAN_RX,
+    CAN_H=CAN_H,
+    CAN_L=CAN_L,
+    USB=USB,
+    SWD=SWD,
+    SWO=SWO,
+    NRST=NRST,
+)
+
+Connectors(
+    name="CONN",
+    VBAT_IN=VBAT_IN,
+    VBAT=VBAT,
+    V5_S1=V5_S1,
+    V5_S2=V5_S2,
+    GND=GND,
+    INJ1=INJ[0],
+    INJ2=INJ[1],
+    INJ3=INJ[2],
+    INJ4=INJ[3],
+    IGN1=IGN[0],
+    IGN2=IGN[1],
+    IGN3=IGN[2],
+    IGN4=IGN[3],
+    ETB_M_P=ETB_M_P,
+    ETB_M_N=ETB_M_N,
+    VVT=VVT,
+    PUMP=PUMP,
+    LSU_HTR_N=LSU_HTR_N,
+    CAN_H=CAN_H,
+    CAN_L=CAN_L,
+    TPS1=SENS["TPS1"],
+    TPS2=SENS["TPS2"],
+    PPS1=SENS["PPS1"],
+    PPS2=SENS["PPS2"],
+    MAP=SENS["MAP"],
+    IAT=SENS["IAT"],
+    CLT=SENS["CLT"],
+    CRANK_P=CRANK_P,
+    CAM_IN=CAM_IN,
+    KNOCK_P=KNOCK_P,
+    KNOCK_N=KNOCK_N,
+    LSU_UN=LSU_UN,
+    LSU_IP=LSU_IP,
+    LSU_VM=LSU_VM,
+    LSU_IA=LSU_IA,
+)
+
+# --- bring-up test points ---
+_test_points = {
+    "TP1": VBAT,
+    "TP2": V5,
+    "TP3": V3V3,
+    "TP4": VDDA,
+    "TP5": V5_S1,
+    "TP6": V5_S2,
+    "TP7": GND,
+    "TP8": GND,
+    "TP9": CRANK,
+    "TP10": CAM,
+    "TP11": NRST,
+    "TP12": BOOT0,
+}
+for _name, _net in _test_points.items():
+    TestPoint(name=_name, variant=TEST_PAD, P1=_net)
+
+# --- mounting: 4 x M3 ---
+for _i in range(4):
+    Component(
+        name="H{}".format(_i + 1),
+        prefix="H",
+        symbol=Symbol(library="../../lib/symbols/MountingHole.kicad_sym"),
+        footprint=File("../../lib/footprints/MountingHole_3.2mm_M3.kicad_mod"),
+        pins={},
+        skip_bom=True,
+        skip_pos=True,
+    )
+
+# --- fabrication: JLC 4-layer 1.6 mm (JLC04161H-7628), 0.15 mm track/space default, 0.3/0.6 mm vias.
+# Signal minimum stays 0.1 mm (LQFP-100 escape, as drone-design); power classes are wider.
+MIN_TRACK = 0.1
+MIN_SPACE = 0.1
+VIA = ViaDimension(diameter=0.6, drill=0.3)
+
+Board(
+    name="redline_ecu",
+    layers=4,
+    layout_path="layout/redline_ecu",
+    via_dimensions=[VIA, ViaDimension(diameter=0.8, drill=0.4)],
+    track_widths=[MIN_TRACK, 0.2, 0.4, 0.8, 1.5],
+    config=BoardConfig(
+        design_rules=DesignRules(
+            constraints=Constraints(
+                copper=Copper(
+                    minimum_clearance=MIN_SPACE,
+                    minimum_track_width=MIN_TRACK,
+                    minimum_via_diameter=VIA.diameter,
+                    minimum_annular_width=0.15,
+                    copper_to_hole_clearance=0.25,
+                    copper_to_edge_clearance=0.4,
+                ),
+                holes=Holes(minimum_through_hole=VIA.drill, hole_to_hole_clearance=0.25),
+                zones=Zones(minimum_clearance=0.2),
+            ),
+            netclasses=[
+                NetClass(
+                    name="Default",
+                    clearance=0.15,
+                    track_width=0.2,
+                    via_diameter=VIA.diameter,
+                    via_drill=VIA.drill,
+                    diff_pair_width=0.24,
+                    diff_pair_gap=0.155,
+                ),
+                # battery / actuator nets: 1 oz outer copper, assigned by pattern in layout/place.py.
+                # Clearance 0.15 mm, as Default: the DRV8873 HTSSOP pins are 0.25 mm apart, and
+                # IPC-2221 table 6-1 B4 (external, conformal coated) asks 0.13 mm up to 100 V
+                # (the 70 V low-side clamp is the highest voltage on the board). VERIFY: the board
+                # is coated; uncoated (B2) would need 0.6 mm on the clamp nets.
+                NetClass(
+                    name="Power",
+                    clearance=0.15,
+                    track_width=0.8,
+                    via_diameter=0.8,
+                    via_drill=0.4,
+                    color="#C20000FF",
+                ),
+                NetClass(
+                    name="90Ohm Diff",
+                    clearance=0.15,
+                    track_width=0.24,
+                    via_diameter=VIA.diameter,
+                    via_drill=VIA.drill,
+                    diff_pair_width=0.24,
+                    diff_pair_gap=0.155,
+                    color="#00C200FF",
+                    differential_pair_impedance=Impedance(90),
+                ),
+            ],
+        ),
+    ),
+)

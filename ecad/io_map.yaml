@@ -1,0 +1,136 @@
+# Redline ECU board: firmware I/O -> MCU pin -> net -> harness pin.
+#
+# `firmware` entries are the I/O the portable core (ecu/include/ecu/*.h, ADR 0003) consumes or
+# produces; check_design.py parses the headers and fails if any of them is missing here.
+# `board` entries are hardware the firmware does not use yet (plan section 3.7 lists VVT control,
+# and the board brief adds the second pedal track, fuel pump relay, CAN, USB and SWD).
+#
+#   source   the header symbol (struct field, entry point, event type) this entry serves
+#   mcu      {pin: net} on U1
+#   harness  {connector.pin: net}
+#   chain    nets from the MCU to the harness; each consecutive pair must share a component
+#            (the conditioning or driver stage), proven on the netlist
+
+timebase:
+  source: ECU_TIMER_HZ (1 MHz, 32-bit wrap-safe ticks), hal_emit_event
+  note: TIM2 is the 32-bit timer; crank (CH1) and cam (CH3) capture on it, so captured ticks and
+        event ticks share one clock. TIM1 / TIM8 output compares are slaved to it in the HAL.
+  mcu: {PA15: CRANK, PB10: CAM}
+
+firmware:
+  crank:
+    source: ecu_crank_edge(e, tick)
+    mcu: {PA15: CRANK}
+    harness: {J2.13: CRANK_P, J2.14: GND}
+    chain: [CRANK, SENS.VR_OUT, SENS.VR_IN, CRANK_P]
+  cam:
+    source: ecu_cam_edge(e, tick)
+    mcu: {PB10: CAM}
+    harness: {J2.15: CAM_IN}
+    chain: [CAM, CAM_IN]
+  knock:
+    source: ecu_knock_window(e, cyl, counts)
+    mcu: {PB12: KNK_CS, PB13: SPI2_SCK, PB14: SPI2_MISO, PB15: SPI2_MOSI, PE12: KNK_INTHOLD, PA8: KNK_CLK, PC1: KNOCK_ADC}
+    harness: {J2.16: KNOCK_P, J2.17: KNOCK_N}
+    chain: [KNK_INTHOLD, KL.INTHOLD_5V, KL.CH1N, KL.KNK_AP, KNOCK_P]
+  map_pa:
+    source: ecu_inputs_t.map_pa
+    mcu: {PA4: MAP_ADC}
+    harness: {J2.9: MAP}
+    chain: [MAP_ADC, MAP]
+  iat_k:
+    source: ecu_inputs_t.iat_k
+    mcu: {PA6: IAT_ADC}
+    harness: {J2.10: IAT}
+    chain: [IAT_ADC, IAT]
+  clt_k:
+    source: ecu_inputs_t.clt_k
+    mcu: {PA7: CLT_ADC}
+    harness: {J2.11: CLT}
+    chain: [CLT_ADC, CLT]
+  tps1_deg:
+    source: ecu_inputs_t.tps1_deg
+    mcu: {PA0: TPS1_ADC}
+    harness: {J2.5: TPS1, J2.1: 5V_S1}
+    chain: [TPS1_ADC, TPS1]
+  tps2_deg:
+    source: ecu_inputs_t.tps2_deg
+    mcu: {PA1: TPS2_ADC}
+    harness: {J2.6: TPS2, J2.2: 5V_S2}
+    chain: [TPS2_ADC, TPS2]
+  pedal:
+    source: ecu_inputs_t.pedal
+    mcu: {PA2: PPS1_ADC}
+    harness: {J2.7: PPS1, J2.1: 5V_S1}
+    chain: [PPS1_ADC, PPS1]
+  lambda:
+    source: ecu_inputs_t.lambda
+    mcu: {PB1: LAMBDA_UA, PC0: LAMBDA_UR, PE10: LAM_CS}
+    harness: {J2.18: LSU_UN, J2.19: LSU_IP, J2.20: LSU_VM, J2.21: LSU_IA}
+    chain: [LAMBDA_UA, KL.CJ_UA_F, KL.CJ_UA]
+  vbatt:
+    source: ecu_inputs_t.vbatt
+    mcu: {PB0: VBAT_SENSE}
+    harness: {J1.1: VBAT_IN, J1.2: VBAT_IN}
+    chain: [VBAT_SENSE, VBAT, VBAT_IN]
+  etc_voltage:
+    source: ecu_outputs_t.etc_voltage
+    mcu: {PD12: ETB_IN1, PD13: ETB_IN2, PD11: ETB_NSLEEP, PD9: ETB_DISABLE, PD8: ETB_NFAULT, PC4: ETB_ISENSE}
+    harness: {J1.13: ETB_M_P, J1.14: ETB_M_P, J1.15: ETB_M_N, J1.16: ETB_M_N}
+    chain: [ETB_IN1, ETB_M_P]
+  inj:
+    source: ECU_EV_INJ x ECU_NCYL (cyl n -> INJ<n+1>)
+    per_cylinder: true
+    mcu: {PE9: INJ1_CMD, PE11: INJ2_CMD, PE13: INJ3_CMD, PE14: INJ4_CMD}
+    harness: {J1.5: INJ1, J1.6: INJ2, J1.7: INJ3, J1.8: INJ4}
+    chains:
+      - [INJ1_CMD, OUT.INJ1_IN, INJ1]
+      - [INJ2_CMD, OUT.INJ2_IN, INJ2]
+      - [INJ3_CMD, OUT.INJ3_IN, INJ3]
+      - [INJ4_CMD, OUT.INJ4_IN, INJ4]
+  ign:
+    source: ECU_EV_DWELL / ECU_EV_SPARK x ECU_NCYL (cyl n -> IGN<n+1>)
+    per_cylinder: true
+    mcu: {PC6: IGN1_CMD, PC7: IGN2_CMD, PC8: IGN3_CMD, PC9: IGN4_CMD}
+    harness: {J1.9: IGN1, J1.10: IGN2, J1.11: IGN3, J1.12: IGN4}
+    chains:
+      - [IGN1_CMD, OUT.IGN1_DRV, IGN1]
+      - [IGN2_CMD, OUT.IGN2_DRV, IGN2]
+      - [IGN3_CMD, OUT.IGN3_DRV, IGN3]
+      - [IGN4_CMD, OUT.IGN4_DRV, IGN4]
+
+board:
+  pedal2:
+    note: second pedal track (plausibility; firmware reads one pedal today)
+    mcu: {PA3: PPS2_ADC}
+    harness: {J2.8: PPS2, J2.2: 5V_S2}
+    chain: [PPS2_ADC, PPS2]
+  sensor_supply_monitor:
+    mcu: {PC5: S5V1_MON, PA5: S5V2_MON}
+    harness: {J2.1: 5V_S1, J2.2: 5V_S2, J2.23: 5V_S1}
+    chain: [S5V1_MON, 5V_S1]
+  vvt:
+    note: intake cam phaser valve (spec/engine.yaml vvt_intake_range_deg); no firmware loop yet
+    mcu: {PD14: VVT_CMD}
+    harness: {J1.17: VVT}
+    chain: [VVT_CMD, OUT.VVT_IN, VVT]
+  fuel_pump_relay:
+    mcu: {PD10: PUMP_CMD}
+    harness: {J1.18: PUMP}
+    chain: [PUMP_CMD, OUT.PUMP_IN, PUMP]
+  lsu_heater:
+    mcu: {PD15: HTR_CMD}
+    harness: {J1.19: LSU_HTR_N, J1.20: VBAT}
+    chain: [HTR_CMD, KL.HTR_DRV, KL.HTR_GATE, LSU_HTR_N]
+  can:
+    mcu: {PD0: CAN_RX, PD1: CAN_TX}
+    harness: {J1.21: CAN_H, J1.22: CAN_L}
+    chain: [CAN_TX, CAN_H]
+  usb_debug:
+    mcu: {PA11: USB_N, PA12: USB_P}
+    harness: {J3.A6: USB_P, J3.A7: USB_N}
+    chain: [USB_P]
+  swd:
+    mcu: {PA13: SWDIO, PA14: SWCLK, PB3: SWO, NRST: NRST}
+    harness: {J4.2: SWDIO, J4.4: SWCLK, J4.6: SWO, J4.3: NRST}
+    chain: [SWDIO]

@@ -1,0 +1,91 @@
+"""Electronic throttle body driver: DRV8873H-Q1 H-bridge (U7), TI SLVSDY7B.
+
+Firmware: ecu_outputs_t.etc_voltage (signed, +/- max_voltage of spec/ecu.yaml) becomes a PWM duty on
+ETB_IN1 / ETB_IN2 (TIM4 CH1/CH2) with the bridge in PWM mode (MODE tied to DVDD, Table 7-3).
+DISABLE has a pull-up and nSLEEP a pull-down, so with the MCU in reset the bridge is Hi-Z and the
+throttle return / limp springs hold the plate at limp_opening_deg (spec/mvem.yaml etc).
+
+Current: the plant motor is 1.6 ohm (spec/mvem.yaml etc.motor_resistance); at the firmware's 12 V
+command limit a stalled motor draws 7.5 A. ITRIP (nITRIP tied low = enabled) regulates at
+5.5-7.5 A, below the 10 A overcurrent trip. IPROPI1 + IPROPI2 (1/1100 of the high-side current)
+into 390 ohm give ETB_ISENSE: 2.66 V at the 7.5 A ITRIP maximum.
+"""
+
+load("./parts.zen", "C_100N", "C_100N_100V", "C_10N", "C_1U", "C_1U_50V", "C_47N", "LIMITS", "R_100K", "R_10K", "R_1K", "R_390R", "R_68K", "place")
+
+Placed = Module("./placed.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+VBAT = io(Power(voltage="0V to 38.9V"))
+V3V3 = io(Power(voltage="3.0V to 3.6V"))
+GND = io(Ground)
+ETB_IN1 = io(Net)
+ETB_IN2 = io(Net)
+ETB_NSLEEP = io(Net)
+ETB_DISABLE = io(Net)
+ETB_NFAULT = io(Net)
+ETB_ISENSE = io(Net)
+ETB_M_P = io(Net)
+ETB_M_N = io(Net)
+
+DVDD = Power(voltage="5V")
+VCP = Net()
+CPH = Net()
+CPL = Net()
+SR = Net()
+IPROPI = Net()
+
+D = LIMITS["DRV8873H-Q1"]
+R_MOTOR = 1.6  # ohm, spec/mvem.yaml etc.motor_resistance
+V_CMD_MAX = 12.0  # V, spec/ecu.yaml throttle.max_voltage
+R_IPROPI = 390.0
+_i_stall = V_CMD_MAX / R_MOTOR
+check(_i_stall < D["iocp_min"], "ETB stall current {} A reaches the DRV8873 overcurrent trip".format(_i_stall))
+check(D["itrip_max"] / D["k_mirror"] * R_IPROPI <= 3.0, "IPROPI voltage at ITRIP exceeds the 3.0 V ADC range")
+check(D["iocp_min"] / D["k_mirror"] * R_IPROPI < D["ipropi_abs_max"], "IPROPI pin voltage at OCP exceeds its limit")
+check(LIMITS["SMCJ24CA"]["vc"] <= D["vm_abs_max"], "TVS clamp above DRV8873 VM absolute maximum")
+
+place(
+    Placed,
+    "U7",
+    "DRV8873H-Q1",
+    "HTSSOP-24-1EP_4.4x7.8mm_P0.65mm_EP3.2x5mm",
+    {
+        "VM": VBAT,
+        "EN_IN1": ETB_IN1,
+        "PH_IN2": ETB_IN2,
+        "nSLEEP": ETB_NSLEEP,
+        "DISABLE": ETB_DISABLE,
+        "MODE": DVDD,  # PWM mode
+        "SR": SR,
+        "nITRIP": GND,  # current regulation enabled
+        "nOL": DVDD,  # power-up open-load diagnostic disabled
+        "GND": GND,
+        "SRC": GND,
+        "OUT1": ETB_M_P,
+        "OUT2": ETB_M_N,
+        "nFAULT": ETB_NFAULT,
+        "IPROPI1": IPROPI,
+        "IPROPI2": IPROPI,
+        "DVDD": DVDD,
+        "VCP": VCP,
+        "CPH": CPH,
+        "CPL": CPL,
+    },
+    mpn="DRV8873HQPWPRQ1",
+    manufacturer="Texas Instruments",
+)
+# Table 7-2 external components
+Capacitor(name="C_VM1", P1=VBAT, P2=GND, **C_100N_100V)
+Capacitor(name="C_VM2", P1=VBAT, P2=GND, **C_1U_50V)
+Capacitor(name="C_DVDD", P1=DVDD, P2=GND, **C_1U)
+Capacitor(name="C_VCP", P1=VCP, P2=VBAT, **C_1U_50V)
+Capacitor(name="C_CP", P1=CPH, P2=CPL, **(C_47N | {"voltage": "100V", "package": "0805"}))
+Resistor(name="R_SR", P1=SR, P2=GND, **R_68K)  # Table 7-10: 68k -> 18.3 V/us
+Resistor(name="R_IPROPI", P1=IPROPI, P2=GND, **R_390R)
+Resistor(name="R_ISENSE", P1=IPROPI, P2=ETB_ISENSE, **R_1K)
+Capacitor(name="C_ISENSE", P1=ETB_ISENSE, P2=GND, **C_10N)
+Resistor(name="R_NFAULT", P1=ETB_NFAULT, P2=V3V3, **R_10K)
+Resistor(name="R_DISABLE", P1=ETB_DISABLE, P2=V3V3, **R_10K)
+Resistor(name="R_NSLEEP", P1=ETB_NSLEEP, P2=GND, **R_100K)

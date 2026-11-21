@@ -1,0 +1,120 @@
+"""Actuator drivers: 4 sequential injectors, 4 coil-on-plug ignition outputs, VVT solenoid, fuel pump relay.
+
+Injectors (Q2-Q5), VVT (Q6), pump relay (Q7): Diodes ZXMS6006DGQ, an AEC-Q101 self-protected
+low-side IntelliFET (DS40468): 3.3 V logic input straight from the MCU timer pin, current limit,
+thermal shutdown and an internal active drain clamp at VDS(AZ) = 60-70 V. For the injectors the
+active clamp is the flyback clamp: the coil current decays against ~65 V, so the injector closes
+fast (no freewheel diode on purpose). The VVT valve is PWM-current controlled, so it gets a
+freewheel Schottky (D3) to VBAT instead and its current stays smooth between PWM pulses.
+
+Ignition (U8, U9): UCC27524A-Q1 dual 5 A drivers at 5 V give push-pull 5 V logic drive for
+logic-level coil-on-plug coils (igniter inside the coil, the common modern COP part). A 100 ohm
+1206 series resistor per output limits current into a shorted or battery-shorted harness wire.
+Dumb coils would need an external ignition IGBT per cylinder (not fitted, see docs/ecad.md).
+
+Event mapping (ADR 0003, ecu_types.h): ECU_EV_INJ cyl n -> INJ<n+1>_CMD (TIM1), ECU_EV_DWELL /
+ECU_EV_SPARK cyl n -> IGN<n+1>_CMD high / low (TIM8).
+"""
+
+load(
+    "./parts.zen",
+    "C_100N",
+    "C_1U",
+    "LIMITS",
+    "LOADS",
+    "R_100K",
+    "R_100R_1206",
+    "R_1K",
+    "place",
+)
+
+Placed = Module("./placed.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+VBAT = io(Power(voltage="0V to 38.9V"))
+V5 = io(Power(voltage="4.75V to 5.25V"))
+GND = io(Ground)
+
+INJ_CMD = [io("INJ{}_CMD".format(i + 1), Net) for i in range(4)]
+INJ_OUT = [io("INJ{}".format(i + 1), Net) for i in range(4)]
+IGN_CMD = [io("IGN{}_CMD".format(i + 1), Net) for i in range(4)]
+IGN_OUT = [io("IGN{}".format(i + 1), Net) for i in range(4)]
+VVT_CMD = io(Net)
+VVT_OUT = io(Net)
+PUMP_CMD = io(Net)
+PUMP_OUT = io(Net)
+
+ZX = LIMITS["ZXMS6006DGQ"]
+UCC = LIMITS["UCC27524A-Q1"]
+VMAX = LOADS["vbat_max_operating"]
+
+# --- datasheet-limit checks (repeated in ecad/check_design.py) ---
+_i_inj = VMAX / LOADS["injector_r_min"]
+_i_vvt = VMAX / LOADS["vvt_r_min"]
+_i_rly = VMAX / LOADS["relay_r_min"]
+for what, amps in (("injector", _i_inj), ("VVT", _i_vvt), ("relay", _i_rly)):
+    check(amps <= ZX["id_nom"], "{} current {} A exceeds ZXMS6006DGQ nominal {} A".format(what, amps, ZX["id_nom"]))
+    check(amps < ZX["id_lim_min_3v"], "{} current reaches the ZXMS6006DGQ current limit at 3 V drive".format(what))
+check(VMAX <= ZX["vds_sc"], "short-circuit protection of ZXMS6006DGQ is only specified to 16 V")
+check(ZX["vclamp_min"] > LIMITS["SMCJ24CA"]["vc"], "active clamp would conduct during a clamped load dump")
+check(0.5 * LOADS["injector_l"] * _i_inj * _i_inj < 0.05 * ZX["eas"], "injector flyback energy above 5 % of EAS")
+check(_i_vvt <= LIMITS["SBR3U60P1"]["if_max"], "VVT freewheel current exceeds the SBR3U60P1 rating")
+check(V5.voltage.min >= UCC["vdd_min"], "5V rail below the UCC27524A-Q1 VDD minimum")
+check(5.25 / 100.0 <= UCC["iout_dc_max"], "ignition output short-circuit current exceeds UCC27524A-Q1 IOUT_DC")
+check(UCC["vin_h_max"] < 0.8 * 3.3, "UCC27524A-Q1 input threshold too high for 3.3 V logic")
+
+
+def low_side(ref, cmd, out, label):
+    gate = Net(label + "_IN")
+    Resistor(name="R_{}_IN".format(label), P1=cmd, P2=gate, **R_1K)
+    Resistor(name="R_{}_PD".format(label), P1=gate, P2=GND, **R_100K)  # off while the MCU is in reset
+    place(
+        Placed,
+        ref,
+        "ZXMS6006DGQ",
+        "SOT-223-3_TabPin2",
+        {"IN": gate, "D": out, "S": GND},
+        prefix="Q",
+        mpn="ZXMS6006DGQTA",
+        manufacturer="Diodes Incorporated",
+    )
+
+
+for i in range(4):
+    low_side("Q{}".format(i + 2), INJ_CMD[i], INJ_OUT[i], "INJ{}".format(i + 1))
+low_side("Q6", VVT_CMD, VVT_OUT, "VVT")
+low_side("Q7", PUMP_CMD, PUMP_OUT, "PUMP")
+
+place(
+    Placed,
+    "D3",
+    "D_Schottky_Small",
+    "D_PowerDI-123",
+    {"A": VVT_OUT, "K": VBAT},
+    prefix="D",
+    mpn="SBR3U60P1-7",
+    manufacturer="Diodes Incorporated",
+    value="SBR3U60P1",
+    kind="rectifier",
+)
+
+# --- ignition: two dual drivers, A/B = cylinders (1, 2) and (3, 4) ---
+for k, ref in enumerate(("U8", "U9")):
+    a, b = 2 * k, 2 * k + 1
+    outa = Net("IGN{}_DRV".format(a + 1))
+    outb = Net("IGN{}_DRV".format(b + 1))
+    place(
+        Placed,
+        ref,
+        "UCC27524A-Q1",
+        "SOIC-8_3.9x4.9mm_P1.27mm",
+        {"VDD": V5, "INA": IGN_CMD[a], "INB": IGN_CMD[b], "ENA": V5, "ENB": V5, "GND": GND, "OUTA": outa,
+         "OUTB": outb},
+        mpn="UCC27524AQDRQ1",
+        manufacturer="Texas Instruments",
+    )
+    Capacitor(name="C_{}_VDD1".format(ref), P1=V5, P2=GND, **C_1U)
+    Capacitor(name="C_{}_VDD2".format(ref), P1=V5, P2=GND, **C_100N)
+    Resistor(name="R_IGN{}".format(a + 1), P1=outa, P2=IGN_OUT[a], **R_100R_1206)
+    Resistor(name="R_IGN{}".format(b + 1), P1=outb, P2=IGN_OUT[b], **R_100R_1206)

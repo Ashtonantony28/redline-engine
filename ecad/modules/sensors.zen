@@ -1,0 +1,137 @@
+"""Engine sensor inputs: 60-2 VR crank, hall cam, dual TPS, dual pedal, MAP, IAT, CLT.
+
+Crank (U11, LM1815, TI SNOSBU8F): ground-referenced adaptive VR amplifier in zero-crossing mode
+(RC timing, input select and timing input tied low, truth table row 4). Its 5 V push-pull gated
+output is divided to 3.3 V into TIM2_CH1. The 22k input resistor keeps the pin current within the
++/-3 mA of the application hints up to a 66 V VR peak (VERIFY: VR amplitude of the chosen sensor at
+redline). Peak detector capacitor 100 nF: VERIFY against SNOSBU8F application figures.
+
+Cam: hall sensor, open collector, pulled up to 3V3 on the harness side; 1k + 1 nF filter into TIM2_CH3.
+
+0-5 V ratiometric sensors (TPS1/2, PPS1/2, MAP): 13.3k / 20k divider (0.6006): 5.3 V, the tracker
+maximum, gives 3.18 V, below the 3.2 V VDDA minimum. An open wire reads 0 V (fault). 10 nF gives a
+67 us filter, fast enough for the 1 kHz slow loop and the ETB position loop.
+Ratiometric correction: both sensor supplies (5V_S1, 5V_S2) are measured through the same divider.
+
+NTC (IAT, CLT): 2.49k pull-up to VDDA, 1k + 100 nF filter. An open wire reads VDDA (fault).
+
+ESD: TPD2E2U06-Q1 at the ADC side of each series resistor, so a harness short to battery is
+limited by the resistor (~1 mA) instead of conducting through the 6 V ESD cell.
+"""
+
+load(
+    "./parts.zen",
+    "C_100N",
+    "C_10N",
+    "C_1N",
+    "LIMITS",
+    "R_10K",
+    "R_13K3",
+    "R_1K",
+    "R_20K",
+    "R_22K_1206",
+    "R_2K49",
+    "R_4K7",
+    "place",
+)
+
+Placed = Module("./placed.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+V5 = io(Power(voltage="4.75V to 5.25V"))
+V3V3 = io(Power(voltage="3.0V to 3.6V"))
+VDDA = io(Power(voltage="3.2V to 3.4V"))
+V5_S1 = io(Power(voltage="4.7V to 5.3V"))
+V5_S2 = io(Power(voltage="4.7V to 5.3V"))
+GND = io(Ground)
+
+CRANK_P = io(Net)
+CRANK = io(Net)
+CAM_IN = io(Net)
+CAM = io(Net)
+ANALOG_IN = {n: io(n, Net) for n in ("TPS1", "TPS2", "PPS1", "PPS2", "MAP")}
+ANALOG_ADC = {n: io(n + "_ADC", Net) for n in ("TPS1", "TPS2", "PPS1", "PPS2", "MAP")}
+IAT = io(Net)
+CLT = io(Net)
+IAT_ADC = io(Net)
+CLT_ADC = io(Net)
+S5V1_MON = io(Net)
+S5V2_MON = io(Net)
+
+VR_IN = Net()
+VR_OUT = Net()
+VR_PEAK = Net()
+
+RATIO = 20.0 / (13.3 + 20.0)
+check(5.3 * RATIO <= VDDA.voltage.min, "0-5 V divider exceeds VDDA at the tracker maximum")
+VR_PEAK_V = 66.0  # V, assumed VR peak at redline (VERIFY with the sensor)
+check(VR_PEAK_V / 22e3 <= LIMITS["LM1815"]["iin_max"], "VR input current exceeds the LM1815 +/-3 mA")
+check(V5.voltage.max <= LIMITS["LM1815"]["vcc_abs_max"], "LM1815 supply above its maximum")
+
+# --- crank VR (U11) ---
+Resistor(name="R_VR_IN", P1=CRANK_P, P2=VR_IN, **R_22K_1206)
+Capacitor(name="C_VR_IN", P1=VR_IN, P2=GND, **C_1N)
+place(
+    Placed,
+    "U11",
+    "LM1815",
+    "SOIC-14_3.9x8.7mm_P1.27mm",
+    {
+        "VCC": V5,
+        "VIN": VR_IN,
+        "MODE": NotConnected(),  # open: mode 1, 45 mV arming threshold
+        "PEAK_CAP": VR_PEAK,
+        "RC_TIMING": GND,
+        "GND": GND,
+        "GATED_OUT": VR_OUT,
+        "REF_PULSE_OUT": NotConnected(),
+        "INPUT_SELECT": GND,
+        "TIMING_IN": GND,
+    },
+    mpn="LM1815M/NOPB",
+    manufacturer="Texas Instruments",
+)
+Capacitor(name="C_U11_VCC", P1=V5, P2=GND, **C_100N)
+Capacitor(name="C_VR_PEAK", P1=VR_PEAK, P2=GND, **C_100N)
+Resistor(name="R_VR_TOP", P1=VR_OUT, P2=CRANK, **R_10K)
+Resistor(name="R_VR_BOT", P1=CRANK, P2=GND, **R_20K)
+
+# --- cam hall ---
+Resistor(name="R_CAM_PU", P1=CAM_IN, P2=V3V3, **R_4K7)
+Resistor(name="R_CAM", P1=CAM_IN, P2=CAM, **R_1K)
+Capacitor(name="C_CAM", P1=CAM, P2=GND, **C_1N)
+
+# --- 0-5 V sensors ---
+for n in ("TPS1", "TPS2", "PPS1", "PPS2", "MAP"):
+    Resistor(name="R_{}_TOP".format(n), P1=ANALOG_IN[n], P2=ANALOG_ADC[n], **R_13K3)
+    Resistor(name="R_{}_BOT".format(n), P1=ANALOG_ADC[n], P2=GND, **R_20K)
+    Capacitor(name="C_{}".format(n), P1=ANALOG_ADC[n], P2=GND, **C_10N)
+
+for n, rail, mon in (("S5V1", V5_S1, S5V1_MON), ("S5V2", V5_S2, S5V2_MON)):
+    Resistor(name="R_{}_TOP".format(n), P1=rail, P2=mon, **R_13K3)
+    Resistor(name="R_{}_BOT".format(n), P1=mon, P2=GND, **R_20K)
+    Capacitor(name="C_{}".format(n), P1=mon, P2=GND, **C_10N)
+
+# --- NTC sensors ---
+for n, inp, adc in (("IAT", IAT, IAT_ADC), ("CLT", CLT, CLT_ADC)):
+    Resistor(name="R_{}_PU".format(n), P1=inp, P2=VDDA, **R_2K49)
+    Resistor(name="R_{}".format(n), P1=inp, P2=adc, **R_1K)
+    Capacitor(name="C_{}".format(n), P1=adc, P2=GND, **C_100N)
+
+# --- ESD at the ADC side ---
+for ref, a, b in (
+    ("U16", ANALOG_ADC["TPS1"], ANALOG_ADC["TPS2"]),
+    ("U17", ANALOG_ADC["PPS1"], ANALOG_ADC["PPS2"]),
+    ("U18", ANALOG_ADC["MAP"], IAT_ADC),
+    ("U19", CLT_ADC, CAM),
+):
+    place(
+        Placed,
+        ref,
+        "TPD2E2U06-Q1",
+        "SOT-23",
+        {"IO1": a, "IO2": b, "GND": GND},
+        mpn="TPD2E2U06QDBZRQ1",
+        manufacturer="Texas Instruments",
+    )

@@ -1,0 +1,255 @@
+"""Power tree: 12 V automotive input to the logic and sensor rails.
+
+  J1 VBAT_IN --D1 SMCJ24CA (bidirectional, load dump / jump start)
+            --Q1 + U2 LM74700-Q1 ideal diode (reverse battery to -65 V) --> VBAT
+  VBAT --U3 LMR36015-Q1 2.1 MHz buck--> 5V --U4 LDL1117--> 3V3
+  VBAT --U5/U6 TPS7B4250-Q1 trackers (ADJ = 5V)--> 5V_S1, 5V_S2 (off-board sensor supplies)
+  USB VBUS --D2 B5819W--> 5V (bench flashing / debug without 12 V)
+
+Datasheets: TI SNOSD17G (LM74700-Q1), SNVSAY8D (LMR36015-Q1), SLVSCA0C (TPS7B4250-Q1),
+ST DS12022 (LDL1117, via drone-design). Every VBAT-connected part is checked against the
+TVS clamp voltage below (ISO 16750-2 suppressed load dump is assumed to be clamped centrally;
+this TVS takes the residual and the jump start).
+"""
+
+load("@stdlib/units.zen", "Capacitance", "Current", "Frequency", "Inductance", "Resistance", "Voltage")
+load(
+    "./parts.zen",
+    "C_100N",
+    "C_100N_100V",
+    "C_10U",
+    "C_1U",
+    "C_20P",
+    "C_22U",
+    "C_4U7",
+    "C_4U7_50V",
+    "LIMITS",
+    "LOADS",
+    "R_100K",
+    "R_10K",
+    "R_1K",
+    "R_24K9",
+    "R_47K",
+    "TEST_PAD",
+    "place",
+)
+
+Placed = Module("./placed.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+Tvs = Module("@stdlib/generics/Tvs.zen")
+Led = Module("@stdlib/generics/Led.zen")
+TestPoint = Module("@stdlib/generics/TestPoint.zen")
+
+VBAT_IN = io(Power(voltage="-14V to 38.9V"), direction="input")
+VBUS = io(Power(voltage="4.0V to 5.5V"), direction="input")
+VBAT = io(Power(voltage="0V to 38.9V"), direction="output")
+V5 = io(Power(voltage="4.75V to 5.25V"), direction="output")
+V3V3 = io(Power(voltage="3.2V to 3.4V"), direction="output")
+V5_S1 = io(Power(voltage="4.7V to 5.3V"), direction="output")
+V5_S2 = io(Power(voltage="4.7V to 5.3V"), direction="output")
+GND = io(Ground)
+VBAT_SENSE = io(Net, direction="output")
+
+RB_GATE = Net()
+RB_VCAP = Net()
+BUCK_SW = Net()
+BUCK_BOOT = Net()
+BUCK_FB = Net()
+BUCK_VCC = Power(voltage="5V")
+PWR_LED_A = Net()
+
+# --- design values ---
+TVS = LIMITS["SMCJ24CA"]
+BUCK = LIMITS["LMR36015-Q1"]
+BUCK_VOUT = Voltage("5V")
+BUCK_L = Inductance("3.3uH")
+R_FBT = Resistance("100k 1%")
+R_FBB = Resistance("24.9k 1%")
+SENSOR_SUPPLY_LOAD = Current("40mA")  # per tracker: 2 pots + MAP or hall, VERIFY against chosen sensors
+
+# Jump start must not make the TVS conduct; its clamp must stay under every VBAT part's absolute max.
+check(TVS["vrwm"] >= LOADS["vbat_jump"], "TVS standoff is below the 24 V jump-start voltage")
+check(TVS["vbr_min"] > LOADS["vbat_jump"], "TVS breakdown is below the jump-start voltage")
+for part, key in (("LM74700-Q1", "anode_max"), ("LMR36015-Q1", "vin_abs_max"), ("TPS7B4250-Q1", "vin_abs_max"),
+                  ("DRV8873H-Q1", "vm_abs_max"), ("CJ125", "ub_abs_max"), ("ZXMS6006DGQ", "vds_max"),
+                  ("DMTH6016LK3Q", "vds_max"), ("SBR3U60P1", "vr_max")):
+    check(TVS["vc"] <= LIMITS[part][key], "TVS clamp {} V exceeds {} {} {} V".format(TVS["vc"], part, key, LIMITS[part][key]))
+check(-TVS["vrwm"] < LOADS["vbat_reverse"], "bidirectional TVS conducts on a reversed battery")
+check(LIMITS["LM74700-Q1"]["anode_min"] < LOADS["vbat_reverse"], "LM74700 cannot block a reversed battery")
+
+# --- input protection ---
+Tvs(
+    name="D1",
+    package="DO-214AB",
+    direction="Bidirectional",
+    reverse_standoff_voltage=Voltage("24V"),
+    reverse_clamping_voltage=Voltage("38.9V"),
+    mpn="SMCJ24CA",
+    manufacturer="Littelfuse",
+    A=GND,
+    K=VBAT_IN,
+)
+Capacitor(name="C_VIN_EMI", P1=VBAT_IN, P2=GND, **C_100N_100V)
+
+# Reverse battery: LM74700-Q1 drives Q1 (source = ANODE = input, drain = CATHODE = protected VBAT).
+place(
+    Placed,
+    "U2",
+    "LM74700-Q1",
+    "SOT-23-6",
+    {"ANODE": VBAT_IN, "EN": VBAT_IN, "GND": GND, "CATHODE": VBAT, "GATE": RB_GATE, "VCAP": RB_VCAP},
+    mpn="LM74700QDBVRQ1",
+    manufacturer="Texas Instruments",
+)
+Capacitor(name="C_RB_VCAP", P1=RB_VCAP, P2=VBAT_IN, **C_100N)  # SNOSD17G 9.2: 0.1 uF VCAP to ANODE
+place(
+    Placed,
+    "Q1",
+    "Q_NMOS_GDS",
+    "TO-252-2",
+    {"G": RB_GATE, "D": VBAT, "S": VBAT_IN},
+    prefix="Q",
+    mpn="DMTH6016LK3Q-13",
+    manufacturer="Diodes Incorporated",
+    kind="mosfet",
+)
+
+# VBAT bulk for the throttle H-bridge and the buck: 2 x 47 uF 50 V electrolytic + ceramics
+for i in range(2):
+    place(
+        Placed,
+        "C{}".format(i + 1),
+        "C_Elec",
+        "CP_Elec_8x10",
+        {"+": VBAT, "-": GND},
+        prefix="C",
+        mpn="EEE-FK1H470P",
+        manufacturer="Panasonic",
+        value="47uF 50V",
+        kind="capacitor",
+    )
+Capacitor(name="C_VBAT_HF", P1=VBAT, P2=GND, **C_100N_100V)
+
+# --- 5 V buck (U3): LMR36015FSCQRNXRQ1, adjustable, 2.1 MHz, FPWM + spread spectrum ---
+_vout_nom = 1.0 * (1 + R_FBT.nominal / R_FBB.nominal)
+_vout_min = BUCK["vfb_min"] * (1 + R_FBT.min / R_FBB.max)
+_vout_max = BUCK["vfb_max"] * (1 + R_FBT.max / R_FBB.min)
+check(abs(_vout_nom - 5.0) <= 0.1, "buck nominal output {} V".format(_vout_nom))
+check(_vout_min >= V5.voltage.min and _vout_max <= V5.voltage.max,
+      "buck output {}..{} V leaves the 5V rail window".format(_vout_min, _vout_max))
+
+
+def ripple_k(vin):
+    # SNVSAY8D Eq. 4 solved for K at the device's maximum output current
+    return (vin - BUCK_VOUT.nominal) * BUCK_VOUT.nominal / (vin * BUCK["fsw"] * BUCK_L.nominal * BUCK["iout_max"])
+
+
+check(ripple_k(LOADS["vbat_max_operating"]) >= 0.2 and ripple_k(LOADS["vbat_max_operating"]) <= 0.4,
+      "inductor ripple K at 16 V outside 0.2..0.4")
+check(ripple_k(LOADS["vbat_jump"]) <= 0.45, "inductor ripple K at jump start above 0.45")
+
+place(
+    Placed,
+    "U3",
+    "LMR36015",
+    "Texas_RNX0012C_VQFN-14-11-1EP_2x3mm_P0.5mm_EP0.25x1.825mm",
+    {
+        "VIN": VBAT,
+        "EN": VBAT,
+        "VCC": BUCK_VCC,
+        "AGND": GND,
+        "PGND": GND,
+        "BOOT": BUCK_BOOT,
+        "SW": BUCK_SW,
+        "NC": BUCK_SW,  # SNVSAY8D: connect SW to NC on the PCB
+        "FB": BUCK_FB,
+        "PG": NotConnected(),
+    },
+    mpn="LMR36015FSCQRNXRQ1",
+    manufacturer="Texas Instruments",
+)
+Capacitor(name="C_BUCK_IN", P1=VBAT, P2=GND, **C_4U7_50V)  # Table 3: 4.7 uF + 2 x 220 nF
+Capacitor(name="C_BUCK_HF1", P1=VBAT, P2=GND, **C_100N_100V)
+Capacitor(name="C_BUCK_HF2", P1=VBAT, P2=GND, **C_100N_100V)
+Capacitor(name="C_BOOT", P1=BUCK_BOOT, P2=BUCK_SW, **C_100N)
+Capacitor(name="C_VCC", P1=BUCK_VCC, P2=GND, **C_1U)
+# VERIFY: SWPA4030S3R3MT Isat >= LMR36015 high-side current limit
+place(
+    Placed,
+    "L1",
+    "L_Small",
+    "L_Sunlord_SWPA4030S",
+    {"1": BUCK_SW, "2": V5},
+    prefix="L",
+    mpn="SWPA4030S3R3MT",
+    manufacturer="Sunlord",
+    value="3.3uH",
+    kind="inductor",
+)
+Resistor(name="R_FBT", P1=V5, P2=BUCK_FB, **(R_100K | {"value": R_FBT}))
+Resistor(name="R_FBB", P1=BUCK_FB, P2=GND, **(R_24K9 | {"value": R_FBB}))
+Capacitor(name="C_FF", P1=V5, P2=BUCK_FB, **C_20P)  # Table 3: CFF 20 pF
+BUCK_COUT_COUNT = 2  # Table 3, 2100 kHz / 5 V: 2 x 22 uF nominal
+check(BUCK_COUT_COUNT * Capacitance(C_22U["value"]).nominal >= 2 * 15e-6, "buck output capacitance below 2 x 15 uF")
+for i in range(BUCK_COUT_COUNT):
+    Capacitor(name="C_5V{}".format(i + 1), P1=V5, P2=GND, **C_22U)
+
+# --- USB VBUS OR-ing (D2, drone-design part) ---
+place(
+    Placed,
+    "D2",
+    "D_Schottky_Small",
+    "D_SOD-123",
+    {"A": VBUS, "K": V5},
+    prefix="D",
+    mpn="B5819W",
+    manufacturer="Diodes Incorporated",
+    value="B5819W",
+    kind="rectifier",
+)
+
+# --- 3V3 LDO (U4), DS12022: CIN 1 uF, COUT >= 4.7 uF ceramic ---
+LOGIC_3V3_LOAD = Current("0.35A")  # STM32H743 at 480 MHz + LEDs + CAN VIO, see docs/ecad.md
+check(LOGIC_3V3_LOAD.nominal <= LIMITS["LDL1117S33R"]["iout_max"], "3V3 load exceeds the LDL1117 rating")
+place(
+    Placed,
+    "U4",
+    "LDL1117S33R",
+    "SOT-223-3_TabPin2",
+    {"VIN": V5, "GND": GND, "VOUT": V3V3},
+    mpn="LDL1117S33R",
+    manufacturer="STMicroelectronics",
+)
+Capacitor(name="C_U4_IN", P1=V5, P2=GND, **C_1U)
+Capacitor(name="C_U4_OUT", P1=V3V3, P2=GND, **C_10U)
+
+# --- sensor supplies (U5, U6): TPS7B4250-Q1 tracks the 5V rail on ADJ/EN ---
+TR = LIMITS["TPS7B4250-Q1"]
+check(SENSOR_SUPPLY_LOAD.nominal <= TR["iout_max"], "sensor supply load exceeds the 50 mA tracker rating")
+check(Capacitance(C_4U7["value"]).nominal >= TR["cout_min"] and Capacitance(C_4U7["value"]).nominal <= TR["cout_max"],
+      "tracker output capacitor outside 1..50 uF")
+for ref, rail in (("U5", V5_S1), ("U6", V5_S2)):
+    place(
+        Placed,
+        ref,
+        "TPS7B4250-Q1",
+        "SOT-23-5",
+        {"VIN": VBAT, "ADJ_EN": V5, "GND": GND, "VOUT": rail},
+        mpn="TPS7B4250QDBVRQ1",
+        manufacturer="Texas Instruments",
+    )
+    Capacitor(name="C_{}_IN".format(ref), P1=VBAT, P2=GND, **C_100N_100V)
+    Capacitor(name="C_{}_ADJ".format(ref), P1=V5, P2=GND, **C_100N)
+    Capacitor(name="C_{}_OUT".format(ref), P1=rail, P2=GND, **C_4U7)
+
+# --- battery voltage sense: 47k / 10k -> 3.16 V at 18 V ---
+Resistor(name="R_VBAT_TOP", P1=VBAT, P2=VBAT_SENSE, **R_47K)
+Resistor(name="R_VBAT_BOT", P1=VBAT_SENSE, P2=GND, **R_10K)
+Capacitor(name="C_VBAT_SENSE", P1=VBAT_SENSE, P2=GND, **C_100N)
+
+# --- power LED on 3V3 ---
+Resistor(name="R_PWR_LED", P1=V3V3, P2=PWR_LED_A, **R_1K)
+Led(name="LED_PWR", package="0603", color="green", A=PWR_LED_A, K=GND)
+
+TestPoint(name="TP_SW", variant=TEST_PAD, P1=BUCK_SW)

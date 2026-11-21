@@ -1,0 +1,214 @@
+"""STM32H743VIT6 (U1): the practical ECU processor (Vortex-V on an FPGA stays the research target).
+
+Why this part (docs/ecad.md): it is the NeuroFlight / drone-design MCU, so its symbol, LQFP-100
+footprint, decoupling and HSE design are reused as-is; 480 MHz Cortex-M7 with a double-precision
+FPU covers the float slow loop that overran Vortex-V in M9; TIM2 is a 32-bit timer for the 1 MHz
+wrap-safe event timebase of ADR 0003 (crank and cam input capture on it); TIM1 and TIM8 give
+4 + 4 output-compare channels for injection and ignition; TIM4 gives 4 PWM channels (ETB x2,
+VVT, lambda heater); 3 x 16-bit ADCs; FDCAN; USB FS.
+
+Pin functions (timer/ADC/SPI/CAN alternate functions) are from ST DS12110 Table 9/10 as recalled
+in the pin plan of docs/ecad.md. VERIFY against DS12110 (ST site not reachable from the build
+container) before fab.
+
+Power pins and decoupling: drone-design mcu.zen (DS12110 rev 7 Table 9, Table 25).
+"""
+
+load("@stdlib/interfaces.zen", "Spi", "Swd", "Usb2")
+load("@stdlib/units.zen", "Capacitance")
+load("./parts.zen", "C_100N", "C_10U", "C_12P", "C_1U", "C_2U2", "FERRITE", "R_10K", "R_1K", "place")
+
+Placed = Module("./placed.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+FerriteBead = Module("@stdlib/generics/FerriteBead.zen")
+Crystal = Module("@stdlib/generics/Crystal.zen")
+Led = Module("@stdlib/generics/Led.zen")
+
+V3V3 = io(Power(voltage="3.0V to 3.6V"))
+VDDA = io(Power(voltage="3.0V to 3.6V"), direction="output")
+GND = io(Ground)
+
+# firmware-facing signals (names match ecad/io_map.yaml)
+CRANK = io(Net)
+CAM = io(Net)
+INJ1_CMD = io(Net)
+INJ2_CMD = io(Net)
+INJ3_CMD = io(Net)
+INJ4_CMD = io(Net)
+IGN1_CMD = io(Net)
+IGN2_CMD = io(Net)
+IGN3_CMD = io(Net)
+IGN4_CMD = io(Net)
+ETB_IN1 = io(Net)
+ETB_IN2 = io(Net)
+ETB_NSLEEP = io(Net)
+ETB_DISABLE = io(Net)
+ETB_NFAULT = io(Net)
+ETB_ISENSE = io(Net)
+VVT_CMD = io(Net)
+PUMP_CMD = io(Net)
+HTR_CMD = io(Net)
+TPS1_ADC = io(Net)
+TPS2_ADC = io(Net)
+PPS1_ADC = io(Net)
+PPS2_ADC = io(Net)
+MAP_ADC = io(Net)
+IAT_ADC = io(Net)
+CLT_ADC = io(Net)
+VBAT_SENSE = io(Net)
+S5V1_MON = io(Net)
+S5V2_MON = io(Net)
+LAMBDA_UA = io(Net)
+LAMBDA_UR = io(Net)
+KNOCK_ADC = io(Net)
+KNK_CLK = io(Net)
+SPI2 = io(Spi)  # CS = knock (TPIC8101) chip select, 3.3 V side of the level shifter
+LAM_CS = io(Net)
+KNK_INTHOLD = io(Net)
+CAN_TX = io(Net)
+CAN_RX = io(Net)
+USB = io(Usb2)
+SWD = io(Swd)
+SWO = io(Net)
+NRST = io(Net)
+BOOT0 = io(Net)
+
+HSE_IN = Net()
+HSE_OUT = Net()
+VCAP_1 = Power(voltage="0.95V to 1.4V")
+VCAP_2 = Power(voltage="0.95V to 1.4V")
+LED_STATUS = Net()
+LED_FAULT = Net()
+LED_STATUS_A = Net()
+LED_FAULT_A = Net()
+
+# Pin plan (docs/ecad.md section 3). AF numbers are DS12110 Table 10 (VERIFY).
+PIN_PLAN = {
+    "PA0": (TPS1_ADC, "ADC1_INP16"),
+    "PA1": (TPS2_ADC, "ADC1_INP17"),
+    "PA2": (PPS1_ADC, "ADC12_INP14"),
+    "PA3": (PPS2_ADC, "ADC12_INP15"),
+    "PA4": (MAP_ADC, "ADC12_INP18"),
+    "PA5": (S5V2_MON, "ADC12_INP19"),
+    "PA6": (IAT_ADC, "ADC12_INP3"),
+    "PA7": (CLT_ADC, "ADC12_INP7"),
+    "PB0": (VBAT_SENSE, "ADC12_INP9"),
+    "PB1": (LAMBDA_UA, "ADC12_INP5"),
+    "PC0": (LAMBDA_UR, "ADC123_INP10"),
+    "PC1": (KNOCK_ADC, "ADC123_INP11"),
+    "PC4": (ETB_ISENSE, "ADC12_INP4"),
+    "PC5": (S5V1_MON, "ADC12_INP8"),
+    "PA8": (KNK_CLK, "MCO1 (AF0), HSE 8 MHz to TPIC8101 XIN"),
+    "PA15": (CRANK, "TIM2_CH1 (AF1) input capture, 32-bit timebase"),
+    "PB10": (CAM, "TIM2_CH3 (AF1) input capture"),
+    "PE9": (INJ1_CMD, "TIM1_CH1 (AF1)"),
+    "PE11": (INJ2_CMD, "TIM1_CH2 (AF1)"),
+    "PE13": (INJ3_CMD, "TIM1_CH3 (AF1)"),
+    "PE14": (INJ4_CMD, "TIM1_CH4 (AF1)"),
+    "PC6": (IGN1_CMD, "TIM8_CH1 (AF3)"),
+    "PC7": (IGN2_CMD, "TIM8_CH2 (AF3)"),
+    "PC8": (IGN3_CMD, "TIM8_CH3 (AF3)"),
+    "PC9": (IGN4_CMD, "TIM8_CH4 (AF3)"),
+    "PD12": (ETB_IN1, "TIM4_CH1 (AF2)"),
+    "PD13": (ETB_IN2, "TIM4_CH2 (AF2)"),
+    "PD14": (VVT_CMD, "TIM4_CH3 (AF2)"),
+    "PD15": (HTR_CMD, "TIM4_CH4 (AF2)"),
+    "PD8": (ETB_NFAULT, "GPIO in, pull-up"),
+    "PD9": (ETB_DISABLE, "GPIO out"),
+    "PD10": (PUMP_CMD, "GPIO out"),
+    "PD11": (ETB_NSLEEP, "GPIO out"),
+    "PB12": (SPI2.CS, "GPIO out (knock CS)"),
+    "PB13": (SPI2.CLK, "SPI2_SCK (AF5)"),
+    "PB14": (SPI2.MISO, "SPI2_MISO (AF5), 5 V tolerant"),
+    "PB15": (SPI2.MOSI, "SPI2_MOSI (AF5)"),
+    "PE10": (LAM_CS, "GPIO out (lambda CS)"),
+    "PE12": (KNK_INTHOLD, "GPIO out (knock integrate window)"),
+    "PD0": (CAN_RX, "FDCAN1_RX (AF9)"),
+    "PD1": (CAN_TX, "FDCAN1_TX (AF9)"),
+    "PA11": (USB.D.N, "OTG_FS_DM (AF10)"),
+    "PA12": (USB.D.P, "OTG_FS_DP (AF10)"),
+    "PA13": (SWD.SWDIO, "SWDIO"),
+    "PA14": (SWD.SWCLK, "SWCLK"),
+    "PB3": (SWO, "TRACESWO"),
+    "PE3": (LED_STATUS, "GPIO out"),
+    "PE4": (LED_FAULT, "GPIO out"),
+    "PH0": (HSE_IN, "OSC_IN"),
+    "PH1": (HSE_OUT, "OSC_OUT"),
+    "NRST": (NRST, "reset"),
+    "BOOT0": (BOOT0, "boot select"),
+}
+
+_all_io = [
+    "PA9", "PA10", "PB2", "PB4", "PB5", "PB6", "PB7", "PB8", "PB9", "PB11", "PC2_C", "PC3_C", "PC10", "PC11",
+    "PC12", "PC13", "PC14", "PC15", "PD2", "PD3", "PD4", "PD5", "PD6", "PD7", "PE0", "PE1", "PE2", "PE5", "PE6",
+    "PE7", "PE8", "PE15",
+]
+_spare = [p for p in _all_io if p not in PIN_PLAN]
+
+_power = {
+    "VDD": V3V3,
+    "VBAT": V3V3,
+    "VDDA": VDDA,
+    "VREF+": VDDA,
+    "VSS": GND,
+    "VSSA": GND,
+    "VCAP_1": VCAP_1,
+    "VCAP_2": VCAP_2,
+}
+
+place(
+    Placed,
+    "U1",
+    "STM32H743VITx",
+    "LQFP-100_14x14mm_P0.5mm",
+    {pin: net for pin, (net, _f) in PIN_PLAN.items()} | _power | {pin: NotConnected() for pin in _spare},
+    mpn="STM32H743VIT6",
+    manufacturer="STMicroelectronics",
+)
+
+# 100 nF per VDD pin (11, 27, 50, 75, 100) + VBAT pin 6, 10 uF bulk (drone-design DESIGN.md 5.1)
+for pin in [6, 11, 27, 50, 75, 100]:
+    Capacitor(name="C_VDD_{}".format(pin), P1=V3V3, P2=GND, **C_100N)
+Capacitor(name="C_VDD_BULK", P1=V3V3, P2=GND, **C_10U)
+check(abs(Capacitance(C_2U2["value"]).nominal - 2.2e-6) <= 0.2 * 2.2e-6, "VCAP capacitor must be 2.2 uF +/-20 %")
+Capacitor(name="C_VCAP_48", P1=VCAP_1, P2=GND, **C_2U2)
+Capacitor(name="C_VCAP_73", P1=VCAP_2, P2=GND, **C_2U2)
+
+# VDDA / VREF+ is also the ADC reference: ferrite + 1 uF + 100 nF
+FerriteBead(name="FB1", P1=V3V3, P2=VDDA, **FERRITE)
+Capacitor(name="C_VDDA_1U", P1=VDDA, P2=GND, **C_1U)
+Capacitor(name="C_VDDA_100N", P1=VDDA, P2=GND, **C_100N)
+
+# HSE 8 MHz (drone-design part); also forwarded on MCO1 to the knock IC. VERIFY load caps (as drone-design).
+Crystal(
+    name="Y1",
+    package="3225_4Pin",
+    frequency="8MHz",
+    mpn="X322508MSB4SI",
+    manufacturer="Yangxing",
+    XIN=HSE_IN,
+    XOUT=HSE_OUT,
+    GND=GND,
+)
+Capacitor(name="C_HSE_IN", P1=HSE_IN, P2=GND, **C_12P)
+Capacitor(name="C_HSE_OUT", P1=HSE_OUT, P2=GND, **C_12P)
+
+Resistor(name="R_BOOT0", P1=BOOT0, P2=GND, **R_10K)
+place(
+    Placed,
+    "SW1",
+    "SW_Push",
+    "SW_SPST_TS-1088-xR020",
+    {"1": V3V3, "2": BOOT0},
+    prefix="SW",
+    mpn="TS-1088-AR02016",
+    manufacturer="XKB",
+)
+Capacitor(name="C_NRST", P1=NRST, P2=GND, **C_100N)
+
+# status LEDs
+Resistor(name="R_LED_STATUS", P1=LED_STATUS, P2=LED_STATUS_A, **R_1K)
+Led(name="LED_STATUS", package="0603", color="blue", A=LED_STATUS_A, K=GND)
+Resistor(name="R_LED_FAULT", P1=LED_FAULT, P2=LED_FAULT_A, **R_1K)
+Led(name="LED_FAULT", package="0603", color="red", A=LED_FAULT_A, K=GND)

@@ -1,0 +1,104 @@
+"""CAN (U15 TCAN1044AV-Q1 + U21 ESD2CAN24-Q1), USB-C debug (J3 + U20) and SWD Tag-Connect (J4).
+
+CAN: 5 V transceiver with VIO = 3V3 (TI SLLSFJ3D), STB tied low (always in normal mode), split
+termination 2 x 60.4 ohm + 4.7 nF to ground. USB: device-only Type-C (Rd = 5.1k on CC1/CC2),
+FS lines through TPD2E2U06-Q1; VBUS powers the 5V rail through D2 for bench work.
+The USB-C, Tag-Connect and their footprints are the drone-design parts.
+"""
+
+load("@stdlib/interfaces.zen", "Swd", "Usb2")
+load("./parts.zen", "C_100N", "C_4N7_100V", "LIMITS", "R_5K1", "R_60R4", "place")
+
+Placed = Module("./placed.zen")
+Resistor = Module("@stdlib/generics/Resistor.zen")
+Capacitor = Module("@stdlib/generics/Capacitor.zen")
+
+V5 = io(Power(voltage="4.75V to 5.25V"))
+V3V3 = io(Power(voltage="3.0V to 3.6V"))
+VBUS = io(Power(voltage="4.0V to 5.5V"), direction="output")
+GND = io(Ground)
+CAN_TX = io(Net)
+CAN_RX = io(Net)
+CAN_H = io(Net)
+CAN_L = io(Net)
+USB = io(Usb2)
+SWD = io(Swd)
+SWO = io(Net)
+NRST = io(Net)
+
+USB_CC1 = Net()
+USB_CC2 = Net()
+CAN_SPLIT = Net()
+
+check(V5.voltage.max <= LIMITS["TCAN1044AV-Q1"]["vcc_abs_max"], "TCAN1044 VCC above its maximum")
+check(LIMITS["SMCJ24CA"]["vc"] < LIMITS["TCAN1044AV-Q1"]["bus_abs_max"], "CAN bus pins not battery-short safe")
+
+place(
+    Placed,
+    "U15",
+    "TCAN1044AV-Q1",
+    "SOIC-8_3.9x4.9mm_P1.27mm",
+    {"VCC": V5, "VIO": V3V3, "TXD": CAN_TX, "RXD": CAN_RX, "STB": GND, "GND": GND, "CANH": CAN_H, "CANL": CAN_L},
+    mpn="TCAN1044AVDRQ1",
+    manufacturer="Texas Instruments",
+)
+Capacitor(name="C_U15_VCC", P1=V5, P2=GND, **C_100N)
+Capacitor(name="C_U15_VIO", P1=V3V3, P2=GND, **C_100N)
+Resistor(name="R_CAN_TH", P1=CAN_H, P2=CAN_SPLIT, **R_60R4)
+Resistor(name="R_CAN_TL", P1=CAN_SPLIT, P2=CAN_L, **R_60R4)
+Capacitor(name="C_CAN_SPLIT", P1=CAN_SPLIT, P2=GND, **C_4N7_100V)
+place(
+    Placed,
+    "U21",
+    "ESD2CAN24-Q1",
+    "SOT-23",
+    {"IO1": CAN_H, "IO2": CAN_L, "GND": GND},
+    mpn="ESD2CAN24DBZRQ1",
+    manufacturer="Texas Instruments",
+)
+
+place(
+    Placed,
+    "J3",
+    "USB_C_Receptacle_USB2.0_16P",
+    "USB_C_Receptacle_HRO_TYPE-C-31-M-12",
+    {
+        "VBUS": VBUS,
+        "GND": GND,
+        "SHIELD": GND,
+        "CC1": USB_CC1,
+        "CC2": USB_CC2,
+        "D+": USB.D.P,
+        "D-": USB.D.N,
+        "SBU1": NotConnected(),
+        "SBU2": NotConnected(),
+    },
+    prefix="J",
+    mpn="TYPE-C-31-M-12",
+    manufacturer="Korean Hroparts",
+)
+Resistor(name="R_CC1", P1=USB_CC1, P2=GND, **R_5K1)
+Resistor(name="R_CC2", P1=USB_CC2, P2=GND, **R_5K1)
+Capacitor(name="C_VBUS", P1=VBUS, P2=GND, **C_100N)
+place(
+    Placed,
+    "U20",
+    "TPD2E2U06-Q1",
+    "SOT-23",
+    {"IO1": USB.D.P, "IO2": USB.D.N, "GND": GND},
+    mpn="TPD2E2U06QDBZRQ1",
+    manufacturer="Texas Instruments",
+)
+
+place(
+    Placed,
+    "J4",
+    "Conn_ARM_SWD_TagConnect_TC2030-NL",
+    "Tag-Connect_TC2030-IDC-NL_2x03_P1.27mm_Vertical",
+    {"VCC": V3V3, "SWDIO": SWD.SWDIO, "~{RESET}": NRST, "SWCLK": SWD.SWCLK, "GND": GND, "SWO": SWO},
+    prefix="J",
+    symbol_name="Conn_ARM_SWD_TagConnect_TC2030-NL",
+    mpn="TC2030-IDC-NL",
+    manufacturer="Tag-Connect",
+    in_bom=False,
+)

@@ -1,0 +1,164 @@
+"""Shared part selections and datasheet limits for the Redline ECU board.
+
+Passives are specified by value, package, voltage and dielectric (no MPNs yet: the board
+is a design study, see docs/ecad.md). Packages are 0603 for logic, 0805/1206 where the
+part sits on a battery-voltage or harness net.
+
+LIMITS holds the datasheet numbers that modules/*.zen check() against and that
+ecad/check_design.py re-checks in Python. Sources: TI / Diodes Inc. datasheets read from
+the vendor PDFs (document numbers next to each entry). Entries marked VERIFY come from
+a secondary source or from memory because the vendor site was not reachable.
+"""
+
+
+def _r(value, package="0603"):
+    return {"value": value, "package": package}
+
+
+def _c(value, voltage, dielectric="X7R", package="0603"):
+    return {"value": value, "package": package, "voltage": voltage, "dielectric": dielectric}
+
+
+# --- resistors ---
+R_0R = _r("0ohm")
+R_22R = _r("22ohm 1%")
+R_100R = _r("100ohm 1%")
+R_100R_1206 = _r("100ohm 1%", "1206")  # ignition outputs: survive a harness short to battery
+R_390R = _r("390ohm 1%")
+R_1K = _r("1k 1%")
+R_1K_0805 = _r("1k 1%", "0805")
+R_2K49 = _r("2.49k 1%")
+R_4K7 = _r("4.7k 1%")
+R_5K1 = _r("5.1k 1%")
+R_6K8 = _r("6.8k 1%")
+R_10K = _r("10k 1%")
+R_10K_0805 = _r("10k 1%", "0805")
+R_20K = _r("20k 1%")
+R_21K6 = _r("21.5k 1%")  # rusEFI CJ125 module uses 21.6k; nearest E96 value
+R_24K9 = _r("24.9k 1%")
+R_47K = _r("47k 1%")
+R_68K = _r("68k 1%")
+R_100K = _r("100k 1%")
+R_200K = _r("200k 5%")  # DRV8873H MODE strap (independent half-bridge mode needs 200k +/-5 %; not used)
+R_470K = _r("470k 1%")
+R_1M = _r("1M 1%")
+R_22K_1206 = _r("22k 1%", "1206")  # VR input current limit, 1206 for voltage rating
+R_13K3 = _r("13.3k 1%")  # 0-5 V sensor divider top (with 20k: 0.6006)
+R_61R9 = _r("61.9ohm 0.1%")  # CJ125 pump-current shunt (rusEFI module value)
+R_301R = _r("301ohm 1%")  # CJ125 RS-VM for LSU 4.9 (rusEFI: 220R + 82.5R = 302.5R)
+R_60R4 = _r("60.4ohm 1%", "0805")  # split CAN termination
+
+# --- capacitors ---
+C_470P = _c("470pF", "50V", "C0G")
+C_1N = _c("1nF", "50V", "C0G")
+C_2N2 = _c("2.2nF", "50V", "C0G")
+C_3N3 = _c("3.3nF", "50V", "C0G")
+C_4N7_100V = _c("4.7nF", "100V", "X7R", "0805")
+C_12P = _c("12pF", "50V", "C0G")
+C_20P = _c("20pF", "50V", "C0G")
+C_220P = _c("220pF", "50V", "C0G")
+C_10N = _c("10nF", "50V")
+C_22N = _c("22nF", "50V")
+C_33N = _c("33nF", "50V")
+C_47N = _c("47nF", "50V")
+C_100N = _c("100nF", "50V")
+C_100N_100V = _c("100nF", "100V", "X7R", "0805")
+C_1U = _c("1uF", "25V", "X7R")
+C_1U_50V = _c("1uF", "50V", "X7R", "0805")
+C_2U2 = _c("2.2uF", "10V", "X7R")
+C_4U7 = _c("4.7uF", "16V", "X7R", "0805")
+C_4U7_50V = _c("4.7uF", "50V", "X7R", "1206")
+C_10U = _c("10uF", "16V", "X7R", "0805")
+C_22U = _c("22uF", "16V", "X7R", "1206")
+
+FERRITE = {"package": "0603", "value": "600ohm", "frequency": "100MHz", "current": "1A"}
+TEST_PAD = "Pad_D1.0mm"
+
+# --- datasheet limits (V, A) ---
+LIMITS = {
+    # TI SNOSD17G
+    "LM74700-Q1": {"anode_max": 65.0, "anode_min": -65.0},
+    # TI SNVSAY8D section 8.1 / 8.3
+    "LMR36015-Q1": {"vin_abs_max": 66.0, "vin_op_max": 60.0, "vin_op_min": 4.2, "iout_max": 1.5, "vfb_min": 0.985,
+                    "vfb_nom": 1.0, "vfb_max": 1.015, "fsw": 2.1e6},
+    # TI SLVSCA0C
+    "TPS7B4250-Q1": {"vin_abs_max": 45.0, "vin_op_max": 40.0, "iout_max": 0.050, "cout_min": 1e-6, "cout_max": 50e-6},
+    # TI SLVSDY7B section 6.1 / 6.3 / 6.5 (H variant: ITRIP 6.5 A typ when enabled)
+    "DRV8873H-Q1": {"vm_abs_max": 40.0, "vm_op_max": 38.0, "vm_op_min": 4.5, "iocp_min": 10.0, "itrip_min": 5.5,
+                    "itrip_max": 7.5, "k_mirror": 1100.0, "ipropi_abs_max": 5.5},
+    # TI SLVSCC1C
+    "UCC27524A-Q1": {"vdd_min": 4.5, "vdd_abs_max": 20.0, "iout_dc_max": 0.3, "vin_h_max": 2.3},
+    # TI SLLSFJ3D
+    "TCAN1044AV-Q1": {"vcc_abs_max": 6.0, "bus_abs_max": 58.0},
+    # TI SLIS110C: VIH = 0.7 VDD (needs 5 V logic), OUT up to 4.5 V
+    "TPIC8101": {"vdd_abs_max": 7.0, "vih_frac": 0.7, "vout_max": 4.5, "rin_min": 25e3},
+    # TI SNOSBU8F
+    "LM1815": {"vcc_abs_max": 12.0, "iin_max": 3e-3},
+    # TI SN74AHCT125-Q1: VIH 2.0 V at VCC 4.5-5.5 V
+    "SN74AHCT125-Q1": {"vih": 2.0, "vcc_min": 4.5, "vcc_max": 5.5},
+    # Diodes DS40468 (ZXMS6006DGQ): VDS 60 V, clamp VDS(AZ) 60-70 V, nominal 2.8 A at VIN = 5 V,
+    # current limit >= 4 A at VIN = 3 V, short-circuit protection valid to VDS(SC) = 16 V, EAS 490 mJ
+    "ZXMS6006DGQ": {"vds_max": 60.0, "vclamp_min": 60.0, "vclamp_max": 70.0, "id_nom": 2.8, "id_lim_min_3v": 4.0,
+                    "vds_sc": 16.0, "eas": 0.490, "vin_th_max": 1.5, "vin_max": 5.5},
+    # Diodes DS38995 (DMTH6016LK3Q): 60 V, 24 mOhm at VGS 4.5 V, 10.8 A at TA 25 C
+    "DMTH6016LK3Q": {"vds_max": 60.0, "rds_4v5": 0.024, "id_ta25": 10.8},
+    # Diodes SBR3U60P1: 60 V, 3 A
+    "SBR3U60P1": {"vr_max": 60.0, "if_max": 3.0},
+    # VERIFY (Littelfuse datasheet not reachable): SMCJ24CA, 1500 W, VRWM 24 V, VBR(min) 26.7 V, VC 38.9 V
+    "SMCJ24CA": {"vrwm": 24.0, "vbr_min": 26.7, "vc": 38.9},
+    # ST DS12022 (from drone-design)
+    "LDL1117S33R": {"vin_max": 18.0, "iout_max": 1.2},
+    # VERIFY (Bosch datasheet not public): CJ125 UB rated for the 12 V battery net (rusEFI ties it to 12 V)
+    "CJ125": {"ub_abs_max": 40.0},
+}
+
+# Electrical loads the drivers must handle (VERIFY against the harness parts actually used;
+# spec/mvem.yaml gives the ETB motor, the rest are typical port-injection-engine values).
+LOADS = {
+    "injector_r_min": 11.0,  # ohm, saturated high-impedance injector (12 ohm nominal)
+    "injector_l": 4e-3,  # H, VERIFY
+    "vvt_r_min": 6.5,  # ohm, intake cam phaser oil control valve
+    "vvt_l": 6e-3,  # H, VERIFY
+    "relay_r_min": 60.0,  # ohm, fuel pump relay coil
+    "coil_input_r_min": 1e3,  # ohm, logic-level (igniter-in-coil) COP input, VERIFY per coil
+    "heater_i_max": 4.0,  # A, LSU 4.9 heater cold inrush under firmware ramp control
+    "vbat_max_operating": 16.0,  # V, charging system
+    "vbat_jump": 24.0,  # V, jump start (ISO 16750-2), 60 s
+    "vbat_reverse": -14.0,  # V
+}
+
+
+def place(
+    placed,
+    name,
+    symbol,
+    footprint,
+    pins,
+    prefix="U",
+    symbol_name="",
+    mpn="",
+    manufacturer="",
+    value="",
+    kind="",
+    in_bom=True,
+    dnp=False,
+):
+    """Instantiate modules/placed.zen so that the part keeps `name` as its designator (drone-design)."""
+    kinds = {"Power": "p", "Ground": "g"}
+    args = {"P" + str(i): net for i, net in enumerate(pins.values())}
+    placed(
+        name=name,
+        symbol=symbol,
+        symbol_name=symbol_name,
+        footprint=footprint,
+        prefix=prefix,
+        mpn=mpn,
+        manufacturer=manufacturer,
+        value=value,
+        kind=kind,
+        in_bom=in_bom,
+        pin_names="|".join(pins.keys()),
+        pin_kinds="".join([kinds.get(net.type, "n") for net in pins.values()]),
+        dnp=dnp,
+        **args,
+    )
