@@ -1,0 +1,97 @@
+# Redline CAD-only parameters (M1). SI units (m, deg where suffixed _deg).
+# Engine-level quantities (bore, stroke, conrod length, CR, mass budgets, materials) live in
+# spec/engine.yaml, the single source of truth; this file only adds the detailed geometry the
+# CAD needs. Values marked "tuned" were adjusted to meet the M1 mass/inertia budget in
+# engine.yaml (budgets themselves are never changed). All results are modelled.
+units:
+  cad_length_per_m: 1000.0     # CAD is built in mm (build123d default, STEP/STL in mm)
+layout:
+  bore_spacing: 0.096          # m, cylinder centre-to-centre along the crank axis
+materials:                     # which engine.yaml material each part is made from
+  piston: al_piston
+  wrist_pin: steel_rod
+  rings: steel_rod
+  clips: steel_rod
+  conrod: steel_rod
+  crankshaft: steel_crank
+  block: al_block
+  head: al_block
+piston:
+  skirt_clearance: 0.00004     # m, diametral piston-to-bore clearance
+  compression_height: 0.0285   # m, pin axis to crown top
+  skirt_below_pin: 0.0180      # m, pin axis to skirt bottom
+  crown_thickness: 0.0056      # m, tuned
+  ring_belt_thickness: 0.0052  # m, radial wall behind the ring grooves
+  skirt_wall: 0.0022           # m, tuned
+  belt_extra_below_rings: 0.002  # m, ring belt continues this far below the oil groove
+  top_land: 0.0055             # m
+  ring_land: 0.0035            # m, between grooves
+  groove_heights: [0.0012, 0.0012, 0.0025]   # m: top, second, oil control
+  groove_depth: 0.0037         # m, radial
+  skirt_flat_half_width: 0.0325  # m, |x| beyond which the skirt is relieved (pin sides)
+  side_panel_thickness: 0.0025   # m, panel joining the skirt halves at the reliefs
+  boss_radius: 0.0145          # m, pin boss outer radius
+  boss_rib_thickness: 0.0060   # m, rib (in y) tying each pin boss into the crown
+  boss_side_gap: 0.0005        # m, gap between pin boss and conrod small end (each side)
+  valve_reliefs: false         # optional crown pockets
+  valve_relief_depth: 0.001    # m
+  valve_relief_margin: 0.002   # m, relief diameter over valve head diameter
+wrist_pin:
+  outer_diameter: 0.021        # m
+  inner_diameter: 0.0135       # m
+  clip_inset: 0.0020           # m, from the relieved boss face to the pin end (each side)
+rings:
+  side_clearance: 0.00005      # m, axial groove-to-ring clearance
+  back_clearance: 0.0004       # m, radial groove-to-ring clearance
+clips:
+  wire_width: 0.0012           # m, modelled as a square-section annulus
+  outer_diameter_over_pin: 0.003  # m
+conrod:
+  big_end_bore_over_pin: 0.003  # m, diametral (bearing shells, not modelled as parts)
+  big_end_wall: 0.0068          # m, radial, tuned
+  big_end_width: 0.021          # m
+  bolt_boss_width: 0.0125       # m, in y beyond the big end bore
+  bolt_boss_height: 0.0255      # m, in z, centred on the big end axis
+  small_end_wall: 0.0042        # m, radial
+  small_end_width: 0.021        # m
+  shank_width_big_end: 0.030    # m, in y where the shank meets the big end
+  shank_width_small_end: 0.0185 # m, in y where the shank meets the small end
+  flange_width: 0.0170          # m, in x (I-beam flange)
+  flange_thickness: 0.0040      # m, in y
+  web_thickness: 0.0055         # m, in x, tuned
+crankshaft:
+  main_diameter: 0.052          # m
+  main_width: 0.028             # m, tuned (sets web thickness with pin width and bore spacing)
+  pin_diameter: 0.045           # m
+  pin_width: 0.023              # m (>= big end width + side clearance)
+  web_pin_margin: 0.0050        # m, web material radially beyond the crankpin
+  web_main_margin: 0.0060       # m, web material radially beyond the main journal
+  counterweight_radius: 0.0560  # m, tuned to masses.crank_inertia
+  counterweight_angle_deg: 120.0  # included angle of the counterweight sector
+  snout_diameter: 0.032         # m, front pulley snout
+  snout_length: 0.040           # m
+  flange_diameter: 0.080        # m, rear flywheel flange
+  flange_length: 0.012          # m
+  flange_gap: 0.002             # m, axial gap between block end wall and flange
+block:
+  end_wall: 0.012               # m, beyond the outer main journals
+  half_width: 0.100             # m, in y (clears the big-end swing)
+  skirt_below_axis: 0.030       # m, block skirt below the crank axis (deep skirt)
+  bore_length: 0.105            # m, liner length below the deck
+  liner_thickness: 0.006        # m
+  water_jacket: true
+  water_jacket_width: 0.006     # m, radial
+  water_jacket_depth: 0.070     # m, below the deck
+  crank_swing_clearance: 0.006  # m, radial clearance around the counterweight swing
+  piston_bdc_clearance: 0.004  # m, skirt bottom at BDC to the bore relief floor
+  main_bore_over_journal: 0.003 # m, diametral (bearing shells)
+head:
+  gasket_thickness: 0.0007      # m, compressed head gasket
+  piston_deck_clearance: 0.0005 # m, piston crown below the block deck at TDC
+  height: 0.120                 # m, head deck to cam cover face
+  roof_angle_deg: auto          # auto: solve the pent-roof angle for the spec compression ratio
+  valve_gap: 0.0020             # m, between two valves of the same kind
+  valve_ridge_margin: 0.0010    # m, valve seat edge to roof ridge
+  seat_depth: 0.0015            # m, valve seat counterbore depth
+  throat_fraction: 0.85         # port throat diameter / valve head diameter
+  port_depth: 0.030             # m, straight port throat modelled above the seat

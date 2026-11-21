@@ -87,7 +87,7 @@ Conventions: SI units, crank angle 0 deg = TDC firing of cylinder 1, positive to
 | M | Scope | Verify command | Exit criteria |
 |---|---|---|---|
 | M0 | Repo scaffold, spec, ADRs, CI; slider-crank kinematics; ideal Otto cycle | `pytest -q tests/` | Kinematics match closed form to 1e-12; Otto efficiency matches 1 - r^(1-gamma) exactly |
-| M1 | Parametric CAD of the full rotating and reciprocating assembly, block and head; mass properties | `python -m cad.build && pytest -q tests/test_cad.py` | Assembly builds with no interference; reciprocating mass and crank inertia within 3% of spec budget |
+| M1 | Parametric CAD of the full rotating and reciprocating assembly, block and head; mass properties | `python -m cad.build && pytest -q tests/test_m1_cad.py` | Assembly builds with no interference; reciprocating mass and crank inertia within 3% of spec budget |
 | M2 | Two-zone thermo with Wiebe, Cantera properties, Woschni, single cylinder | `python -m thermo.run --rpm 3000 --load full` | Matches a published Heywood worked example within stated tolerance; energy balance closes to 0.5% |
 | M3 | Cam design + valvetrain kinematics and dynamics; clearance across VVT range | `pytest -q tests/test_m3_valvetrain.py` | No piston-valve contact; no float below 7500 rpm; Hertz stress under material limit |
 | M4 | 1D gas dynamics coupled to 4 cylinders; full-load torque curve | `python -m sim.wot --sweep 1000:7000:250` | Shock tube and acoustic resonance tests pass; torque curve shape and peak within 10% of targets; tuned-runner peak where the formula predicts |
