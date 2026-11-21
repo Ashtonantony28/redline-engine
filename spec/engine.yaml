@@ -1,0 +1,52 @@
+# Redline reference engine: single source of truth (ADR 0001). SI units unless suffixed.
+engine:
+  name: Redline I4-2.0 NA
+  cylinders: 4
+  firing_order: [1, 3, 4, 2]
+  crank_type: flat-plane
+  bore: 0.086            # m
+  stroke: 0.086          # m
+  conrod_length: 0.145   # m, centre to centre
+  compression_ratio: 10.5
+  wrist_pin_offset: 0.0  # m
+  redline_rpm: 7000
+  idle_rpm: 800
+targets:                 # modelled targets from PLAN.md sec. 2
+  power_kw: 110
+  power_rpm: 6500
+  torque_nm: 200
+  torque_rpm: 4500
+  min_bsfc_g_per_kwh: 245
+masses:                  # design budget, checked against CAD in M1
+  piston_assembly: 0.330     # kg: piston + rings + pin + clips
+  conrod: 0.480              # kg total
+  conrod_small_end_fraction: 0.30   # share of rod mass treated as reciprocating
+  crank_inertia: 0.0200      # kg m^2 about the crank axis, without flywheel
+  flywheel_inertia: 0.0900   # kg m^2
+valves:
+  per_cylinder: {intake: 2, exhaust: 2}
+  intake_head_diameter: 0.034
+  exhaust_head_diameter: 0.029
+  stem_diameter: 0.0055
+  intake_max_lift: 0.0105
+  exhaust_max_lift: 0.0095
+  # cam timing, crank degrees; 0 = firing TDC of cylinder 1, 360 = gas-exchange TDC
+  ivo_deg: 348    # 12 BTDC (gas exchange)
+  ivc_deg: 588    # 48 ABDC
+  evo_deg: 132    # 48 BBDC
+  evc_deg: 372    # 12 ATDC
+  vvt_intake_range_deg: 40   # phaser authority, crank degrees (advance)
+combustion:
+  fuel: iso-octane
+  lhv: 44.3e6          # J/kg
+  afr_stoich: 15.13
+  wiebe_a: 5.0
+  wiebe_m: 2.0
+  burn_duration_deg: 50
+  spark_advance_deg: 25
+  heat_release_start_deg: -15   # SOC relative to firing TDC at the reference point
+materials:
+  steel_crank: {E: 210.0e9, rho: 7850.0, sut: 1000.0e6, se: 450.0e6}
+  steel_rod: {E: 210.0e9, rho: 7850.0, sut: 1050.0e6, se: 480.0e6, sy: 850.0e6}
+  al_piston: {E: 72.0e9, rho: 2700.0, sut: 330.0e6, se: 110.0e6}
+  al_block: {E: 72.0e9, rho: 2680.0}

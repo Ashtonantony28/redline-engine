@@ -1,0 +1,7 @@
+numpy
+scipy
+pyyaml
+cantera
+build123d
+matplotlib
+pytest
