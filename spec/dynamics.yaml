@@ -1,0 +1,66 @@
+# Redline M5 dynamics/NVH parameters. Supplements spec/engine.yaml (which stays the single
+# source of truth for geometry, masses and combustion). SI units (ADR 0001), angles in keys
+# suffixed _deg. Everything here is a MODELLED design-study assumption: there is no physical engine.
+# Loaded with redline.spec.load(path) by dyn/params.py.
+
+layout:
+  cylinder_pitch: 0.094          # m, bore centre spacing along the crank (86 mm bore + 8 mm siamese web)
+  crankcase_pressure: 1.0e+5      # Pa, acting on the underside of the piston
+
+crank:
+  throw_unbalance_mr: 0.0105     # kg m, crankpin + web rotating unbalance per throw (before counterweights)
+  counterweight_fraction: 0.5    # share of per-throw rotating unbalance (throw + rod big end) cancelled by counterweights
+  poisson: 0.29                  # steel crank, for G = E / (2 (1 + nu))
+
+# PLACEHOLDER cylinder-pressure generator inputs (dyn/pressure.py). To be replaced by thermo/ (M2) output.
+pressure_placeholder:
+  gamma: 1.32                    # constant ratio of specific heats, single zone
+  gas_constant: 287.0            # J/(kg K)
+  intake_temperature: 320.0      # K at IVC
+  heat_to_gas_fraction: 0.80     # lumped combustion efficiency x (1 - wall heat loss share)
+  lambda: 1.0
+  blowdown_deg: 50               # crank deg after EVO for the blowdown to reach exhaust pressure
+  grid_points: 7201              # 0..720 deg at 0.1 deg
+  operating_points:
+    full_load: {intake_pressure: 0.98e+5, exhaust_pressure: 1.10e+5, soc_deg: -15}
+    idle:      {intake_pressure: 0.32e+5, exhaust_pressure: 1.02e+5, soc_deg: -5}
+
+flywheel:
+  include_reciprocating_equivalent: true   # add m_be r^2 + m_rec r^2 / 2 per cylinder to rotating inertia
+  cs_target_idle: 0.05           # assumed design target for cyclic irregularity (omega_max - omega_min)/omega_mean at idle
+  cs_target_full_load: 0.05      # design target at full load (same drivability target, assumed)
+  full_load_rpm: [1500, 4500]
+  inertia_sweep: {min: 0.03, max: 0.30, points: 28}   # kg m^2 flywheel inertia sweep
+
+bearings:
+  oil_viscosity: 0.0070          # Pa s, effective film viscosity, SAE 5W-30 at ~110 C (assumed)
+  main:    {diameter: 0.056, length: 0.019, radial_clearance: 25.0e-6}   # length = land length net of groove
+  big_end: {diameter: 0.048, length: 0.017, radial_clearance: 22.0e-6}
+  # Typical design limit of minimum oil film thickness for automotive crank bearings is of order 1 um
+  # (e.g. F. A. Martin, "Developments in engine bearing design", Tribology International 16(3), 1983;
+  # Hirani, Athre, Biswas, "Dynamically loaded finite length journal bearings", J. Tribology, 1999).
+  min_film_limit: 1.0e-6
+  rpm_cases: [4500, 7000]        # full-load cases for polar diagrams and orbits
+  orbit_cycles: 3                # 720-deg cycles integrated (last one reported)
+  orbit_steps_per_cycle: 1440
+  psi_grid_points: 4001          # quadrature grid over 0..4 pi for the short-bearing film integrals
+  eps_max: 0.998                 # cap on eccentricity ratio inside the film integrals
+
+torsional:
+  # Lumped chain: [damper ring] - pulley/hub - throw 1..4 - flywheel. Crank inertia from engine.yaml
+  # is split: nose share to the hub, flange share to the flywheel, rest equally to the throws.
+  pulley_hub_inertia: 0.0030     # kg m^2 (hub + belt pulley, without damper ring)
+  crank_nose_fraction: 0.08
+  crank_flange_fraction: 0.08
+  # Equivalent lengths of a plain shaft of main-journal diameter (Carter-type equivalent length)
+  equivalent_length:
+    nose_to_throw1: 0.120        # m
+    throw_to_throw: 0.150        # m (each of the 3 inter-throw segments)
+    throw4_to_flywheel: 0.080    # m
+  structural_damping_ratio: 0.02 # first-mode modal damping of the bare crank (stiffness-proportional)
+  absolute_damping_per_throw: 0.3   # N m s/rad, piston/bearing friction damping at each throw
+  max_order: 12
+  rpm_sweep: {min: 800, max: 7000, points: 621}
+  damper:                        # tuned rubber (Den Hartog) damper on the hub
+    ring_inertia: 0.0045         # kg m^2 (inertia ring, ~1.2 kg at ~60 mm radius)
+    tuned_mode: 1                # elastic mode index to tune against (1 = first torsional mode)

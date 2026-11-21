@@ -38,7 +38,7 @@ valves:
   vvt_intake_range_deg: 40   # phaser authority, crank degrees (advance)
 combustion:
   fuel: iso-octane
-  lhv: 44.3e6          # J/kg
+  lhv: 44.3e+6          # J/kg
   afr_stoich: 15.13
   wiebe_a: 5.0
   wiebe_m: 2.0
@@ -46,7 +46,7 @@ combustion:
   spark_advance_deg: 25
   heat_release_start_deg: -15   # SOC relative to firing TDC at the reference point
 materials:
-  steel_crank: {E: 210.0e9, rho: 7850.0, sut: 1000.0e6, se: 450.0e6}
-  steel_rod: {E: 210.0e9, rho: 7850.0, sut: 1050.0e6, se: 480.0e6, sy: 850.0e6}
-  al_piston: {E: 72.0e9, rho: 2700.0, sut: 330.0e6, se: 110.0e6}
-  al_block: {E: 72.0e9, rho: 2680.0}
+  steel_crank: {E: 210.0e+9, rho: 7850.0, sut: 1000.0e+6, se: 450.0e+6}
+  steel_rod: {E: 210.0e+9, rho: 7850.0, sut: 1050.0e+6, se: 480.0e+6, sy: 850.0e+6}
+  al_piston: {E: 72.0e+9, rho: 2700.0, sut: 330.0e+6, se: 110.0e+6}
+  al_block: {E: 72.0e+9, rho: 2680.0}
