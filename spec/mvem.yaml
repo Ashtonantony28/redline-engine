@@ -1,0 +1,103 @@
+# Redline M8 mean-value engine model (MVEM) parameters. Supplements spec/engine.yaml (geometry,
+# masses, valve timing, combustion, idle and redline speeds stay there) and spec/thermo.yaml.
+# SI units (ADR 0001); angles in keys suffixed _deg. Exponents carry explicit signs because PyYAML
+# reads 1e5 as a string. Everything here is a MODELLED design assumption: there is no physical engine.
+# Loaded by mvem/params.py.
+
+ambient:
+  p: 1.01325e+5            # Pa
+  T: 298.15                # K
+  R_air: 287.05            # J/(kg K)
+  gamma_air: 1.4
+
+throttle:                  # butterfly valve, area law of Heywood sec. 7.2 (shaft neglected)
+  bore_diameter: 0.060     # m
+  closed_plate_angle_deg: 6.0   # plate angle from the perpendicular at the closed stop
+  max_opening_deg: 84.0    # opening measured from the closed stop (plate parallel at 84 + 6 = 90)
+  discharge_coefficient: 0.80
+  leak_area: 4.0e-6        # m^2, plate-to-bore gap leakage at the closed stop
+
+manifold:
+  volume: 3.0e-3           # m^3, plenum + runners
+  temperature: 315.0       # K, isothermal manifold (equals spec/thermo.yaml loads T_intake)
+
+exhaust:                   # backpressure used as the thermo boundary condition when building maps
+  temperature: 900.0       # K
+  dp_rated: 0.10e+5         # Pa above ambient at rated flow
+  rated_rpm: 6500          # rpm at which dp_rated applies with a wide-open manifold
+  dp_exponent: 2.0         # dp ~ (flow / rated flow)^2
+
+maps:                      # thermo/ cycle grid behind the MVEM torque and VE maps (mvem/maps.py)
+  rpm: [600, 800, 1000, 1250, 1500, 2000, 2500, 3000, 3500, 4000, 4500, 5000, 5500, 6000, 6500, 7000, 7500]
+  map: [0.10e+5, 0.15e+5, 0.20e+5, 0.25e+5, 0.30e+5, 0.40e+5, 0.50e+5, 0.60e+5, 0.70e+5, 0.80e+5, 0.90e+5, 1.02e+5]
+  soc_deg: {start: -45.0, stop: 20.0, step: 2.5}   # Wiebe start of combustion sweep (rel. firing TDC)
+  step_deg: 0.25           # thermo crank-angle step for the map runs
+  # spark advance [deg BTDC] = ignition_delay - SOC, ignition_delay = spark_advance_deg +
+  # heat_release_start_deg from spec/engine.yaml (25 - 15 = 10 deg at the M2 reference point)
+  fixture: mvem/data/thermo_maps.json   # committed, reproducible with `python -m mvem.maps`
+
+friction:                  # FMEP = c0 + c1 Sp + c2 Sp^2 (Chen-Flynn form without the p_max term)
+  fmep_c0: 0.35e+5          # Pa
+  fmep_c1: 3.5e+3           # Pa per (m/s) mean piston speed
+  fmep_c2: 90.0            # Pa per (m/s)^2
+
+combustion:
+  lean_misfire_lambda: 1.50     # no work above this lambda (and below the rich limit)
+  rich_misfire_lambda: 0.60
+  evaluation_deg_atdc: 20.0     # work is booked here, after the latest spark the maps cover (SOC sweep)
+
+fuel_film:                 # Aquino x-tau wall wetting, per port
+  x: 0.30                  # fraction of injected fuel that lands on the film
+  tau_ref: 0.25            # s, film evaporation time constant at rpm_ref
+  rpm_ref: 800
+  tau_rpm_exponent: -0.60  # tau = tau_ref (rpm / rpm_ref)^exponent
+
+injector:
+  static_flow: 3.0e-3      # kg/s nominal at the regulated rail pressure
+  flow_error_fraction: 0.04     # plant injectors flow 4 % more than nominal (exercises fuel trims)
+  deadtime_vbatt: [9.0, 11.0, 13.0, 15.0, 17.0]          # V
+  deadtime_s: [1.20e-3, 0.85e-3, 0.65e-3, 0.52e-3, 0.45e-3]  # s, opening delay - closing delay
+  battery_voltage: 13.8    # V, constant in the HIL runs
+
+etc:                       # electronic throttle body: DC motor + gear + return/limp springs
+  inertia: 4.0e-5          # kg m^2 reflected to the plate shaft
+  motor_resistance: 1.6    # ohm (armature inductance neglected: L/R << control period)
+  torque_constant: 0.35    # Nm/A at the plate shaft (motor kt x gear ratio)
+  backemf_constant: 0.35   # V s/rad at the plate shaft
+  viscous: 2.0e-4          # Nm s/rad
+  coulomb_friction: 0.030  # Nm
+  static_friction: 0.040   # Nm, breakaway
+  spring_rate: 0.30        # Nm/rad about the limp position
+  spring_preload: 0.080    # Nm, both springs meet preloaded at the limp position
+  limp_opening_deg: 6.0    # rest position with the motor unpowered
+  substeps: 5              # implicit-Euler substeps per plant step
+
+lambda_sensor:             # wideband sensor in the collector
+  transport_delay_s: 0.020
+  transport_delay_cycles: 1.0   # exhaust stroke + runner transport, engine cycles
+  time_constant: 0.080     # s, first-order lag
+  min: 0.65
+  max: 1.60                # reading clips here (also the fuel-cut reading)
+
+knock:                     # SIMULATED knock limit and sensor; thermo knock (Livengood-Wu) is M7
+  klsa_wot_deg: 18.0       # knock-limited spark advance at wide open, klsa_rpm_ref
+  klsa_per_unit_vacuum_deg: 25.0   # added per unit of (1 - MAP / ambient)
+  klsa_per_krpm_deg: 3.0   # added per 1000 rpm above klsa_rpm_ref
+  klsa_rpm_ref: 2000
+  noise_counts: 120.0      # sensor background, std dev of the window integral [counts]
+  noise_mean_counts: 200.0
+  gain_counts_per_deg: 300.0    # window integral added per deg of advance beyond the limit
+  injected_counts: 1500.0  # window integral when the test hook forces a knocking event
+  seed: 8                  # deterministic sensor noise
+
+trigger:                   # crank and cam targets (read by the ECU table generator too)
+  teeth_total: 60
+  teeth_missing: 2
+  tooth0_angle_deg: 114.0  # crank angle (0..360, ADR 0001) of the first tooth after the gap
+  cam_edge_deg: 650.0      # cycle angle (0..720) of the single cam edge (1 pulse per cam rev)
+
+loads:
+  accessory_step: 10.0     # Nm, e.g. A/C compressor engagement during idle
+
+sim:
+  dt: 1.0e-3               # s, plant step (ECU slow loop runs once per step)

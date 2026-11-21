@@ -1,0 +1,98 @@
+# Redline M8 ECU calibration and firmware configuration. ecu/tools/gen_calib.py turns this file,
+# spec/engine.yaml, spec/mvem.yaml (trigger wheel, injector, film and ETC hardware data) and the
+# thermo map fixture into ecu/include/ecu/ecu_calib_gen.h. SI units unless suffixed (_deg, _rpm).
+# Explicit exponent signs (PyYAML reads 1e5 as a string). All numbers are MODELLED calibration.
+
+hardware:
+  timer_hz: 1000000          # free-running 32-bit capture/compare timer
+  angle_units_per_deg: 64    # fixed-point crank angle resolution of the scheduler (Q.6 degrees)
+  slow_loop_hz: 1000         # fuel / lambda / throttle / idle / fault loop rate
+  cylinders_max: 4
+
+decoder:
+  gap_ratio: 2.5             # period / previous per-tooth period at or above which the gap is seen
+  dropout_ratio: 1.5         # ... at or above which (and below gap_ratio) one tooth was lost
+  noise_ratio: 0.40          # edges closer than this share of the per-tooth period are rejected
+  ratio_den: 20              # fixed-point denominator for the three ratios above
+  stall_timeout_s: 0.20      # no tooth for this long: loss of sync, rpm = 0
+  repeat_guard_deg: 360      # an angle event may fire again only after this much crank rotation
+  sync_min_good_teeth: 2     # normal teeth required before a gap is believed while searching
+  period_average_teeth: 4    # tooth intervals averaged for the scheduler's sub-tick period
+
+injection:
+  eoi_deg: 300.0             # end of injection, crank deg after the cylinder's firing TDC (closed valve)
+  max_duty: 0.85             # of one engine cycle
+  afr_target_lambda: 1.0
+
+ignition:
+  dwell_s: 3.0e-3
+  min_advance_deg: -10.0
+  max_advance_deg: 45.0
+  knock_margin_deg: 2.0      # base spark kept this far below the (calibration-dyno) knock limit
+
+knock:
+  threshold_counts: 800      # window integral above which the event is called knocking
+  retard_step_deg: 2.0       # per knocking event, that cylinder only
+  max_retard_deg: 10.0
+  recover_deg_per_event: 0.125   # per non-knocking event of that cylinder
+
+lambda_control:
+  kp: 0.10                   # fuel fraction per unit fractional lambda error
+  ki: 1.5                    # fuel fraction per second per unit error
+  stft_limit: 0.25
+  ltft_limit: 0.25
+  ltft_rate: 0.20            # 1/s, share of the STFT integrator moved to LTFT per second
+  enable_delay_s: 0.50       # after sync / after a fuel cut ends
+  min_rpm: 500
+
+transient:                   # fuel-path lag compensation (speed density sees MAP before IVC)
+  map_prediction_gain: 0.8   # predicted MAP at IVC = MAP + gain x dMAP/dt x (pulse + EOI-to-IVC time)
+  map_derivative_tau_s: 0.005    # first-order filter on dMAP/dt
+  cl_freeze_dmap_pa_per_s: 1.0e+5    # lambda integrator holds while |dMAP/dt| exceeds this ...
+  cl_freeze_hold_s: 0.40     # ... and for this long afterwards (sensor delay + lag)
+
+wall_wetting:                # inverse x-tau; identified film parameters x calibration scale
+  x_scale: 1.0
+  tau_scale: 1.0
+
+throttle:
+  kp_v_per_deg: 0.60
+  ki_v_per_deg_s: 6.0
+  kd_v_s_per_deg: 0.004
+  integrator_limit_v: 4.0
+  friction_ff_scale: 1.0     # x identified spring + Coulomb torque from spec/mvem.yaml etc
+  friction_ff_deadband_deg: 0.05
+  max_voltage: 12.0
+  pedal_points: [0.0, 0.05, 0.10, 0.20, 0.30, 0.40, 0.60, 0.80, 1.00]
+  opening_deg:  [0.85, 2.0, 4.0, 8.0, 12.0, 17.0, 28.0, 45.0, 84.0]
+
+idle:
+  pedal_max: 0.02            # idle control active below this pedal ...
+  rpm_band: 400              # ... and below idle_rpm (spec/engine.yaml) + this
+  base_opening_deg: 0.85     # unloaded idle equilibrium of the plant at idle_rpm (mvem steady balance)
+  kp_deg_per_rpm: 0.0015     # tuned on the MVEM idle cycle (hil cycles.yaml idle)
+  ki_deg_per_rpm_s: 0.003
+  kd_deg_s_per_rpm: 0.002
+  air_trim_limit_deg: 4.0
+  spark_reserve_deg: 15.0    # idle spark sits this far below the table to leave torque reserve
+  spark_kp_deg_per_rpm: 0.05
+  spark_limit_deg: 15.0
+
+rev_limit:
+  cut_above_redline_rpm: 50  # fuel + spark cut at redline + this (redline itself stays usable)
+  hysteresis_rpm: 150
+  spark_cut: true
+
+faults:
+  debounce_samples: 20
+  map_min: 0.05e+5            # Pa, plausible sensor range
+  map_max: 1.15e+5
+  tps_sum_tolerance_deg: 3.0 # |tps1 + tps2 - max opening| above this: throttle sensor fault
+  lambda_min: 0.55
+  lambda_max: 1.70
+  temp_min: 223.0            # K
+  temp_max: 423.0
+  iat_default: 315.0         # K, substitute on IAT fault
+  limp_rpm: 3000             # rev limit in limp mode
+  limp_map_opening_deg: [0.0, 6.0, 20.0, 84.0]   # alpha-N MAP substitute on MAP fault
+  limp_map_pa: [0.25e+5, 0.45e+5, 0.85e+5, 1.00e+5]

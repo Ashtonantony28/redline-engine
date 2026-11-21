@@ -1,0 +1,35 @@
+# Redline M8 HIL cycles for `python -m hil.run --target host --cycle <name>`. MODELLED.
+# Time histories are piecewise linear [[t_s, value], ...] (two close points make a step).
+# dyno_rpm present: the crank speed is imposed (engine dynamometer); absent: free-running crank
+# with an initial starter hold at init_rpm for hold_s while the ECU syncs and fuels.
+# A load value "accessory_step" is resolved from spec/mvem.yaml loads.accessory_step.
+defaults:
+  clt: 360.0                 # K, warm engine coolant reading
+  init_map: 0.40e+5           # Pa
+  hold_s: 0.4
+
+idle:
+  duration: 12.0
+  init_rpm: 800
+  init_map: 0.30e+5
+  pedal: [[0.0, 0.0]]
+  load: [[0.0, 0.0], [6.0, 0.0], [6.02, accessory_step]]
+  windows: {before_step: [4.0, 6.0], after_settle: [10.0, 12.0], step_at: 6.0}
+
+tipin:
+  duration: 5.0
+  dyno_rpm: [[0.0, 2000.0]]
+  pedal: [[0.0, 0.10], [2.0, 0.10], [2.1, 0.40]]
+  windows: {steady: [1.0, 2.0], transient: [2.0, 3.5], step_at: 2.0}
+
+tipout:
+  duration: 5.0
+  dyno_rpm: [[0.0, 2000.0]]
+  pedal: [[0.0, 0.40], [2.0, 0.40], [2.1, 0.10]]
+  windows: {steady: [1.0, 2.0], transient: [2.0, 3.5], step_at: 2.0}
+
+sweep:
+  duration: 12.0
+  dyno_rpm: [[0.0, 1500.0], [1.5, 1500.0], [11.5, 6500.0], [12.0, 6500.0]]
+  pedal: [[0.0, 1.0]]
+  windows: {steady: [2.0, 12.0]}

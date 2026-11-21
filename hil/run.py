@@ -1,0 +1,80 @@
+"""M8 closed-loop HIL runner: `python -m hil.run --target host --cycle tipin`.
+
+Cycles (hil/cycles.yaml): idle, tipin, tipout, sweep. Prints a summary and writes
+out/hil/<cycle>.csv (and out/hil/<cycle>.png with --plot). Target `host` runs the C ECU core as a
+shared library against the Python MVEM; the RV64 / Vortex-V target is milestone M9.
+All numbers are MODELLED: there is no physical engine.
+"""
+from __future__ import annotations
+
+import argparse
+import csv
+import json
+import sys
+
+from hil import runner
+from redline.spec import ROOT
+
+OUT_DIR = ROOT / "out" / "hil"
+# chart tokens (dataviz reference palette, as thermo/run.py)
+SURFACE, INK, INK_2, SERIES = "#fcfcfb", "#0b0b0b", "#52514e", ["#2a78d6", "#d6602a", "#3a9a5b"]
+
+
+def write_csv(res, path):
+    keys = runner.LOG_KEYS
+    with open(path, "w", newline="") as f:
+        w = csv.writer(f)
+        w.writerow(keys)
+        for i in range(len(res.log["t"])):
+            w.writerow([f"{res.log[k][i]:.6g}" for k in keys])
+
+
+def plot(res, path):
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    L = res.log
+    panels = [("rpm", "engine speed [rpm]"), ("lambda_sensor", "lambda (sensor)"), ("map", "MAP [Pa]"),
+              ("thr", "throttle [deg]"), ("spark0", "spark cyl 1 [deg BTDC]"), ("torque_brake", "brake torque [Nm]")]
+    fig, axes = plt.subplots(len(panels), 1, figsize=(9, 11), sharex=True, facecolor=SURFACE)
+    for ax, (k, lab) in zip(axes, panels):
+        ax.set_facecolor(SURFACE)
+        ax.plot(L["t"], L[k], color=SERIES[0], lw=1.2)
+        if k == "thr":
+            ax.plot(L["t"], L["thr_target"], color=SERIES[1], lw=1.0, ls="--", label="target")
+            ax.legend(frameon=False, fontsize=8)
+        ax.set_ylabel(lab, color=INK_2, fontsize=8)
+        ax.tick_params(colors=INK_2, labelsize=8)
+        for sp in ("top", "right"):
+            ax.spines[sp].set_visible(False)
+    axes[-1].set_xlabel("time [s]", color=INK_2)
+    fig.suptitle(f"Redline M8 HIL, cycle {res.scenario.name} (MODELLED)", color=INK)
+    fig.tight_layout()
+    fig.savefig(path, dpi=110, facecolor=SURFACE)
+    plt.close(fig)
+
+
+def main(argv=None) -> int:
+    cycles = [k for k in runner.load_cycles() if k != "defaults"]
+    ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    ap.add_argument("--target", default="host", choices=["host", "rv64"])
+    ap.add_argument("--cycle", default="tipin", choices=cycles)
+    ap.add_argument("--plot", action="store_true")
+    a = ap.parse_args(argv)
+    if a.target != "host":
+        print("target rv64 (Vortex-V co-sim) is milestone M9; only --target host exists in M8", file=sys.stderr)
+        return 2
+    res = runner.run(runner.Scenario.from_cycle(a.cycle))
+    s = runner.summary(res)
+    OUT_DIR.mkdir(parents=True, exist_ok=True)
+    write_csv(res, OUT_DIR / f"{a.cycle}.csv")
+    if a.plot:
+        plot(res, OUT_DIR / f"{a.cycle}.png")
+    print(f"Redline M8 HIL, target host, cycle {a.cycle} (all values MODELLED)")
+    print(json.dumps(s, indent=2, default=float))
+    print(f"wrote {OUT_DIR / (a.cycle + '.csv')}")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
