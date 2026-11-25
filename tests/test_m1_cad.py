@@ -102,9 +102,13 @@ def test_no_piston_head_interference_at_tdc(p):
 
 
 def test_valve_seats_fit_inside_bore(p):
-    for _kind, _sign, x, y, d in p.valve_layout():
+    """Valve heads inside the bore and on their own roof face (inner edge clear of the ridge by the stated margin);
+    roof faces normal to the valve axes at the spec/valvetrain.yaml valve angles."""
+    margin = p.L(p.section("head")["valve_ridge_margin"])
+    for kind, sign, x, y, d in p.valve_layout():
         assert math.hypot(x, y) + d / 2 < p.bore_r
-        assert abs(y) > d / 2 * math.cos(math.radians(p.roof_angle_deg))  # clear of the ridge
+        inner = abs(y) - d / 2 * math.cos(math.radians(p.valve_angle_deg(kind)))
+        assert inner >= max(sign * p.ridge_y, 0.0) + margin - 1e-9  # clear of the ridge
 
 
 def test_piston_follows_slider_crank(p):

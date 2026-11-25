@@ -63,11 +63,11 @@ def mass_state(p) -> dict:
 
 
 def part_mass(p, which: str) -> float:
-    from cad.conrod import conrod
     from cad.massprops import mass_props
     from cad.piston import piston_parts
+    from fea.loads import fitted_conrod_mass_props
     if which == "conrod":
-        return mass_props(conrod(p), p.density("conrod"), p.k).mass
+        return fitted_conrod_mass_props(p).mass
     return sum(mass_props(s, p.density(m), p.k).mass for s, m in piston_parts(p).values())
 
 

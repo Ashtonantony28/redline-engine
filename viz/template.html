@@ -66,8 +66,7 @@ footer { padding: 0 16px 14px; color: var(--ink-2); font-size: 12px; }
   <button id="play" type="button">Pause</button>
   <label>Slow motion <input id="slow" type="range"> <span id="slowv"></span></label>
   <label>Cylinder <select id="cyl"></select></label>
-  <label><input id="showHead" type="checkbox"> Head</label>
-  <label><input id="showBlock" type="checkbox" checked> Block</label>
+  <span id="toggles"></span>
 </div>
 <main>
   <div id="view"><div id="status">Loading CAD and three.js __THREE_VERSION__...</div><div id="angle"></div></div>
@@ -139,21 +138,42 @@ const fill = new THREE.DirectionalLight(0xffffff, 0.8); fill.position.set(-0.9, 
 // CAD frame is Z-up (x along the crank, ADR 0001); three.js is Y-up
 const cad = new THREE.Group(); cad.rotation.x = -Math.PI / 2; scene.add(cad);
 
-const MATS = {
-  crankshaft: new THREE.MeshStandardMaterial({ color: 0x8c949e, metalness: 0.85, roughness: 0.32 }),
-  conrod: new THREE.MeshStandardMaterial({ color: 0x5c6670, metalness: 0.8, roughness: 0.38 }),
-  piston_assembly: new THREE.MeshStandardMaterial({ color: 0xc9ccd1, metalness: 0.6, roughness: 0.42 }),
-  block: new THREE.MeshStandardMaterial({ color: 0x9aa7b5, metalness: 0.2, roughness: 0.6, transparent: true,
-    opacity: CFG.cad.translucent_opacity, depthWrite: false, side: THREE.DoubleSide }),
-  head: new THREE.MeshStandardMaterial({ color: 0xa8b0a0, metalness: 0.2, roughness: 0.6, transparent: true,
-    opacity: CFG.cad.translucent_opacity * 1.6, depthWrite: false, side: THREE.DoubleSide }),
-};
+// PBR-ish materials by part-name prefix (instance names from cad/assembly.py)
+const M = (color, metalness, roughness, extra = {}) => new THREE.MeshStandardMaterial({ color, metalness, roughness, ...extra });
+const MAT_RULES = [
+  [/^(block|head|cam_cap_|oil_pan|intake_manifold)/, () => M(0xa9b2bb, 0.25, 0.55)],
+  [/^(liner|damper_hub|damper_ring|flywheel_|camshaft_)/, () => M(0x6f747a, 0.6, 0.45)],
+  [/^(piston|wrist_pin|clip)/, () => M(0xc9ccd1, 0.6, 0.42)],
+  [/^(ring_)/, () => M(0x3b3f45, 0.8, 0.35)],
+  [/^(main_shell|big_end_shell|guide_|seat_insert_)/, () => M(0xb8864b, 0.85, 0.35)],
+  [/^(valve_|retainer_|collet|shim_|bucket_|spring_|crankshaft|conrod|crank_sprocket|cam_pulley|ring_gear|flywheel$)/, () => M(0x8c949e, 0.85, 0.3)],
+  [/^(head_gasket)/, () => M(0x7d8a7a, 0.7, 0.4)],
+  [/^(exhaust_header)/, () => M(0x8a6a4f, 0.75, 0.38)],
+  [/^(timing_belt|damper_rubber)/, () => M(0x1d1f22, 0.0, 0.85)],
+  [/bolt|spark_plug|idler|tensioner/, () => M(0x4a4f55, 0.8, 0.35)],
+];
+const matCache = {};
+function materialFor(part, nodeName) {
+  const key = part + ':' + nodeName;
+  for (const [re, mk] of MAT_RULES) if (re.test(nodeName)) {
+    const id = re.source;
+    if (!matCache[id]) matCache[id] = mk();
+    if (CFG.cad.translucent.includes(part)) {
+      const t = matCache[id].clone(); t.transparent = true; t.opacity = CFG.cad.translucent_opacity; t.depthWrite = false;
+      t.side = THREE.DoubleSide; return t;
+    }
+    return matCache[id];
+  }
+  return M(0x9a9a9a, 0.5, 0.5);
+}
 function b64ToBuffer(s) { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return u.buffer; }
 function loadPart(name) {
   return new Promise((res, rej) => new GLTFLoader().parse(b64ToBuffer(GLB[name]), '', (g) => {
     // undo the exporter's Z-up -> Y-up root rotation: keep geometry in the CAD frame (metres)
     for (const ch of g.scene.children) { ch.quaternion.identity(); ch.position.set(0, 0, 0); }
-    g.scene.traverse(o => { if (o.isMesh) { o.material = MATS[name]; o.renderOrder = CFG.cad.translucent.includes(name) ? 2 : 0; } });
+    g.scene.traverse(o => { if (o.isMesh) {
+      let n = o.name || ''; let q = o; while (q && !n) { q = q.parent; n = q && q.name || ''; }
+      o.material = materialFor(name, n || name); o.renderOrder = CFG.cad.translucent.includes(name) ? 2 : 0; } });
     res(g.scene);
   }, rej));
 }
@@ -161,18 +181,40 @@ const parts = {};
 async function buildScene() {
   const src = {};
   for (const n of CFG.cad.parts) src[n] = await loadPart(n);
-  parts.crank = new THREE.Group(); parts.crank.add(src.crankshaft); cad.add(parts.crank);
+  parts.crank = new THREE.Group(); parts.crank.add(src.crank); cad.add(parts.crank);
   parts.rods = []; parts.pistons = [];
   for (let c = 0; c < NC; c++) {
     const rod = new THREE.Group(); rod.add(c ? src.conrod.clone(true) : src.conrod); cad.add(rod); parts.rods.push(rod);
     const pis = new THREE.Group(); pis.add(c ? src.piston_assembly.clone(true) : src.piston_assembly); cad.add(pis); parts.pistons.push(pis);
   }
-  parts.block = src.block; parts.head = src.head; cad.add(src.block); cad.add(src.head);
-  const showHead = document.getElementById('showHead'), showBlock = document.getElementById('showBlock');
-  showHead.checked = !CFG.cad.hidden_by_default.includes('head');
-  showBlock.checked = !CFG.cad.hidden_by_default.includes('block');
-  const vis = () => { parts.head.visible = showHead.checked; parts.block.visible = showBlock.checked; };
-  showHead.onchange = vis; showBlock.onchange = vis; vis();
+  for (const n of ['block', 'oil_pan', 'head', 'front', 'intake_manifold', 'exhaust_header']) { parts[n] = src[n]; cad.add(src[n]); }
+  // camshafts: frame on the cam axis, turning at half crank speed (ADR 0002 sense, VVT parked)
+  const VT = D.valvetrain;
+  parts.cams = {};
+  for (const k of ['intake', 'exhaust']) {
+    const g = new THREE.Group(); g.position.set(0, VT.cam_axis_yz[k][0], VT.cam_axis_yz[k][1]); g.add(src['cam_' + k]);
+    cad.add(g); parts.cams[k] = g;
+  }
+  // valves (valve, retainer, collets, shim, bucket) translate down their axis by the cam lift; springs scale
+  parts.valves = []; parts.springs = [];
+  const used = {};
+  for (const v of VT.valves) {
+    const frame = new THREE.Group(); frame.position.set(...v.origin); frame.rotation.x = v.rot_x; cad.add(frame);
+    const mv = new THREE.Group(); const vs = src['valve_' + v.kind];
+    mv.add(used['v' + v.kind] ? vs.clone(true) : vs); used['v' + v.kind] = 1; frame.add(mv);
+    const sp = new THREE.Group(); const ss = src['spring_' + v.kind];
+    sp.add(used['s' + v.kind] ? ss.clone(true) : ss); used['s' + v.kind] = 1; sp.position.z = VT.springs[v.kind].bottom;
+    frame.add(sp);
+    parts.valves.push({ v, mv, sp });
+  }
+  const box = document.getElementById('toggles');
+  for (const n of CFG.cad.toggles) {
+    const lab = document.createElement('label'), cb = document.createElement('input');
+    cb.type = 'checkbox'; cb.id = 'show-' + n; cb.checked = !CFG.cad.hidden_by_default.includes(n);
+    const set = () => { parts[n].visible = cb.checked; };
+    cb.onchange = set; set();
+    lab.append(cb, ' ' + n.replace('_', ' ')); box.append(lab);
+  }
 }
 function pose(thetaDeg) {
   const F = frame(thetaDeg), g = D.geometry;
@@ -182,6 +224,13 @@ function pose(thetaDeg) {
     rod.position.set(g.cylinder_x[c], F.lerp(D.pin_y[c]), F.lerp(D.pin_z[c]));
     rod.rotation.x = F.lerp(D.rod_angle[c]);
     pis.position.set(g.cylinder_x[c], 0, F.lerp(D.piston_z[c]));
+  }
+  for (const k of ['intake', 'exhaust']) parts.cams[k].rotation.x = -thetaDeg * Math.PI / 360;   // cam: -theta/2
+  for (const { v, mv, sp } of parts.valves) {
+    const lift = F.lerp(v.kind === 'intake' ? D.lift_intake_mm[v.cyl] : D.lift_exhaust_mm[v.cyl]) / 1000;
+    mv.position.z = -lift;
+    const L0 = D.valvetrain.springs[v.kind].length;
+    sp.scale.z = (L0 - lift) / L0;
   }
   return F;
 }

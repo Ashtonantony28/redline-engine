@@ -9,6 +9,7 @@ from cad.params import Params
 from cad.primitives import box, cyl_x, cyl_z, tube_x, tube_z
 
 TOL = 1.0e-6          # CAD units, vertex matching in 2D profiles
+BIG = 1.0e3           # CAD units, extent of cutting boxes and planform strips
 ON_CIRCLE_TOL = 1.0e-3
 
 
@@ -107,55 +108,134 @@ def groove_spans(p: Params):
     return spans
 
 
-def piston(p: Params):
+def piston_dims(p: Params) -> dict:
     c = p.section("piston")
     R = piston_radius(p)
     top = p.compression_height
-    bottom = -p.L(c["skirt_below_pin"])
-    crown_under = top - p.L(c["crown_thickness"])
-    belt_bottom = groove_spans(p)[-1][1] - p.L(c["belt_extra_below_rings"])
-    r_belt = R - p.L(c["ring_belt_thickness"])
-    r_skirt = R - p.L(c["skirt_wall"])
-    flat_x = p.L(c["skirt_flat_half_width"])
-    span = 2 * R  # generous extent for cutting boxes
+    spans = groove_spans(p)
+    return {"R": R, "top": top, "crown_under": top - p.L(c["crown_thickness"]),
+            "belt_bottom": spans[-1][1] - p.L(c["belt_extra_below_rings"]),
+            "r_belt": R - p.L(c["ring_belt_thickness"]), "r_groove": R - p.L(c["groove_depth"]),
+            "groove1_top": spans[0][0], "boss_r": p.L(c["boss_radius"]), "boss_gap": boss_gap(p),
+            "panel_to_crown": bool(c["side_panel_to_crown"]),
+            "flat_x": p.L(c["skirt_flat_half_width"]), "pin_r": p.L(p.section("wrist_pin")["outer_diameter"]) / 2}
 
-    body = cyl_z(R, bottom, top)
-    body -= cyl_z(r_skirt, bottom, belt_bottom)
-    body -= cyl_z(r_belt, belt_bottom, crown_under)
-    # relieve the skirt on the pin sides, then close it with side panels
-    for s in (-1, 1):
-        x0, x1 = sorted((s * flat_x, s * span))
-        body -= box(x0, x1, -span, span, bottom, belt_bottom)
-    panel_t = p.L(c["side_panel_thickness"])
-    panels = None
-    for s in (-1, 1):
-        x0, x1 = sorted((s * flat_x, s * (flat_x - panel_t)))
-        z_pan = crown_under if c["side_panel_to_crown"] else belt_bottom
-        pan = box(x0, x1, -span, span, bottom, z_pan) & cyl_z(R, bottom, top)
-        panels = pan if panels is None else panels + pan
-    body += panels
-    body += boss_pillars(p, R, top, crown_under, belt_bottom, r_belt)
-    body -= cyl_x(p.L(p.section("wrist_pin")["outer_diameter"]) / 2, -span, span)
-    # ring grooves
+
+def piston_blank(p: Params, df: dict | None = None):
+    """Piston body shared by the CAD and the FEA (ADR 0006): crown, top land, ring belt (grooves filled), skirt,
+    side panels, pillars, pin bore, with the drawing blends of spec/fea.yaml piston.defeature (df: radii in CAD
+    units; default from spec/fea.yaml). The CAD piston cuts the ring grooves, circlip grooves and valve pockets
+    from it (`piston`); the FEA analyses it as is (quarter)."""
+    d = piston_dims(p)
+    if df is None:
+        df = {k: p.L(v) for k, v in p.fea["piston"]["defeature"].items()}
+    R, top, cu, bb, rb, rg, g1 = (d[k] for k in ("R", "top", "crown_under", "belt_bottom", "r_belt", "r_groove",
+                                                  "groove1_top"))
+    c = p.section("piston")
+    zbot = -p.L(c["skirt_below_pin"])
+    rs, fx, pt = R - p.L(c["skirt_wall"]), d["flat_x"], p.L(c["side_panel_thickness"])
+    # axisymmetric crown + top land + grooved belt + skirt, profile in the (r, z) half plane. Ring grooves
+    # filled (the lands between grooves stiffen the belt like hoops; cutting the belt back to the groove root
+    # would leave a 1.5 mm wall and grossly understate the crown edge support).
+    prof = Polygon((0, top), (R, top), (R, zbot), (rs, zbot), (rs, bb), (rb, bb), (rb, cu), (0, cu), align=None)
+    prof = fillet_vertices(prof, df["crown_under_fillet"], lambda v: abs(v.X - rb) < TOL and abs(v.Y - cu) < TOL)
+    prof = fillet_vertices(prof, df["skirt_belt_fillet"], lambda v: abs(v.X - rs) < TOL and abs(v.Y - bb) < TOL)
+    body = revolve(Plane.XZ * prof, Axis.Z)
+    # skirt relief on the pin sides below the belt (cutter edge rounded: blend at the relief corner)
+    fr = df["panel_fillet"]
+    relief = fillet_vertices(Polygon((fx, zbot - 1.0), (BIG, zbot - 1.0), (BIG, bb), (fx, bb), align=None), fr,
+                           lambda v: abs(v.X - fx) < TOL and abs(v.Y - bb) < TOL)
+    relief = extrude(Plane.XZ * relief, amount=BIG, both=True)
+    body -= relief
+    body -= relief.mirror(Plane.YZ)
+    # side panels joining the skirt halves at the reliefs; with side_panel_to_crown they run on up to the crown
+    # underside (walls tying crown, ring belt, skirt and pillars). Blends: tangent flare into the crown
+    # underside (xz profile), planform webs into the skirt bore (below the belt bottom), the ring-belt
+    # inner wall and the pillar flanks (above), and a flare under the belt bottom between belt and skirt bore.
+    br = d["boss_r"]
+    ztop = cu if d["panel_to_crown"] else bb
+    pp = Polygon((fx - pt, zbot), (fx, zbot), (fx, ztop + fr), (fx - pt - 2 * fr, ztop + fr), (fx - pt - 2 * fr, ztop),
+                 (fx - pt, ztop), align=None)
+    if d["panel_to_crown"]:
+        pp = fillet_vertices(pp, fr, lambda v: abs(v.X - (fx - pt)) < TOL and abs(v.Y - ztop) < TOL)
+    # fillet material only (no caps), so the piece is fully fused to panel face and belt bottom
+    under = Pos(fx - pt - fr / 2, bb - fr / 2) * Rectangle(fr, fr) - Pos(fx - pt - fr, bb - fr) * Circle(fr)
+    for mir in (False, True):
+        pan = extrude(Plane.XZ * pp, amount=BIG, both=True)
+        und = extrude(Plane.XZ * under, amount=BIG, both=True) & (cyl_z(rs, bb - 2 * fr, bb + fr)
+                                                                   - cyl_z(rb, bb - 2 * fr, bb + fr))
+        piece = (pan & cyl_z(R, zbot, ztop + fr)) + und
+        body += piece.mirror(Plane.YZ) if mir else piece
+    strip = Rectangle(pt, 2 * (R + 2.0))
+    strips = Pos(fx - pt / 2, 0) * strip + Pos(-(fx - pt / 2), 0) * strip
+    inner_x = lambda v: abs(abs(v.X) - (fx - pt)) < TOL
+
+    def webs(other, pred, clip, radius=fr):
+        sharp = strips + other
+        return (fillet_vertices(sharp, radius, lambda v: pred(v) and inner_x(v)) - sharp) & clip
+
+    on_r = lambda r: (lambda v: abs((v.X ** 2 + v.Y ** 2) ** 0.5 - r) < 1.0e-3)
+    # panel to skirt bore below the belt: its own (larger) blend, df panel_skirt_fillet (ADR 0006)
+    w = webs(Circle(R + 2.0) - Circle(rs), on_r(rs), Circle(rs), df.get("panel_skirt_fillet", fr))
+    body += extrude(Plane.XY.offset(zbot) * w, amount=bb - zbot)
+    if d["panel_to_crown"]:
+        w = webs(Circle(R + 2.0) - Circle(rb), on_r(rb), Circle(rb))
+        body += extrude(Plane.XY.offset(bb) * w, amount=cu + fr - bb)
+    w = webs(Rectangle(2 * fx, 2 * br), lambda v: abs(abs(v.Y) - br) < TOL, Rectangle(2 * fx, 2 * (br + fr + 1.0)))
+    body += extrude(Plane.XY * w, amount=ztop + fr)
+    # pin-boss pillars, belt ties and crown bridge: the CAD geometry itself (cad.piston.boss_pillars), which
+    # already carries its blends
+    body += boss_pillars(p, R, top, cu, bb, rb)
+    body -= cyl_x(d["pin_r"], -2 * R, 2 * R)
+    return body
+
+
+
+
+def piston(p: Params):
+    """CAD piston: the shared blank with ring grooves, circlip grooves and valve pockets cut."""
+    c = p.section("piston")
+    R = piston_radius(p)
+    span = 2 * R
+    body = piston_blank(p)
     r_groove = R - p.L(c["groove_depth"])
     for zt, zb in groove_spans(p):
         body -= tube_z(span, r_groove, zb, zt)
     for cp in clips(p):  # circlip grooves in the pin bore
         body -= cp
-    if c["valve_reliefs"]:
-        body -= valve_reliefs(p, top)
+    pk = valve_pockets(p)
+    if pk is not None:
+        body -= pk
     return body
 
 
-def valve_reliefs(p: Params, crown_z: float):
-    """Shallow cylindrical pockets under each valve head (optional, cad.yaml)."""
+def valve_pockets(p: Params):
+    """Crown valve pockets (spec/valvetrain.yaml combustion_chamber pocket depths), piston-local frame.
+
+    Each pocket is a cylinder on its valve axis, diameter = valve head + valve_relief_margin, whose floor is normal
+    to the valve axis at valve_to_crown_at_tdc + pocket_depth below the closed valve face (piston at TDC): exactly
+    the gap the M3 clearance model (kin/valvetrain.py valve_pocket_gap) uses. With a flat crown the floor plane
+    leaves a crescent, deepest under the valve's outer edge."""
+    from cad.valvetrain import valve_frame
     c = p.section("piston")
-    depth = p.L(c["valve_relief_depth"])
+    if not c["valve_pockets"]:
+        return None
+    cc = p.vt["combustion_chamber"]
+    g0 = p.L(cc["valve_to_crown_at_tdc"])
     out = None
-    for _kind, _sign, x, y, d in p.valve_layout():
-        pocket = cyl_z((d + p.L(c["valve_relief_margin"])) / 2, crown_z - depth, crown_z, x, y)
-        out = pocket if out is None else out + pocket
-    return out & cyl_z(piston_radius(p), crown_z - depth, crown_z)
+    to_local = Pos(-p.cyl_x(0), 0.0, -p.tdc_pin_z)
+    for kind, _sign, x, _y, d in p.valve_layout():
+        depth = p.L(cc[f"{kind}_pocket_depth"])
+        if depth <= 0.0:
+            continue
+        r = (d + p.L(c["valve_relief_margin"])) / 2
+        cut = to_local * valve_frame(p, 0, kind, x) * cyl_z(r, -(g0 + depth), p.L(c["valve_pocket_cutter_height"]))
+        out = cut if out is None else out + cut
+    if out is None:
+        return None
+    R = piston_radius(p)
+    top = p.compression_height
+    return out & cyl_z(R, top - 2 * R, top)
 
 
 def pin_half_length(p: Params) -> float:

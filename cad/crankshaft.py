@@ -1,4 +1,5 @@
-"""Flat-plane crankshaft: 5 mains, 4 crankpins, 8 counterweighted webs, snout and flange.
+"""Flat-plane crankshaft: 5 mains, 4 crankpins, 8 counterweighted webs, snout and flange
+(tapped for the flywheel bolts).
 
 Frame: crank axis along x (front = -x, ADR 0001 body axes), z up the bore axis, built at
 crank angle 0 (cylinder 1 at firing TDC). Crankpin of cylinder k sits at mechanical angle
@@ -87,6 +88,12 @@ def crankshaft(p: Params, with_counterweights: bool = True):
     # rear stub through the block end wall, then the flywheel flange outside it
     stub_end = rear + p.L(p.section("block")["end_wall"]) + p.L(c["flange_gap"])
     shaft += cyl_x(main_r, rear, stub_end)
-    shaft += cyl_x(p.L(c["flange_diameter"]) / 2, stub_end, stub_end + p.L(c["flange_length"]))
+    fx1 = stub_end + p.L(c["flange_length"])
+    shaft += cyl_x(p.L(c["flange_diameter"]) / 2, stub_end, fx1)
+    # tapped flywheel-bolt holes through the flange (cad/front.py flywheel_bolt; thread = zero-clearance fit)
+    from cad.front import bolt_yz, fc
+    r_bolt = p.L(fc(p)["flywheel"]["bolt_diameter"]) / 2
+    for y, z in bolt_yz(p):
+        shaft -= cyl_x(r_bolt, stub_end - 1.0, fx1 + 1.0, y, z)
     return shaft
 

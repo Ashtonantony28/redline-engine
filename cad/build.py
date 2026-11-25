@@ -2,7 +2,9 @@
 
     python -m cad.build [--crank-deg 0] [--out out/cad]
 
-Writes <out>/<part>.{step,stl,glb} (mm), the assembly at the requested crank angle, and
+Writes <out>/<part>.{step,stl,glb} (mm; STL/glTF tessellated by cad/tess.py with the absolute chordal deviation and
+angular tolerance of spec/cad.yaml `export`, smooth per-vertex normals in the glTF), the assembly at the requested
+crank angle (STEP exact; STL/glTF at the viewer tolerance `viz_*` to keep the files usable), and
 <out>/mass_properties.json (SI, ADR 0001). All numbers are modelled: there is no physical engine.
 """
 from __future__ import annotations
@@ -12,12 +14,12 @@ import json
 from pathlib import Path
 
 import numpy as np
-from build123d import Compound, Unit, export_gltf, export_step, export_stl
+from build123d import Compound, Unit, export_step
 
-from cad.assembly import assembly, parts
+from cad import tess
+from cad.assembly import assembly, instances, motions, parts, placed_parts
 from cad.massprops import mass_props
-from cad.measure import (clearance_gas_volume, conrod_centre_distance, counterweight_moments,
-                         crank_throws)
+from cad.measure import clearance_gas_volume, conrod_centre_distance, counterweight_moments, crank_throws
 from cad.params import params
 from cad.piston import piston_parts
 from redline.spec import ROOT
@@ -52,10 +54,15 @@ def mass_report(p=None) -> dict:
     report["piston_assembly"] = {**pa.to_dict(), "budget_kg": masses["piston_assembly"],
                                  "rel_err": rel_err(pa.mass, masses["piston_assembly"])}
 
-    rod = mps["conrod"]
+    # conrod as fitted: rod body + cap + two bolts (bearing shells are reported separately)
+    rod_names = ("conrod", "conrod_cap", "conrod_bolt_a", "conrod_bolt_b")
+    rod = mps[rod_names[0]]
+    for n in rod_names[1:]:
+        rod = rod + mps[n]
     L = p.geom.conrod_length
     se_frac_cad = rod.com[2] / L  # big end at z = 0, small end at z = L
     report["conrod"] = {
+        "parts": list(rod_names),
         "mass_kg": rod.mass, "budget_kg": masses["conrod"], "rel_err": rel_err(rod.mass, masses["conrod"]),
         "centre_distance_m": p.to_si_length(conrod_centre_distance(p, src["conrod"][0])),
         "spec_centre_distance_m": L,
@@ -82,31 +89,57 @@ def mass_report(p=None) -> dict:
         "balance": counterweight_moments(p, crank, p.density("crankshaft")),
     }
 
-    v_cad = clearance_gas_volume(p, src["head"][0], src["piston"][0]) / p.k**3
+    v_cad = clearance_gas_volume(p) / p.k**3
     v_geo = p.geom.clearance_volume
     report["combustion_chamber"] = {
-        "roof_angle_deg": p.roof_angle_deg,
+        "intake_valve_angle_deg": p.valve_angle_deg("intake"),
+        "exhaust_valve_angle_deg": p.valve_angle_deg("exhaust"),
+        "chamber_margin_m": p.to_si_length(p.chamber_margin),
         "clearance_volume_cad_m3": v_cad,
         "clearance_volume_geometric_m3": v_geo,
         "rel_err": rel_err(v_cad, v_geo),
         "compression_ratio_cad": (p.geom.swept_volume + v_cad) / v_cad,
         "crown_to_head_face_m": p.to_si_length(p.head_face_z - p.crown_tdc_z),
     }
+    # flywheel (+ ring gear + bolts) and damper ring against their specs (dimensions solved in cad/front.py)
+    fw = ["flywheel", "ring_gear"] + [n for n in src if n.startswith("flywheel_bolt_")]
+    i_fw = sum(float(mps[n].inertia_about(CRANK_AXIS_POINT)[0, 0]) for n in fw)
+    report["flywheel"] = {"parts": fw, "mass_kg": sum(mps[n].mass for n in fw), "inertia_about_crank_axis_kgm2": i_fw,
+                          "budget_kgm2": masses["flywheel_inertia"], "rel_err": rel_err(i_fw, masses["flywheel_inertia"])}
+    i_ring = float(mps["damper_ring"].inertia_about(CRANK_AXIS_POINT)[0, 0])
+    ring_spec = p.dyn["torsional"]["damper"]["ring_inertia"]
+    report["damper_ring"] = {"mass_kg": mps["damper_ring"].mass, "inertia_about_crank_axis_kgm2": i_ring,
+                             "spec_kgm2": ring_spec, "rel_err": rel_err(i_ring, ring_spec)}
+    from cad.valvetrain import spring_design
+    va = p.vt["valve_assembly"]
+    report["valvetrain"] = {
+        "intake_valve_mass_kg": mps["valve_intake"].mass, "intake_valve_spec_kg": va["intake_valve_mass"],
+        "exhaust_valve_mass_kg": mps["valve_exhaust"].mass, "exhaust_valve_spec_kg": va["exhaust_valve_mass"],
+        "retainer_and_collets_kg": mps["retainer_intake"].mass + 2 * mps["collet_intake"].mass,
+        "retainer_keepers_spec_kg": va["retainer_keepers_mass"],
+        "spring": spring_design(p),
+        "spring_cad_mass_kg": mps["spring_intake"].mass,
+    }
     return report
 
 
-def export(shape, stem: Path) -> list[str]:
+def export(shape, stem: Path, lin_mm: float, ang: float, step: bool = True) -> list[str]:
+    """STEP (exact) + STL and glTF from cad/tess.py at an absolute chordal deviation lin_mm (smooth normals)."""
     written = []
-    export_step(shape, str(stem.with_suffix(".step")), unit=Unit.MM)
-    written.append(stem.with_suffix(".step").name)
-    export_stl(shape, str(stem.with_suffix(".stl")))
-    written.append(stem.with_suffix(".stl").name)
-    try:
-        export_gltf(shape, str(stem.with_suffix(".glb")), unit=Unit.MM, binary=True)
-        written.append(stem.with_suffix(".glb").name)
-    except Exception as exc:  # glTF is optional: report, do not fail the build
-        print(f"glTF export skipped for {stem.name}: {exc}")
+    if step:
+        export_step(shape, str(stem.with_suffix(".step")), unit=Unit.MM)
+        written.append(stem.with_suffix(".step").name)
+    mesh = tess.triangulate(shape, lin_mm, ang)
+    tess.write_stl(mesh, stem.with_suffix(".stl"))
+    tess.write_glb({stem.name: mesh}, stem.with_suffix(".glb"))
+    written += [stem.with_suffix(".stl").name, stem.with_suffix(".glb").name]
     return written
+
+
+def export_settings(p, viz: bool = False):
+    ex = p.section("export")
+    pre = "viz_" if viz else ""
+    return p.L(ex[f"{pre}linear_deflection"]), float(ex[f"{pre}angular_deflection_rad"])
 
 
 def main(argv=None) -> int:
@@ -119,11 +152,24 @@ def main(argv=None) -> int:
     p = params()
 
     files = []
+    lin, ang = export_settings(p)
     for name, (shape, _mat) in parts(p).items():
-        files += export(shape, out / name)
+        files += export(shape, out / name, lin, ang)
     piston_set = Compound(children=[s for s, _m in piston_parts(p).values()], label="piston_assembly")
-    files += export(piston_set, out / "piston_assembly")
-    files += export(assembly(args.crank_deg, p), out / f"assembly_{args.crank_deg:g}deg")
+    files += export(piston_set, out / "piston_assembly", lin, ang)
+    vlin, vang = export_settings(p, viz=True)
+    stem = out / f"assembly_{args.crank_deg:g}deg"
+    export_step(assembly(args.crank_deg, p), str(stem.with_suffix(".step")), unit=Unit.MM)
+    files.append(stem.with_suffix(".step").name)
+    meshes = {}
+    src = parts(p)
+    for it in instances(p):
+        m = tess.triangulate(src[it.kind][0], vlin, vang)
+        loc = motions(p)[it.group].loc(args.crank_deg) * it.base
+        meshes[it.name] = tess.transformed(m, loc)
+    tess.write_glb(meshes, stem.with_suffix(".glb"), quantize=True)
+    tess.write_stl(tess.merge(list(meshes.values())), stem.with_suffix(".stl"))
+    files += [stem.with_suffix(".stl").name, stem.with_suffix(".glb").name]
 
     report = mass_report(p)
     report["assembly_crank_deg"] = args.crank_deg
@@ -137,7 +183,10 @@ def main(argv=None) -> int:
     print(f"crank inertia   {cr['inertia_about_crank_axis_kgm2']:.5f} kg m^2 vs {cr['budget_kgm2']} "
           f"({cr['rel_err']:+.2%}), static imbalance {cr['balance']['crank_static_imbalance_kgm']:.2e} kg m")
     print(f"clearance vol   {ch['clearance_volume_cad_m3'] * 1e6:.3f} cm^3 vs "
-          f"{ch['clearance_volume_geometric_m3'] * 1e6:.3f} ({ch['rel_err']:+.3%}), roof {ch['roof_angle_deg']:.2f} deg")
+          f"{ch['clearance_volume_geometric_m3'] * 1e6:.3f} ({ch['rel_err']:+.3%}), CR {ch['compression_ratio_cad']:.3f}")
+    fw, dr = report["flywheel"], report["damper_ring"]
+    print(f"flywheel        {fw['inertia_about_crank_axis_kgm2']:.4f} kg m^2 vs {fw['budget_kgm2']} ({fw['rel_err']:+.2%}); "
+          f"damper ring {dr['inertia_about_crank_axis_kgm2']:.5f} vs {dr['spec_kgm2']} ({dr['rel_err']:+.2%})")
     return 0
 
 

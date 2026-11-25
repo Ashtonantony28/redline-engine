@@ -10,7 +10,6 @@ from cad.conrod import big_end_bore_r, small_end_bore_r
 from cad.crankshaft import journal_spans, pin_yz, web
 from build123d import Pos
 
-from cad.head import valve_cuts
 from cad.massprops import MassProps, mass_props
 from cad.params import Params
 from cad.primitives import cyl_x, cyl_z
@@ -20,8 +19,9 @@ RADIUS_MATCH_TOL = 1e-6  # CAD units: picks circle edges of a given nominal radi
 
 def common_volume(a, b) -> float:
     """Volume shared by two solids (CAD units^3). Sums the solids of the boolean common so an
-    empty (null) result reads as zero."""
-    return float(sum(s.volume for s in (a & b).solids()))
+    empty (null) result reads as zero (build123d returns None for an empty Solid & Part common)."""
+    r = a & b
+    return 0.0 if r is None else float(sum(s.volume for s in r.solids()))
 
 
 def circle_centres(shape, radius: float) -> list[np.ndarray]:
@@ -42,20 +42,27 @@ def crank_throws(p: Params, crank) -> list[float]:
     return [float(math.hypot(c[1], c[2])) for c in circle_centres(crank, r_pin)]
 
 
-def clearance_gas_volume(p: Params, head_solid, piston_solid, idx: int = 0) -> float:
-    """CAD clearance volume of cylinder idx at TDC (CAD units^3), measured from the actual
-    head and piston solids: the bore cylinder from half-way down the top land up to the roof
-    ridge, minus the head, minus the piston placed at TDC (so crown reliefs count), minus the
-    seat/throat cuts (closed valves fill them flush with the roof). Independent of the
-    analytic roof-angle solve in Params. The thin top-land crevice (skirt clearance) inside
-    the region is included; it is ~1e-4 of the clearance volume."""
+def clearance_gas_volume(p: Params, idx: int = 0) -> float:
+    """CAD clearance volume of cylinder idx at TDC (CAD units^3), measured from the actual solids: the bore cylinder
+    from half-way down the top land up to the head face plus the pent-roof chamber cavity (the gas space the closed
+    valves seal; the port volume behind the valve heads is not clearance volume), minus the head, the seat inserts,
+    the closed valves, the spark plug and the piston at TDC (so the crown valve pockets count). Not included: the
+    head-gasket fire-ring annulus outside the bore radius (~0.4 % of the volume) and the ring-land crevices below
+    half the top land."""
+    from cad.assembly import instances, motions, parts
+    src = parts(p)
+    mot = motions(p)
     x = p.cyl_x(idx)
     z0 = p.crown_tdc_z - p.L(p.section("piston")["top_land"]) / 2
-    region = cyl_z(p.bore_r, z0, p.head_face_z + p.roof_height, x)
-    region -= head_solid
-    region -= Pos(x, 0.0, p.crown_tdc_z - p.compression_height) * piston_solid
-    region -= valve_cuts(p, idx)
-    return region.volume
+    from cad.head import chamber_cavity
+    region = cyl_z(p.bore_r, z0, p.head_face_z, x).fuse(chamber_cavity(p, idx))
+    cyl = idx + 1
+    tdc = p.firing_phase_deg(idx)          # crank angle of this cylinder's firing TDC (valves closed)
+    tools = [src["head"][0]]
+    for it in instances(p):
+        if it.cyl == cyl and (it.kind.startswith(("valve_", "seat_insert_", "spark_plug")) or it.kind == "piston"):
+            tools.append(src[it.kind][0].moved(mot[it.group].loc(tdc) * it.base))
+    return region.cut(*tools).volume
 
 
 def throw_solids(p: Params, idx: int, with_counterweights: bool):

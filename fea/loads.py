@@ -18,7 +18,7 @@ from functools import lru_cache
 
 import numpy as np
 
-from cad.conrod import conrod
+from cad.conrod import conrod_parts
 from cad.massprops import mass_props
 from cad.params import Params
 from cad.piston import piston_parts
@@ -38,10 +38,19 @@ DEG = math.pi / 180.0
 # ---------------------------------------------------------------------------------------------
 # masses from CAD
 # ---------------------------------------------------------------------------------------------
+def fitted_conrod_mass_props(p: Params):
+    """Conrod as fitted: rod body + cap + two bolts (cad/conrod.py conrod_parts; same source as cad.build)."""
+    rod = None
+    for k, s in conrod_parts(p).items():
+        m = mass_props(s, p.density("conrod_bolt" if "bolt" in k else k), p.k)
+        rod = m if rod is None else rod + m
+    return rod
+
+
 def cad_masses(p: Params) -> dict:
     """Piston assembly and conrod masses and the conrod small-end share from the CAD solids."""
     pa = sum(mass_props(s, p.density(m), p.k).mass for s, m in piston_parts(p).values())
-    rod = mass_props(conrod(p), p.density("conrod"), p.k)
+    rod = fitted_conrod_mass_props(p)
     frac = float(rod.com[2] / p.geom.conrod_length)
     return {"piston_assembly": pa, "conrod": rod.mass, "conrod_small_end_fraction": frac,
             "reciprocating": pa + frac * rod.mass}

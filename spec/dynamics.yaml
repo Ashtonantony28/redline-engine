@@ -34,8 +34,10 @@ flywheel:
 
 bearings:
   oil_viscosity: 0.0070          # Pa s, effective film viscosity, SAE 5W-30 at ~110 C (assumed)
-  main:    {diameter: 0.056, length: 0.019, radial_clearance: 25.0e-6}   # length = land length net of groove
-  big_end: {diameter: 0.048, length: 0.017, radial_clearance: 22.0e-6}
+  # diameters = the CAD journals (spec/cad.yaml crankshaft main_diameter / pin_diameter, 52 / 45 mm); checked by
+  # tests/test_m5_dynamics.py so the two specs cannot drift apart again (they were 56 / 48 mm before)
+  main:    {diameter: 0.052, length: 0.019, radial_clearance: 25.0e-6}   # length = land length net of groove
+  big_end: {diameter: 0.045, length: 0.017, radial_clearance: 22.0e-6}
   # Typical design limit of minimum oil film thickness for automotive crank bearings is of order 1 um
   # (e.g. F. A. Martin, "Developments in engine bearing design", Tribology International 16(3), 1983;
   # Hirani, Athre, Biswas, "Dynamically loaded finite length journal bearings", J. Tribology, 1999).

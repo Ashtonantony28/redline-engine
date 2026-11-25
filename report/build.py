@@ -100,7 +100,7 @@ def m1(cfg):
         return None
     d = json.loads(p.read_text())
     return {"piston_assembly": d["piston_assembly"], "conrod": d["conrod"], "recip": d["reciprocating_mass"],
-            "crank": d["crankshaft"], "chamber": d["combustion_chamber"]}
+            "crank": d["crankshaft"], "chamber": d["combustion_chamber"], **({"flywheel": d["flywheel"]} if "flywheel" in d else {})}
 
 
 def m2(cfg):
@@ -353,13 +353,19 @@ def render(d: dict) -> str:
           f"(CR {c['chamber']['compression_ratio_cad']:.3f}) | {c['chamber']['clearance_volume_geometric_m3'] * 1e6:.2f} cm^3 | "
           f"{pct(c['chamber']['rel_err'], 3)} |")
         A("")
-        A(f"Exports: STEP / STL / glTF in `out/cad/` (`python -m cad.build`); the glTF parts drive the M10 replay.")
+        if "flywheel" in c:
+            A(f"| Flywheel + ring gear + bolts inertia | {c['flywheel']['inertia_about_crank_axis_kgm2']:.4f} kg m^2 | "
+              f"{c['flywheel']['budget_kgm2']} kg m^2 | {pct(c['flywheel']['rel_err'], 2)} |")
+        A("")
+        A("Exports: STEP / STL / glTF in `out/cad/` (`python -m cad.build`, absolute-deflection tessellation from "
+          "cad/tess.py). Clash, clearance, support and tessellation audit: `python -m cad.audit --tag final` "
+          "(docs/CAD-AUDIT.md, renders in docs/renders/).")
     else:
         A("*out/cad/mass_properties.json not found: run `python -m cad.build`.*")
     A("")
-    A("*Known gaps:* the block is monolithic (no separate main caps), crank fillets are not in the solid, the head "
-      "is a simplified slab with chambers, seats and port throats, and the camshafts, valves, intake manifold and "
-      "exhaust header of the plan are not CAD parts (cams exist as kin.cam profiles only).")
+    A("*Known gaps:* crank fillets are not in the CAD solid (FEA only); threads are line-to-line cylinders; the head "
+      "has no water jacket, oil drains or cam cover; springs are placed at installed length and checked at full lift "
+      "separately; spec/dynamics.yaml bearing diameters (56/48 mm) differ from the CAD journals (52/45 mm).")
     A("")
 
     # ---- M2

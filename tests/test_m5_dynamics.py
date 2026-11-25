@@ -231,3 +231,15 @@ def test_provider_placeholder_ignores_speed():
     from dyn.pressure import PressureProvider
     pv = PressureProvider("placeholder")
     assert pv("full_load", 1500) is pv("full_load", 7000)
+
+
+def test_bearing_diameters_match_cad():
+    """spec/dynamics.yaml journal diameters are the CAD crankshaft's (spec/cad.yaml), so the film model and the
+    3D bearing shells describe the same bearings."""
+    import yaml
+    from pathlib import Path
+    root = Path(__file__).resolve().parents[1]
+    dyn = yaml.safe_load((root / "spec" / "dynamics.yaml").read_text())["bearings"]
+    crank = yaml.safe_load((root / "spec" / "cad.yaml").read_text())["crankshaft"]
+    assert dyn["main"]["diameter"] == pytest.approx(crank["main_diameter"], abs=1e-9)
+    assert dyn["big_end"]["diameter"] == pytest.approx(crank["pin_diameter"], abs=1e-9)

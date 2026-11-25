@@ -17,7 +17,7 @@ from build123d import (Box, Circle, Plane, Polygon, Pos, Rectangle, Unit, export
 from cad.conrod import big_end_bore_r, small_end_bore_r
 from cad.crankshaft import web
 from cad.params import Params
-from cad.piston import boss_gap, boss_pillars, groove_spans, piston_radius
+from cad.piston import piston_blank, piston_dims  # noqa: F401  (piston_dims re-exported for fea.parts.piston)
 from cad.primitives import box, cyl_x, cyl_z
 
 TOL = 1.0e-6          # CAD units, vertex / face position matching
@@ -147,81 +147,11 @@ def crank_throw_solid(p: Params):
 # ---------------------------------------------------------------------------------------------
 # piston (quarter)
 # ---------------------------------------------------------------------------------------------
-def piston_dims(p: Params) -> dict:
-    c = p.section("piston")
-    R = piston_radius(p)
-    top = p.compression_height
-    spans = groove_spans(p)
-    return {"R": R, "top": top, "crown_under": top - p.L(c["crown_thickness"]),
-            "belt_bottom": spans[-1][1] - p.L(c["belt_extra_below_rings"]),
-            "r_belt": R - p.L(c["ring_belt_thickness"]), "r_groove": R - p.L(c["groove_depth"]),
-            "groove1_top": spans[0][0], "boss_r": p.L(c["boss_radius"]), "boss_gap": boss_gap(p),
-            "panel_to_crown": bool(c["side_panel_to_crown"]),
-            "flat_x": p.L(c["skirt_flat_half_width"]), "pin_r": p.L(p.section("wrist_pin")["outer_diameter"]) / 2}
-
-
 def piston_solid(p: Params, fd: dict, quarter: bool = True):
-    """Defeatured piston (see spec/fea.yaml piston), pin axis along x at z = 0, crown up."""
-    d = piston_dims(p)
-    df = {k: p.L(v) for k, v in fd["defeature"].items()}
-    R, top, cu, bb, rb, rg, g1 = (d[k] for k in ("R", "top", "crown_under", "belt_bottom", "r_belt", "r_groove",
-                                                  "groove1_top"))
-    c = p.section("piston")
-    zbot = -p.L(c["skirt_below_pin"])
-    rs, fx, pt = R - p.L(c["skirt_wall"]), d["flat_x"], p.L(c["side_panel_thickness"])
-    # axisymmetric crown + top land + grooved belt + skirt, profile in the (r, z) half plane. Ring grooves
-    # filled (the lands between grooves stiffen the belt like hoops; cutting the belt back to the groove root
-    # would leave a 1.5 mm wall and grossly understate the crown edge support).
-    prof = Polygon((0, top), (R, top), (R, zbot), (rs, zbot), (rs, bb), (rb, bb), (rb, cu), (0, cu), align=None)
-    prof = _fillet_where(prof, df["crown_under_fillet"], lambda v: abs(v.X - rb) < TOL and abs(v.Y - cu) < TOL)
-    prof = _fillet_where(prof, df["skirt_belt_fillet"], lambda v: abs(v.X - rs) < TOL and abs(v.Y - bb) < TOL)
-    body = revolve(Plane.XZ * prof, Axis.Z)
-    # skirt relief on the pin sides below the belt (cutter edge rounded: blend at the relief corner)
-    fr = df["panel_fillet"]
-    relief = _fillet_where(Polygon((fx, zbot - 1.0), (BIG, zbot - 1.0), (BIG, bb), (fx, bb), align=None), fr,
-                           lambda v: abs(v.X - fx) < TOL and abs(v.Y - bb) < TOL)
-    relief = extrude(Plane.XZ * relief, amount=BIG, both=True)
-    body -= relief
-    body -= relief.mirror(Plane.YZ)
-    # side panels joining the skirt halves at the reliefs; with side_panel_to_crown they run on up to the crown
-    # underside (walls tying crown, ring belt, skirt and pillars). Blends: tangent flare into the crown
-    # underside (xz profile), planform webs into the skirt bore (below the belt bottom), the ring-belt
-    # inner wall and the pillar flanks (above), and a flare under the belt bottom between belt and skirt bore.
-    br = d["boss_r"]
-    ztop = cu if d["panel_to_crown"] else bb
-    pp = Polygon((fx - pt, zbot), (fx, zbot), (fx, ztop + fr), (fx - pt - 2 * fr, ztop + fr), (fx - pt - 2 * fr, ztop),
-                 (fx - pt, ztop), align=None)
-    if d["panel_to_crown"]:
-        pp = _fillet_where(pp, fr, lambda v: abs(v.X - (fx - pt)) < TOL and abs(v.Y - ztop) < TOL)
-    # fillet material only (no caps), so the piece is fully fused to panel face and belt bottom
-    under = Pos(fx - pt - fr / 2, bb - fr / 2) * Rectangle(fr, fr) - Pos(fx - pt - fr, bb - fr) * Circle(fr)
-    for mir in (False, True):
-        pan = extrude(Plane.XZ * pp, amount=BIG, both=True)
-        und = extrude(Plane.XZ * under, amount=BIG, both=True) & (cyl_z(rs, bb - 2 * fr, bb + fr)
-                                                                   - cyl_z(rb, bb - 2 * fr, bb + fr))
-        piece = (pan & cyl_z(R, zbot, ztop + fr)) + und
-        body += piece.mirror(Plane.YZ) if mir else piece
-    strip = Rectangle(pt, 2 * (R + 2.0))
-    strips = Pos(fx - pt / 2, 0) * strip + Pos(-(fx - pt / 2), 0) * strip
-    inner_x = lambda v: abs(abs(v.X) - (fx - pt)) < TOL
-
-    def webs(other, pred, clip, radius=fr):
-        sharp = strips + other
-        return (_fillet_where(sharp, radius, lambda v: pred(v) and inner_x(v)) - sharp) & clip
-
-    on_r = lambda r: (lambda v: abs((v.X ** 2 + v.Y ** 2) ** 0.5 - r) < 1.0e-3)
-    # panel to skirt bore below the belt: its own (larger) blend, df panel_skirt_fillet (ADR 0006)
-    w = webs(Circle(R + 2.0) - Circle(rs), on_r(rs), Circle(rs), df.get("panel_skirt_fillet", fr))
-    body += extrude(Plane.XY.offset(zbot) * w, amount=bb - zbot)
-    if d["panel_to_crown"]:
-        w = webs(Circle(R + 2.0) - Circle(rb), on_r(rb), Circle(rb))
-        body += extrude(Plane.XY.offset(bb) * w, amount=cu + fr - bb)
-    w = webs(Rectangle(2 * fx, 2 * br), lambda v: abs(abs(v.Y) - br) < TOL, Rectangle(2 * fx, 2 * (br + fr + 1.0)))
-    body += extrude(Plane.XY * w, amount=ztop + fr)
-    # pin-boss pillars, belt ties and crown bridge: the CAD geometry itself (cad.piston.boss_pillars), which
-    # already carries its blends
-    body += boss_pillars(p, R, top, cu, bb, rb)
-    body -= cyl_x(d["pin_r"], -2 * R, 2 * R)
+    """Defeatured piston (see spec/fea.yaml piston), pin axis along x at z = 0, crown up. The body is
+    cad.piston.piston_blank, the same solid the CAD piston is cut from (ring grooves, circlip grooves and valve
+    pockets are the CAD-only features; see spec/fea.yaml piston for the defeaturing)."""
+    body = piston_blank(p, {k: p.L(v) for k, v in fd["defeature"].items()})
     if quarter:
         body = body & _halfspace(x=True, y=True)
     return body
@@ -230,27 +160,8 @@ def piston_solid(p: Params, fd: dict, quarter: bool = True):
 # ---------------------------------------------------------------------------------------------
 # main bearing cap (half: y >= 0)
 # ---------------------------------------------------------------------------------------------
-def main_cap_dims(p: Params) -> dict:
-    c = p.section("main_cap")
-    bore_r = (p.L(p.section("crankshaft")["main_diameter"]) + p.L(p.section("block")["main_bore_over_journal"])) / 2
-    return {"bore_r": bore_r, "depth": bore_r + p.L(c["depth_below_bore"]), "half_span": p.L(c["half_span"]),
-            "bolt_y": p.L(c["bolt_spacing"]) / 2, "hole_r": p.L(c["bolt_hole_diameter"]) / 2,
-            "head_r": p.L(c["head_bearing_diameter"]) / 2, "corner_r": p.L(c["corner_radius"]),
-            "width": p.L(p.section("crankshaft")["main_width"])}
-
-
-def main_cap_solid(p: Params, half: bool = True):
-    """Cap below the crank axis (joint face at z = 0), bore axis along x, bolts vertical at y = +-bolt_y."""
-    d = main_cap_dims(p)
-    sk = Pos(0, -d["depth"] / 2) * Rectangle(2 * d["half_span"], d["depth"])
-    sk = _fillet_where(sk, d["corner_r"], lambda v: v.Y < -TOL)
-    cap = extrude(_yz(sk), amount=d["width"] / 2, both=True)
-    cap -= cyl_x(d["bore_r"], -d["width"], d["width"])
-    for s in (1, -1):
-        cap -= cyl_z(d["hole_r"], -2 * d["depth"], d["depth"], 0.0, s * d["bolt_y"])
-    if half:
-        cap = cap & _halfspace(y=True)
-    return cap
+# geometry lives in cad/maincap.py (one definition for the CAD assembly and the FEA)
+from cad.maincap import main_cap_dims, main_cap_solid  # noqa: E402,F401
 
 
 # ---------------------------------------------------------------------------------------------

@@ -16,6 +16,56 @@ materials:                     # which engine.yaml material each part is made fr
   crankshaft: steel_crank
   block: al_block
   head: al_block
+  conrod_cap: steel_rod
+  conrod_bolt: bolt_steel
+  main_cap: main_cap_iron          # nodular iron cap of spec/fea.yaml (the FEA main-cap model)
+  main_cap_bolt: bolt_steel
+  bearing_shell: bearing_trimetal
+  liner: grey_iron
+  head_gasket: gasket_mls
+  head_bolt: bolt_steel
+  oil_pan: al_block
+  pan_bolt: bolt_steel
+  valve: valve_steel
+  valve_spring: spring_steel
+  retainer: valve_steel
+  collet: valve_steel
+  shim: valve_steel
+  bucket: valve_steel
+  seat_insert: sintered_seat
+  guide: guide_bronze
+  spring_seat: valve_steel
+  camshaft: chilled_iron
+  cam_cap: al_block
+  cam_cap_bolt: bolt_steel
+  cam_pulley: steel_rod
+  crank_sprocket: steel_rod
+  idler: steel_rod
+  belt: belt_rubber
+  damper_hub: grey_iron
+  damper_rubber: belt_rubber
+  damper_ring: grey_iron
+  flywheel: grey_iron
+  ring_gear: steel_rod
+  flywheel_bolt: bolt_steel
+  spark_plug: plug_mix
+  intake_manifold: al_block
+  exhaust_header: stainless
+  manifold_bolt: bolt_steel
+material_data:                   # CAD-only materials (mass reporting and rendering; no structural analysis uses them)
+  main_cap_iron: {from: fea.materials.main_cap}
+  bolt_steel: {rho: 7850.0}      # quenched and tempered alloy steel (class 10.9 bolts)
+  bearing_trimetal: {rho: 7800.0} # steel-backed tri-metal shell, steel back dominates the mass
+  grey_iron: {rho: 7200.0}
+  gasket_mls: {rho: 7900.0}      # multi-layer stainless steel
+  valve_steel: {rho: 7850.0}     # valve, retainer, collets, shims, buckets (steel)
+  spring_steel: {rho: 7850.0, G: 79.3e+9}   # Cr-Si valve-spring wire, shear modulus 79.3 GPa
+  sintered_seat: {rho: 8100.0}   # sintered Fe-Cu-Co seat insert
+  guide_bronze: {rho: 8800.0}
+  chilled_iron: {rho: 7300.0}    # chilled cast-iron camshaft
+  belt_rubber: {rho: 1300.0}     # HNBR/glass-cord timing belt; damper rubber
+  plug_mix: {rho: 4500.0}        # spark plug: steel shell + alumina insulator, lumped
+  stainless: {rho: 7900.0}       # exhaust header tube
 piston:
   skirt_clearance: 0.00004     # m, diametral piston-to-bore clearance
   compression_height: 0.0275    # m, pin axis to crown top; M6: 28.5 -> 27.5 mm (top land 5.5 -> 5.0, oil groove still clears the pin bore)
@@ -39,9 +89,9 @@ piston:
   pillar_crown_radius: 0.010    # m, M6: tangent haunch of the boss pillars into the crown underside; cooling-jet redesign: 8 -> 10 mm
   pillar_blend_radius: 0.004   # m, M6: pillar re-entrant blends (tie to belt bottom / belt wall, vault ends)
   boss_side_gap: 0.0005        # m, gap between pin boss and conrod small end (each side)
-  valve_reliefs: false         # optional crown pockets
-  valve_relief_depth: 0.001    # m
-  valve_relief_margin: 0.002   # m, relief diameter over valve head diameter
+  valve_pockets: true          # crown valve pockets, floors per spec/valvetrain.yaml combustion_chamber pocket depths
+  valve_pocket_cutter_height: 0.010  # m, pocket cutter length above its floor (only needs to clear the crown)
+  valve_relief_margin: 0.002   # m, pocket diameter over valve head diameter
 wrist_pin:
   outer_diameter: 0.021        # m
   inner_diameter: 0.0135       # m
@@ -75,7 +125,7 @@ crankshaft:
   counterweight_radius: 0.0560  # m, tuned to masses.crank_inertia
   counterweight_angle_deg: 120.0  # included angle of the counterweight sector
   snout_diameter: 0.032         # m, front pulley snout
-  snout_length: 0.040           # m
+  snout_length: 0.076           # m, carries the timing pulley and the torsional damper hub (cad/front.py)
   flange_diameter: 0.080        # m, rear flywheel flange
   flange_length: 0.012          # m
   flange_gap: 0.002             # m, axial gap between block end wall and flange
@@ -84,7 +134,7 @@ crankshaft:
 block:
   end_wall: 0.012               # m, beyond the outer main journals
   half_width: 0.100             # m, in y (clears the big-end swing)
-  skirt_below_axis: 0.030       # m, block skirt below the crank axis (deep skirt)
+  skirt_below_axis: 0.060       # m, block skirt below the crank axis (deep skirt down to the pan rail)
   bore_length: 0.105            # m, liner length below the deck
   liner_thickness: 0.006        # m
   water_jacket: true
@@ -93,6 +143,40 @@ block:
   crank_swing_clearance: 0.006  # m, radial clearance around the counterweight swing
   piston_bdc_clearance: 0.004  # m, skirt bottom at BDC to the bore relief floor
   main_bore_over_journal: 0.003 # m, diametral (bearing shells)
+  liner_iron_thickness: 0.0025  # m, cast-in iron liner wall (inside the liner_thickness barrel)
+  jacket_wall: 0.006            # m, outer jacket wall
+  flare_bottom_z: 0.050         # m, crankcase flare starts (full half_width below)
+  flare_top_z: 0.125            # m, flare ends at the upper barrel section
+  crankcase_wall: 0.006         # m
+  bay_roof_gap: 0.004           # m, crankcase bay roof below the jacket floor
+  bore_relief_clearance: 0.001  # m, radial, skirt relief below the liner
+  pan_rail_lip: 0.008           # m, rail flange beyond the skirt
+  pan_rail_height: 0.012        # m
+  rib_thickness: 0.008          # m, external ribs at the bulkheads
+  rib_height: 0.004             # m
+  plan_corner_radius: 0.010     # m
+  profile_fillet: 0.012         # m, 2D fillets of the block section
+  end_edge_fillet: 0.004        # m
+  head_bolt:                    # one bolt under each cam journal: x = main bulkheads, y = cam axis (cad/block.py)
+    diameter: 0.010             # m (M10)
+    boss_diameter: 0.018
+    boss_bottom_z: 0.120
+    thread_depth: 0.030
+    thread_bottom_gap: 0.003
+    head_diameter: 0.018
+    head_height: 0.008
+  gallery:
+    y: -0.062                   # m, main oil gallery (intake side)
+    z: 0.110
+    diameter: 0.012
+    boss_diameter: 0.020
+    feed_diameter: 0.006        # drilled feed from the gallery to each main saddle
+  bulkhead_window:              # breather windows in the inner bulkheads (+y side, clear of the cap-bolt threads)
+    y0: 0.035
+    y1: 0.070
+    z0: 0.045
+    z1: 0.085
+    corner_radius: 0.006
 main_cap:                       # separate main bearing cap (the M1 block is monolithic); used by fea/
   depth_below_bore: 0.016       # m, cap section under the bearing bore
   half_span: 0.050              # m, in y from the bore axis
@@ -100,13 +184,222 @@ main_cap:                       # separate main bearing cap (the M1 block is mon
   bolt_hole_diameter: 0.0105    # m, clearance hole
   head_bearing_diameter: 0.020  # m, flanged bolt head bearing face diameter
   corner_radius: 0.004          # m, outer corners of the cap in the y-z plane
+  axial_clearance: 0.001        # m, each side between the cap/bulkhead faces and the crank web faces
+  thread_depth: 0.030           # m, cap-bolt thread engagement in the bulkhead
+  bolt_head_height: 0.008       # m
 head:
   gasket_thickness: 0.0007      # m, compressed head gasket
   piston_deck_clearance: 0.0005 # m, piston crown below the block deck at TDC
-  height: 0.120                 # m, head deck to cam cover face
-  roof_angle_deg: auto          # auto: solve the pent-roof angle for the spec compression ratio
-  valve_gap: 0.0020             # m, between two valves of the same kind
+  chamber_margin: auto          # auto: chamber wall offset around the valve sweep solved for the spec compression ratio
+  chamber_core_half_length: 0.008  # m, central chamber strip around the plug (x half length)
+  chamber_core_half_width: 0.010   # m, (y half width about the ridge)
+  valve_gap:                    # m, between the heads of two valves of the same kind
+    intake: 0.0040              # pitch 38 mm: 1 mm between seat inserts, 4.9 mm between the 33 mm bucket bores
+    exhaust: 0.0075             # pitch 36.5 mm: the 33 mm buckets set the pitch (3.4 mm between bores)
   valve_ridge_margin: 0.0010    # m, valve seat edge to roof ridge
-  seat_depth: 0.0015            # m, valve seat counterbore depth
   throat_fraction: 0.85         # port throat diameter / valve head diameter
-  port_depth: 0.030             # m, straight port throat modelled above the seat
+  intake_face_y: 0.090          # m, intake port flange face from the bore-axis plane
+  exhaust_face_y: 0.094         # m, exhaust port flange face
+  intake_port_rise: 0.019       # m, port flange centre above the roof at the valve centre
+  exhaust_port_rise: 0.017      # m
+  port_insert_overlap: 0.001    # m, port branch starts this far inside the seat insert bore
+  port_flange_overrun: 0.001    # m, port cutter runs past the flange face
+  port_tangent_scale: [1.0, 1.0]  # spline tangent scalars at the throat and at the flange
+  port_bolt_offset: 0.012       # m, manifold bolt axis beyond the port radius (in x)
+  lower_height: 0.052           # m, head face to the top of the lower (port) body
+  deck_lip: 0.004               # m, vertical lip at the deck width before the side flare
+  side_flare_height: 0.012      # m, flare from the deck width out to the port faces
+  tower_wall: 0.004             # m, bucket tower wall around the bucket bore
+  tower_root: 0.012             # m, tower starts this far below the spring floor (merges into the lower body)
+  insert_bore_lead: 0.0         # m, seat-insert counterbore starts this far below the roof plane
+  bucket_clearance: 0.00003     # m, radial bucket-to-bore running clearance
+  bucket_bore_runout: 0.002     # m, bucket bore continues below the bucket skirt at full lift
+  lobe_clearance: 0.002         # m, radial relief around the lobe envelope (base circle + lift)
+  head_bolt_journal_gap: 0.002  # m, head-bolt head top below the cam journal bore
+  head_bolt_clearance: 0.0005   # m, radial, bolt shank in the head
+  head_bolt_pocket_clearance: 0.001  # m, radial, around the bolt head in its pocket
+  head_bolt_pocket_roof: 0.001  # m, pocket roof below the cam journal bore
+  plug_boss_diameter: 0.028     # m, spark-plug tube boss in the cam valley
+  plug_tube_height: 0.050       # m, plug tube top above the lower body
+  plug_thread_diameter: 0.012   # m, M12 plug
+  plug_thread_length: 0.019     # m
+  plug_well_diameter: 0.021     # m, plug well above the seat step
+  spark_plug:
+    tip_protrusion: 0.0015      # m, thread end below the roof apex
+    electrode_diameter: 0.0025
+    electrode_length: 0.0015
+    seat_diameter: 0.0175
+    seat_height: 0.003
+    hex_across_flats: 0.016
+    hex_height: 0.008
+    insulator_diameter: 0.010
+    insulator_length: 0.030
+    terminal_diameter: 0.006
+    terminal_length: 0.008
+conrod_bolt:                    # rod bolts: tapped into the rod body, head in a spot face on the cap
+  diameter: 0.008               # m (M8)
+  head_diameter: 0.011
+  head_height: 0.005
+  spot_face_depth: 0.0          # m, head seat above the cap boss underside
+  spot_face_clearance: 0.0005   # m, radial around the head
+  hole_clearance: 0.0003        # m, radial, bolt in the cap
+  thread_depth: 0.011           # m, above the split plane
+  thread_bottom_gap: 0.001
+head_gasket:
+  fire_ring_clearance: 0.0005   # m, radial, fire opening over the bore
+  bolt_hole_clearance: 0.0005
+  coolant_holes_per_cylinder: 6
+  coolant_hole_diameter: 0.005
+oil_pan:
+  flange_thickness: 0.006
+  wall: 0.004
+  wall_inset: 0.004             # m, pan wall inside the skirt line
+  shallow_depth: 0.040          # m, below the flange (front, under the crank)
+  sump_depth: 0.130             # m, rear sump
+  sump_start_x: 0.020           # m, x where the floor reaches sump depth
+  sump_slope_run: 0.060
+  corner_radius: 0.015
+  bolts_per_side: 8
+  bolt_end_margin: 0.020
+  bolt_diameter: 0.006
+  bolt_hole_clearance: 0.0005
+  thread_depth: 0.010
+  thread_bottom_gap: 0.001
+  bolt_head_diameter: 0.010
+  bolt_head_height: 0.004
+valvetrain:                     # stations along each valve axis from the closed valve face (cad/valvetrain.py stack)
+  valve_length: 0.098
+  head_margin: 0.0012           # m, cylindrical margin of the valve head
+  face_width: 0.0015            # m, 45 deg seat face (radial)
+  collet_groove: {from_tip: 0.0045, width: 0.0015, depth: 0.0006}
+  tip_protrusion: 0.0025        # m, stem tip above the retainer top
+  insert: {height: 0.006, wall: 0.0015, radial_gap: 0.0002}
+  guide: {outer_diameter: 0.011, below_floor: 0.030, above_floor: 0.012, clearance: 0.00003}
+  spring_seat: {thickness: 0.001, outer_diameter: 0.025, radial_clearance: 0.0003}
+  spring: {mean_diameter: 0.021, dead_coils_each_end: 1.0}
+  retainer: {thickness: 0.0065, outer_diameter: 0.027, spigot_diameter: 0.017, spigot_height: 0.003,
+             cone_half_angle_deg: 7.0, bore_top_diameter: 0.0095}
+  collet: {height: 0.007, split_gap: 0.0008}
+  shim: {diameter: 0.010, thickness: 0.0025}
+  bucket: {height: 0.026, wall: 0.0012, crown: 0.003, exposed: 0.008, boss_wall: 0.0015, boss_depth: 0.0015}
+  cam: {journal_diameter: 0.026, journal_width: 0.020, core_diameter: 0.022, nose_diameter: 0.020, bore_diameter: 0.008,
+        bearing_clearance: 0.00004, front_step: 0.002, rear_overhang: 0.004}
+  cam_cap: {half_width: 0.023, height_over_journal: 0.008, edge_radius: 0.003, bolt_offset: 0.0175, bolt_diameter: 0.006,
+            bolt_hole_clearance: 0.0003, bolt_head_diameter: 0.010, bolt_head_height: 0.004, thread_depth: 0.012,
+            thread_bottom_gap: 0.002}
+front:                          # timing belt drive (HTD 8M), damper, flywheel
+  setback: 0.004                # m, pulley rear flange to the block front face
+  belt_width: 0.025
+  flange_thickness: 0.0015
+  flange_height: 0.003
+  rim_depth: 0.004              # m, pulley rim (tooth zone) depth
+  belt_pitch: 0.008
+  pitch_line_offset: 0.000686   # m, HTD 8M pitch-line differential
+  crank_teeth: 21               # cam pulleys have 2x (four-stroke)
+  cam_pulley_holes: 5
+  cam_pulley_hole_diameter: 0.020
+  idler_boss_diameter: 0.020
+  idler_rim_thickness: 0.004
+  idler_web: 0.004
+  tensioner_diameter: 0.060     # m, idler and tensioner rims
+  idler_yz: [0.050, 0.170]      # m, idler axis (exhaust side, block front face)
+  tensioner_yz: [-0.050, 0.160] # m
+  belt_thickness: 0.0055
+  damper:
+    hub_length: 0.030
+    ring_inner_diameter: 0.110
+    rubber_thickness: 0.004
+    web_thickness: 0.006
+    hub_diameter: 0.045
+    hub_rim_thickness: 0.004
+    ring_width: 0.022
+    poly_v_ribs: 6
+    poly_v_depth: 0.002
+    poly_v_pitch: 0.00356
+  flywheel:
+    pilot_diameter: 0.040
+    hub_diameter: 0.080
+    rim_inner_diameter: 0.200
+    outer_diameter: 0.280
+    hub_thickness: 0.020
+    web_thickness: 0.008
+    ring_gear_seat: 0.004
+    ring_gear_width: 0.012
+    bolts: 6
+    bolt_circle_diameter: 0.062
+    bolt_diameter: 0.010
+    bolt_hole_clearance: 0.0005
+    ring_gear_teeth: 116
+    ring_gear_root_over_rim: 0.001
+    ring_gear_tooth_height: 0.005
+    bolt_head_diameter: 0.016
+    bolt_head_height: 0.007
+    max_rim_width: 0.080
+manifolds:
+  wall: 0.003
+  flange_thickness: 0.010
+  flange_half_height: 0.030
+  flange_end_margin: 0.035      # m, intake common flange beyond the outer runners
+  exhaust_flange_bolt_margin: 0.010
+  bolt_diameter: 0.008
+  bolt_hole_clearance: 0.0005
+  bolt_thread_depth: 0.014
+  bolt_thread_bottom_gap: 0.002
+  bolt_head_diameter: 0.013
+  bolt_head_height: 0.005
+  intake:                       # swan-neck runners curling up and back over the head into a plenum above it
+    runner_out: 0.060           # m, straight leg out of the flange before the curl
+    curl_radius: 0.060          # m, centre-line radius of the two 90-deg curl bends
+    plenum_wall_y: -0.045       # m, plenum runner-side inner wall (y; head centre = 0)
+    plenum_width: 0.110         # m, plenum inner width along y (height solved from the gasdyn plenum volume)
+    plenum_fillet: 0.015        # m, inner edge radius of the plenum box
+    plenum_end_margin: 0.025    # m, plenum inner end walls beyond the outer runner bores
+    bellmouth_insert: 0.012     # m, bellmouth length inside the plenum (the runner length ends at its lip)
+    bellmouth_flare: 0.008      # m, lip radius over the runner bore
+    bellmouth_wall: 0.002       # m
+    throttle:                   # throttle body on a neck at the rear plenum end (bore = gasdyn inlet duct)
+      neck_length: 0.015        # m, neck beyond the plenum end wall, to the flange face
+      flange_over: 0.010        # m, flange radius over the bore
+      flange_thickness: 0.008   # m
+      body_length: 0.050        # m, flange face to the inlet face
+      wall: 0.006               # m
+      shaft_diameter: 0.008     # m
+      shaft_over: 0.008         # m, shaft ends beyond the body wall
+      blade_thickness: 0.002    # m
+      blade_open_deg: 20.0      # deg, blade angle from closed (as rendered)
+    bracket:                    # steel stay: tab under a pad on the plenum floor, plate on the block rear face
+      thickness: 0.006          # m
+      width: 0.040              # m, along y (centred on the plenum)
+      bottom_z: 0.150           # m, plate lower edge (crank axis z = 0)
+      block_bolt_z: [0.170, 0.195]   # m, bolts into the block rear wall
+      pad_length: 0.030         # m, pad along x on the flat plenum floor
+      pad_height: 0.010         # m
+      pad_bolt_dy: 0.010        # m, the two pad bolts at +- this from the bracket centre line (y)
+      thread_depth: 0.014       # m, bracket bolts into the block
+      pad_thread_depth: 0.008   # m
+  exhaust:                      # 4-2-1: pairs 1+4 and 2+3 merge, then the two secondaries merge in the collector
+    bend_radius: 0.040          # m, centre-line bend radius of every duct bend (~2 D)
+    primary_out: 0.050          # m, straight leg out of the head flange before the first bend
+    merge_y: 0.090              # m, pair 2+3 merge outboard of the exhaust flange (at x = 0)
+    merge_pair_dy: 0.075        # m, pair 1+4 merge further outboard
+    merge_drop: 0.330           # m, pair 1+4 merge below the port centre
+    inner_pair_extra_drop: 0.077  # m, pair 2+3 merges this much deeper (its primaries need the drop for their length)
+    merge_offset: 0.008         # m, each entering pipe's axis offset from the merge-cone axis
+    mouth_margin: 0.003         # m, mouth radius beyond the entering pipes' reach (no tangency)
+    entry_length: 0.045         # m, straight vertical entry into a merge cone / the collector
+    merge_cone_length: 0.040
+    secondary_drop: 0.330       # m, collector mouth below the deeper merge cone outlet
+    secondary_vertical: 0.090   # m, straight leg below each merge cone before the sideways swing
+    min_secondary_swing: 0.010  # m, bracket of the solved sideways swing (0 would make a straight, unfilletable corner)
+    max_secondary_swing: 0.200
+    collector_mouth_over: 0.014 # m, each secondary's axis offset from the collector axis
+    collector_length: 0.080
+    outlet_length: 0.080
+    outlet_flange_over: 0.020
+export:                         # tessellation of STL/glTF exports (cad/tess.py), absolute chordal deviation
+  linear_deflection: 0.00002    # m (0.02 mm)
+  angular_deflection_rad: 0.08
+  max_chord_mm: 0.02            # audit limits on the measured mesh (exact surface projection)
+  max_facet_angle_rad: 0.1
+  viz_linear_deflection: 0.00005  # m, viewer glTFs (quantized, size budget viz.yaml max_total_mb)
+  viz_angular_deflection_rad: 0.12

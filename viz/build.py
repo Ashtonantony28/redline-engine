@@ -109,7 +109,8 @@ def compute_data(cfg: dict | None = None) -> dict:
         "throttle": cfg["operating_point"]["throttle"],
         "sources": {"pressure": M4_SOURCE, "torque": "dyn.forces on the cylinder-mean M4 trace (gas + inertia)",
                     "kinematics": "kin.slider_crank (exact), placement as cad/assembly.py (ADR 0001/0002)",
-                    "valve_lift": "kin.cam (spec/valvetrain.yaml)", "cad": "out/cad/*.glb (python -m cad.build)"},
+                    "valve_lift": "kin.cam (spec/valvetrain.yaml)",
+                    "cad": "cad/ parts tessellated by cad/tess.py (viz/build.py build_glbs)"},
         "metrics": {"torque_nm": met["torque_nm"], "power_kw": met["power_kw"], "imep_net_bar": met["imep_net_bar"],
                     "p_max_bar": met["p_max_bar"], "bsfc_g_per_kwh": met["bsfc_g_per_kwh"],
                     "ve_trapped": met["ve_trapped"]},
@@ -128,22 +129,93 @@ def compute_data(cfg: dict | None = None) -> dict:
         "torque_mean_nm": float(T.mean()),
         "lift_intake_mm": [rnd(a, 4) for a in lift_in],
         "lift_exhaust_mm": [rnd(a, 4) for a in lift_ex],
+        "valvetrain": valvetrain_placement(),
     }
+
+
+VIZ_GROUPS = {
+    # viewer part -> instance selector (cad/assembly.py instances) and frame: "group" = the part's own motion frame
+    # (crank / rod / piston / cam / valve local), "world" = placed at its static location
+    "crank": ("group", lambda it: it.group == "crank"),
+    "conrod": ("group", lambda it: it.group == "rod_1"),
+    "piston_assembly": ("group", lambda it: it.group == "piston_1"),
+    "block": ("world", lambda it: it.kind in ("block", "liner", "main_cap", "main_cap_bolt")
+              or it.kind.startswith("main_shell_")),
+    "oil_pan": ("world", lambda it: it.kind in ("oil_pan", "pan_bolt")),
+    "head": ("world", lambda it: it.kind in ("head", "head_gasket", "head_bolt", "spark_plug", "cam_cap", "cam_cap_bolt")
+             or it.kind.startswith(("seat_insert_", "guide_", "spring_seat_", "manifold_bolt_"))),
+    "cam_intake": ("group", lambda it: it.group == "cam_intake"),
+    "cam_exhaust": ("group", lambda it: it.group == "cam_exhaust"),
+    "valve_intake": ("group", lambda it: it.group == "valve_1_intake_1"),
+    "valve_exhaust": ("group", lambda it: it.group == "valve_1_exhaust_1"),
+    "front": ("world", lambda it: it.kind in ("timing_belt", "idler", "tensioner")),
+    "intake_manifold": ("world", lambda it: it.kind in ("intake_manifold", "throttle_body", "intake_bracket")
+                        or it.kind.startswith("bracket_bolt_")),
+    "exhaust_header": ("world", lambda it: it.kind == "exhaust_header"),
+}
+
+
+def build_glbs(cfg: dict) -> Path:
+    """Viewer glTFs (quantized, viewer tessellation tolerance of viz.yaml cad.tessellation) grouped by how they move;
+    springs are exported unloaded-free at their installed length from z = 0 and scaled along their axis by the page."""
+    from cad import tess, valvetrain as vt
+    from cad.assembly import instances, motions, parts
+    from cad.params import params
+    p = params()
+    lin, ang = float(cfg["cad"]["tessellation"]["linear_mm"]), float(cfg["cad"]["tessellation"]["angular_rad"])
+    d = ROOT / cfg["cad"]["glb_dir"]
+    d.mkdir(parents=True, exist_ok=True)
+    src, mot, insts = parts(p), motions(p), instances(p)
+    cache = {}
+
+    def mesh(kind):
+        if kind not in cache:
+            cache[kind] = tess.triangulate(src[kind][0], lin, ang)
+        return cache[kind]
+    for name, (frame, sel) in VIZ_GROUPS.items():
+        meshes = {}
+        for it in insts:
+            if not sel(it):
+                continue
+            loc = it.base if frame == "group" else mot[it.group].loc(0.0) * it.base
+            meshes[it.name] = tess.transformed(mesh(it.kind), loc)
+        tess.write_glb(meshes, d / f"{name}.glb", quantize=True)
+    for kind in ("intake", "exhaust"):
+        sp = vt.spring(p, vt.spring_located_length(p, kind, 0.0))
+        tess.write_glb({f"spring_{kind}": tess.triangulate(sp, lin, ang)}, d / f"spring_{kind}.glb", quantize=True)
+    return d
 
 
 def ensure_glb(cfg: dict) -> dict:
     d = ROOT / cfg["cad"]["glb_dir"]
     missing = [p for p in cfg["cad"]["parts"] if not (d / f"{p}.glb").exists()]
     if missing:
-        subprocess.run([sys.executable, "-m", "cad.build"], cwd=ROOT, check=True)
+        build_glbs(cfg)
     return {p: base64.b64encode((d / f"{p}.glb").read_bytes()).decode("ascii") for p in cfg["cad"]["parts"]}
+
+
+def valvetrain_placement() -> dict:
+    """Valve frames, cam axes and spring stations (m, rad) for the page, exactly as cad/assembly.py places them."""
+    from cad import valvetrain as vt
+    from cad.assembly import valve_ids
+    from cad.params import params
+    p = params()
+    valves = []
+    for (i, kind, n, xl) in valve_ids(p):
+        o = p.valve_origin(i, kind, xl)
+        valves.append({"cyl": i, "kind": kind, "origin": [p.to_si_length(v) for v in o],
+                       "rot_x": -p.side_sign(kind) * p.valve_angle_deg(kind) * DEG})
+    cams = {k: [p.to_si_length(v) for v in vt.cam_axis_yz(p, k)] for k in ("intake", "exhaust")}
+    springs = {k: {"bottom": p.to_si_length(vt.stack(p, k)["spring_bottom"]),
+                   "length": p.to_si_length(vt.spring_located_length(p, k, 0.0))} for k in ("intake", "exhaust")}
+    return {"valves": valves, "cam_axis_yz": cams, "springs": springs}
 
 
 def render_html(data: dict, glb: dict, cfg: dict) -> str:
     t = cfg["three"]
     base = f"{t['cdn']}/three@{t['version']}"
     page_cfg = {"playback": cfg["playback"], "cad": {k: cfg["cad"][k] for k in
-                                                     ("parts", "translucent", "hidden_by_default", "translucent_opacity")}}
+                                                     ("parts", "translucent", "hidden_by_default", "toggles", "translucent_opacity")}}
     html = TEMPLATE.read_text()
     html = html.replace("__THREE_MODULE__", f"{base}/build/three.module.js")
     html = html.replace("__THREE_ADDONS__", f"{base}/examples/jsm/")

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Redline CAD render</title>
+<style>html,body{margin:0;background:#dfe1e4;overflow:hidden}canvas{display:block}</style>
+<script type="importmap">
+{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+               "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/" } }
+</script>
+</head>
+<body>
+<script type="module">
+// Offscreen PBR renderer for cad/render.py. Scene units: metres, CAD frame (z up, x along the crank).
+import * as THREE from 'three';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
+
+const S = await (await fetch('scene.json')).json();
+const W = S.width, H = S.height;
+const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(W, H);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 0.9;
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.body.appendChild(renderer.domElement);
+const pmrem = new THREE.PMREMGenerator(renderer);
+const envTex = pmrem.fromScene(new RoomEnvironment(renderer), 0.03).texture;
+
+const mats = {};
+for (const [k, m] of Object.entries(S.materials)) {
+  mats[k] = new THREE.MeshPhysicalMaterial({ color: new THREE.Color(m.color), metalness: m.metalness, roughness: m.roughness,
+    clearcoat: m.clearcoat || 0, clearcoatRoughness: 0.25, envMapIntensity: 0.75, side: THREE.DoubleSide });
+}
+const loader = new GLTFLoader();
+const geoCache = {};
+async function geometry(file) {
+  if (!geoCache[file]) geoCache[file] = new Promise((res, rej) => loader.load(file, (g) => {
+    const geos = [];
+    g.scene.updateMatrixWorld(true);
+    for (const root of g.scene.children) { root.quaternion.identity(); root.position.set(0, 0, 0); }
+    g.scene.updateMatrixWorld(true);
+    g.scene.traverse((o) => { if (o.isMesh) { const gg = o.geometry.clone(); gg.applyMatrix4(o.matrixWorld); geos.push(gg); } });
+    res(geos);
+  }, undefined, rej));
+  return geoCache[file];
+}
+
+window.renderView = async (i) => {
+  const V = S.views[i];
+  const scene = new THREE.Scene();
+  scene.environment = envTex;
+  scene.background = new THREE.Color(V.background || '#dfe1e4');
+  const root = new THREE.Group(); scene.add(root);
+  const box = new THREE.Box3();
+  for (const o of V.objects) {
+    const geos = await geometry(o.glb);
+    const m = new THREE.Matrix4().fromArray(o.matrix);
+    let mat = mats[o.material] || mats.steel;
+    if (o.opacity !== undefined) { mat = mat.clone(); mat.transparent = true; mat.opacity = o.opacity; mat.depthWrite = false; }
+    for (const g of geos) {
+      const mesh = new THREE.Mesh(g, mat);
+      mesh.matrixAutoUpdate = false; mesh.matrix.copy(m);
+      mesh.castShadow = o.opacity === undefined; mesh.receiveShadow = true;
+      if (o.opacity !== undefined) mesh.renderOrder = 2;
+      root.add(mesh);
+    }
+  }
+  root.updateMatrixWorld(true);
+  box.setFromObject(root);
+  const size = box.getSize(new THREE.Vector3()), ctr = box.getCenter(new THREE.Vector3());
+  if (V.ground !== false) {
+    const g = new THREE.Mesh(new THREE.PlaneGeometry(40, 40), new THREE.ShadowMaterial({ opacity: 0.22 }));
+    g.position.set(ctr.x, ctr.y, box.min.z - 0.002); g.receiveShadow = true; scene.add(g);
+  }
+  const key = new THREE.DirectionalLight(0xffffff, 1.9);
+  const kd = new THREE.Vector3(...(V.key || [-0.5, -0.8, 1.6])).normalize();
+  const R = size.length();
+  key.position.copy(ctr).addScaledVector(kd, R * 1.5); key.target.position.copy(ctr);
+  key.castShadow = true;
+  key.shadow.mapSize.set(4096, 4096);
+  const sc = key.shadow.camera; sc.left = -R * 0.7; sc.right = R * 0.7; sc.top = R * 0.7; sc.bottom = -R * 0.7;
+  sc.near = R * 0.2; sc.far = R * 3.5; key.shadow.bias = -0.0002; key.shadow.normalBias = 0.002;
+  scene.add(key); scene.add(key.target);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8f96, 0.35));
+  const cam = new THREE.PerspectiveCamera(V.camera.fov || 28, W / H, 0.01, 50);
+  cam.up.set(0, 0, 1);
+  cam.position.set(...V.camera.pos.map(v => v / 1000));
+  let target = new THREE.Vector3(...V.camera.target.map(v => v / 1000));
+  cam.lookAt(target);
+  if (V.camera.fit) {
+    // frame the objects' box: re-centre the target on the projected box and scale the distance until the box
+    // fills `fit` of the frame in its tighter direction
+    // corners of every mesh's own box (much tighter than the corners of the overall box)
+    const corners = [];
+    root.traverse((o) => {
+      if (!o.isMesh) return;
+      if (!o.geometry.boundingBox) o.geometry.computeBoundingBox();
+      const b = o.geometry.boundingBox;
+      for (const x of [b.min.x, b.max.x]) for (const y of [b.min.y, b.max.y]) for (const z of [b.min.z, b.max.z])
+        corners.push(new THREE.Vector3(x, y, z).applyMatrix4(o.matrixWorld));
+    });
+    const dir = cam.position.clone().sub(target).normalize();
+    let dist = cam.position.distanceTo(target);
+    for (let it = 0; it < 8; it++) {
+      cam.position.copy(target).addScaledVector(dir, dist); cam.lookAt(target); cam.updateMatrixWorld(true);
+      cam.updateProjectionMatrix();
+      let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9;
+      for (const c of corners) { const q = c.clone().project(cam); x0 = Math.min(x0, q.x); x1 = Math.max(x1, q.x);
+        y0 = Math.min(y0, q.y); y1 = Math.max(y1, q.y); }
+      // shift the target by the projected centre offset (in camera right/up units at the target distance)
+      const right = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 0);
+      const up = new THREE.Vector3().setFromMatrixColumn(cam.matrixWorld, 1);
+      const hh = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)) * dist, hw = hh * cam.aspect;
+      target.addScaledVector(right, 0.5 * (x0 + x1) * hw).addScaledVector(up, 0.5 * (y0 + y1) * hh);
+      const ext = Math.max((x1 - x0) / 2, (y1 - y0) / 2);
+      dist *= ext / V.camera.fit;
+    }
+    cam.position.copy(target).addScaledVector(dir, dist); cam.lookAt(target);
+  }
+  cam.updateMatrixWorld(true);
+  if (V.ao !== false) {
+    const composer = new EffectComposer(renderer);
+    composer.setPixelRatio(window.devicePixelRatio);
+    composer.setSize(W, H);
+    composer.addPass(new RenderPass(scene, cam));
+    const ao = new GTAOPass(scene, cam, W, H);
+    ao.updateGtaoMaterial({ radius: 0.025, distanceExponent: 1.0, thickness: 1.0, scale: 1.0, samples: 16 });
+    ao.updatePdMaterial({ lumaPhi: 10, depthPhi: 2, normalPhi: 3, radius: 6, rings: 2, samples: 16 });
+    ao.blendIntensity = 0.9;
+    composer.addPass(ao);
+    composer.addPass(new OutputPass());
+    composer.render();
+  } else {
+    renderer.render(scene, cam);
+  }
+  return { triangles: renderer.info.render.triangles, calls: renderer.info.render.calls };
+};
+window.__ready = true;
+</script>
+</body>
+</html>

@@ -10,10 +10,15 @@ playback:
   min_slowdown: 1.0
   max_slowdown: 200.0
 cad:
-  glb_dir: out/cad             # `python -m cad.build` exports (glTF binary, metres, Z-up rotated to Y-up)
-  parts: [crankshaft, conrod, piston_assembly, block, head]
+  glb_dir: out/viz/glb         # viewer glTFs written by viz/build.py build_glbs (cad/tess.py, quantized)
+  tessellation:                # viewer meshes (cad/tess.py triangulate, refined on the exact surface to both limits);
+    linear_mm: 0.25            # coarser than the out/cad exports (spec/cad.yaml export) to fit max_total_mb
+    angular_rad: 0.3
+  parts: [crank, conrod, piston_assembly, block, oil_pan, head, cam_intake, cam_exhaust, valve_intake, valve_exhaust,
+          spring_intake, spring_exhaust, front, intake_manifold, exhaust_header]
   translucent: [block]         # drawn translucent
-  hidden_by_default: [head]    # toggled from the page
+  hidden_by_default: [head, oil_pan, intake_manifold]   # toggled from the page (valve train animates with the head hidden)
+  toggles: [head, block, oil_pan, front, intake_manifold, exhaust_header]
   translucent_opacity: 0.18
 three:
   version: 0.160.0             # pinned three.js release on jsDelivr (module build + GLTFLoader/OrbitControls)

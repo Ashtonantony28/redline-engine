@@ -1,0 +1,136 @@
+# Redline CAD fits allow-list for cad/audit.py (MODELLED geometry). Every intended contact or overlap between two
+# part instances is listed here with the reason it exists in the build; any other overlap or contact the audit
+# finds is a DEFECT. `parts` are fnmatch patterns on the part kind (key of cad.assembly.parts()); `same: cyl`
+# restricts the rule to instances of the same cylinder, `same: site` to instances at the same site (e.g. the
+# same valve). type: contact = surfaces touch or sit within the running clearance (common volume ~0);
+# overlap = intended interference up to max_overlap_mm3. moving: contact = the pair stays in contact while it
+# moves (bearing, sliding fit); the sweep then checks penetration instead of clearance. required: true = the
+# audit also reports instances that lack this contact.
+tolerances:
+  contact_mm: 0.05        # surfaces closer than this touch; covers the 20-25 um running clearances (piston skirt 20 um radial,
+                          # big-end 22 um and main 25 um radial from spec/dynamics.yaml bearings)
+  overlap_mm3: 0.01       # boolean common volume below this is numerical noise on coincident faces
+sweep:
+  grid_step_deg: 2.0      # initial crank-angle grid of the branch and bound
+  min_step_deg: 0.01      # smallest interval bisected
+  resolution_mm: 0.005    # certification: no interval may hide a distance below best - max(resolution, fraction x best)
+  certify_fraction: 0.5   #   (so every reported minimum is certified to within half of itself, or 5 um)
+  max_evals: 600          # distance evaluations per pair (certified bound reported if hit)
+  swept_box_step_deg: 5.0 # sampling of the swept bounding boxes (padded by speed x step)
+  near_mm: 5.0            # pairs whose swept boxes stay further apart are reported as clear without a sweep
+  lift_grid_mm: 0.5       # valve part vs static part: initial grid over the valve lift (mm), then refined like the crank grid
+  lift_min_step_mm: 0.01
+  contact_volume_step_deg: 10.0  # running-contact pairs: penetration (common volume) checked every 10 deg where touching
+  contact_volume_step_mm: 1.0    #   and every 1 mm of lift for valve parts against static parts
+# Threads are modelled line-to-line: a bolt shank of nominal diameter in a hole of the same diameter (no helix). The
+# audit therefore sees surface contact (common volume ~0) wherever a bolt is screwed in; these are listed as contacts
+# with the reason "thread engagement".
+fits:
+  # ---------------------------------------------------------------- piston group (same cylinder)
+  - {parts: [wrist_pin, piston], same: cyl, type: contact, required: true,
+     reason: pin in the pin-boss bores, line-to-line (full-floating pin)}
+  - {parts: [wrist_pin, conrod], same: cyl, type: contact, moving: contact, required: true,
+     reason: pin in the conrod small end, line-to-line (full-floating pin, rod swings on it)}
+  - {parts: [clip_*, piston], same: cyl, type: contact, required: true, reason: circlip seated in its groove in the pin bore}
+  - {parts: [clip_*, wrist_pin], same: cyl, type: contact, reason: circlip retains the pin end face}
+  - {parts: [ring_*, piston], same: cyl, type: contact, required: true, reason: ring in its groove (25 um side clearance each side)}
+  - {parts: [ring_*, liner], same: cyl, type: contact, moving: contact, reason: ring running face on the liner bore}
+  - {parts: [piston, liner], same: cyl, type: contact, moving: contact,
+     reason: piston skirt in the liner bore, 20 um radial running clearance (spec/cad.yaml piston.skirt_clearance)}
+  # ---------------------------------------------------------------- conrod (same cylinder)
+  - {parts: [conrod, conrod_cap], same: cyl, type: contact, required: true, reason: rod/cap split face at the big-end axis}
+  - {parts: [conrod_bolt_*, conrod], same: cyl, type: contact, required: true, reason: rod bolt thread engagement in the rod body}
+  - {parts: [conrod_bolt_*, conrod_cap], same: cyl, type: contact, required: true, reason: rod bolt head on the cap spot face}
+  - {parts: [big_end_shell_upper, conrod], same: cyl, type: contact, required: true, reason: big-end shell in the rod bore}
+  - {parts: [big_end_shell_lower, conrod_cap], same: cyl, type: contact, required: true, reason: big-end shell in the cap bore}
+  - {parts: [big_end_shell_upper, big_end_shell_lower], same: cyl, type: contact, reason: shell joint faces at the split}
+  - {parts: [big_end_shell_*, conrod_cap], same: cyl, type: contact, reason: upper shell joint face meets the cap at the split plane}
+  - {parts: [big_end_shell_*, conrod], same: cyl, type: contact, reason: lower shell joint face meets the rod at the split plane}
+  - {parts: [big_end_shell_*, crankshaft], type: contact, moving: contact,
+     reason: big-end running clearance 22 um radial (spec/dynamics.yaml bearings.big_end) = oil film}
+  # ---------------------------------------------------------------- crank train
+  - {parts: [main_shell_upper_*, block], type: contact, required: true, reason: upper main shell in the block saddle}
+  - {parts: [main_shell_lower_*, main_cap], same: site, type: contact, required: true, reason: lower main shell in the cap}
+  - {parts: [main_shell_upper_*, main_shell_lower_*], same: site, type: contact, reason: shell joint faces at the split}
+  - {parts: [main_shell_upper_*, main_cap], same: site, type: contact, reason: upper shell joint face meets the cap face}
+  - {parts: [main_shell_lower_*, block], type: contact, reason: lower shell joint face meets the saddle face at the split}
+  - {parts: [main_shell_*, crankshaft], type: contact, moving: contact,
+     reason: main running clearance 25 um radial (spec/dynamics.yaml bearings.main) = oil film}
+  - {parts: [main_cap, block], type: contact, required: true, reason: cap on the bulkhead joint face, located in the cap register}
+  - {parts: [main_cap_bolt, main_cap], same: site, type: contact, required: true, reason: cap bolt head on the cap}
+  - {parts: [main_cap_bolt, block], type: contact, required: true, reason: cap bolt thread engagement in the bulkhead}
+  - {parts: [crank_sprocket, crankshaft], type: contact, required: true, reason: timing pulley on the crank snout}
+  - {parts: [damper_hub, crankshaft], type: contact, required: true, reason: damper hub on the crank snout}
+  - {parts: [damper_hub, crank_sprocket], type: contact, reason: damper hub clamps the pulley axially}
+  - {parts: [damper_rubber, damper_hub], type: contact, required: true, reason: rubber bonded to the hub rim}
+  - {parts: [damper_ring, damper_rubber], type: contact, required: true, reason: inertia ring bonded to the rubber}
+  - {parts: [flywheel, crankshaft], type: contact, required: true, reason: flywheel on the crank flange (pilot face)}
+  - {parts: [ring_gear, flywheel], type: contact, required: true, reason: ring gear shrunk on the flywheel seat}
+  - {parts: [flywheel_bolt_*, crankshaft], type: contact, required: true, reason: flywheel bolt thread engagement in the flange}
+  - {parts: [flywheel_bolt_*, flywheel], type: contact, required: true, reason: flywheel bolt head on the flywheel hub}
+  # ---------------------------------------------------------------- block, head, pan
+  - {parts: [liner, block], type: contact, required: true, reason: cast-in liner (line-to-line in the barrel)}
+  - {parts: [head_gasket, block], type: contact, required: true, reason: gasket on the deck}
+  - {parts: [head_gasket, liner], type: contact, reason: liner top flush with the deck under the gasket}
+  - {parts: [head_gasket, head], type: contact, required: true, reason: head face on the gasket}
+  - {parts: [head_bolt, head], type: contact, required: true, reason: head bolt head on its seat in the head}
+  - {parts: [head_bolt, block], type: contact, required: true, reason: head bolt thread engagement in the block}
+  - {parts: [oil_pan, block], type: contact, required: true, reason: pan flange on the block rail}
+  - {parts: [pan_bolt, oil_pan], type: contact, required: true, reason: pan bolt head under the pan flange}
+  - {parts: [pan_bolt, block], type: contact, required: true, reason: pan bolt thread engagement in the rail}
+  - {parts: [spark_plug, head], type: contact, required: true, reason: plug thread engagement and seat on the bore step}
+  - {parts: [idler, block], type: contact, required: true, reason: idler boss bolted to the block front face}
+  - {parts: [tensioner, block], type: contact, required: true, reason: tensioner boss bolted to the block front face}
+  # ---------------------------------------------------------------- valve train (same valve = same site)
+  - {parts: [seat_insert_*, head], type: contact, required: true, reason: seat insert pressed in its counterbore}
+  - {parts: [guide_*, head], type: contact, required: true, reason: valve guide pressed in its bore}
+  - {parts: [spring_seat_*, head], type: contact, required: true, reason: spring seat on the pocket floor}
+  - {parts: ['spring_[ie]*', 'spring_seat_*'], same: site, type: contact, required: true, reason: spring bottom on its seat}
+  - {parts: ['spring_[ie]*', 'retainer_*'], same: site, type: contact, required: true, reason: spring top under the retainer (installed length)}
+  - {parts: [valve_*, seat_insert_*], same: site, type: contact, moving: contact, reason: valve face on its seat when closed}
+  - {parts: [valve_*, guide_*], same: site, type: contact, moving: contact, reason: stem in the guide, 30 um radial clearance}
+  - {parts: [collet_*, valve_*], same: site, type: contact, required: true, reason: collet bead in the stem groove}
+  - {parts: [collet_*, retainer_*], same: site, type: contact, required: true, reason: collet cone in the retainer}
+  - {parts: [shim_*, valve_*], same: site, type: contact, required: true, reason: shim on the stem tip}
+  - {parts: [shim_*, bucket_*], same: site, type: contact, required: true, reason: shim in the bucket crown pocket}
+  - {parts: [bucket_*, head], type: contact, moving: contact, reason: bucket in its bore, 30 um radial running clearance}
+  - {parts: [camshaft_*, head], type: contact, moving: contact, reason: cam journals in the head saddles, 40 um radial clearance}
+  - {parts: [camshaft_*, cam_cap], type: contact, moving: contact, reason: cam journals under the caps, 40 um radial clearance}
+  - {parts: [camshaft_*, bucket_*], type: contact, moving: contact, reason: lobe on the bucket crown while the valve lifts (lash on the base circle)}
+  - {parts: [camshaft_*, cam_pulley_*], same: site, type: contact, required: true, reason: cam pulley on the cam nose}
+  - {parts: [cam_cap, head], type: contact, required: true, reason: cam cap on the journal pedestal joint face}
+  - {parts: [cam_cap_bolt, cam_cap], same: site, type: contact, required: true, reason: cap bolt head on the cap}
+  - {parts: [cam_cap_bolt, head], type: contact, required: true, reason: cap bolt thread engagement in the pedestal}
+  # ---------------------------------------------------------------- front drive
+  - {parts: [timing_belt, crank_sprocket], type: contact, moving: contact, reason: belt on the crank pulley rim}
+  - {parts: [timing_belt, cam_pulley_*], type: contact, moving: contact, reason: belt on the cam pulley rims}
+  - {parts: [timing_belt, idler], type: contact, reason: belt on the idler}
+  - {parts: [timing_belt, tensioner], type: contact, reason: belt on the tensioner}
+  # ---------------------------------------------------------------- manifolds
+  - {parts: [intake_manifold, head], type: contact, required: true, reason: intake flange on the head intake face}
+  - {parts: [exhaust_header, head], type: contact, required: true, reason: header flanges on the head exhaust face}
+  - {parts: [manifold_bolt_intake, intake_manifold], type: contact, required: true, reason: bolt head on the intake flange}
+  - {parts: [manifold_bolt_exhaust, exhaust_header], type: contact, required: true, reason: bolt head on the header flange}
+  - {parts: [manifold_bolt_*, head], type: contact, required: true, reason: manifold bolt thread engagement in the head}
+  - {parts: [throttle_body, intake_manifold], type: contact, required: true, reason: throttle-body flange on the plenum neck flange}
+  - {parts: [intake_bracket, block], type: contact, required: true, reason: manifold stay plate on the block rear face}
+  - {parts: [intake_bracket, head], type: contact, reason: stay plate also bears on the flush head rear face}
+  - {parts: [intake_bracket, head_gasket], type: contact, reason: stay plate across the flush gasket edge}
+  - {parts: [intake_bracket, intake_manifold], type: contact, required: true, reason: stay tab under the plenum floor pad}
+  - {parts: [bracket_bolt_block, block], type: contact, required: true, reason: stay bolt thread engagement in the block rear wall}
+  - {parts: [bracket_bolt_block, intake_bracket], type: contact, required: true, reason: stay bolt head on the plate}
+  - {parts: [bracket_bolt_pad, intake_manifold], type: contact, required: true, reason: stay bolt thread engagement in the plenum pad}
+  - {parts: [bracket_bolt_pad, intake_bracket], type: contact, required: true, reason: stay bolt head under the tab}
+# Far-apart pairs whose exact minimum distance is reported anyway (packaging clearances, docs/CAD-AUDIT.md).
+report_clearances:
+  - {parts: [exhaust_header, oil_pan], reason: hot 4-2-1 header and collector past the sump}
+  - {parts: [exhaust_header, pan_bolt], reason: header past the pan flange bolts}
+  - {parts: [exhaust_header, flywheel], reason: collector and outlet near the flywheel}
+  - {parts: [exhaust_header, ring_gear], reason: collector and outlet near the starter ring gear}
+  - {parts: [exhaust_header, block], reason: primaries along the block exhaust side}
+  - {parts: [exhaust_header, intake_*], reason: hot header to the intake system and stay}
+  - {parts: [intake_manifold, camshaft_*], reason: runners and plenum over the cams}
+  - {parts: [intake_manifold, cam_cap*], reason: plenum floor over the cam caps and their bolts}
+  - {parts: [intake_manifold, cam_pulley_*], reason: plenum front end to the cam pulleys}
+  - {parts: [intake_manifold, timing_belt], reason: plenum front end to the timing belt}
+  - {parts: [throttle_body, flywheel], reason: throttle body at the rear end}

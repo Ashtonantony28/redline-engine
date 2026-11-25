@@ -1,6 +1,6 @@
 # Redline: technical report (MODELLED)
 
-> **Every number in this report is MODELLED.** Redline is a code-first digital twin of a generic 2.0 L naturally aspirated inline-4; there is no physical engine, dyno or car. Numbers are computed from the code, `spec/*.yaml` and the committed fixtures by `python -m report.build`, which also regenerates the figures under `out/` (git-ignored, so the image links resolve after a build). Built 2026-11-21.
+> **Every number in this report is MODELLED.** Redline is a code-first digital twin of a generic 2.0 L naturally aspirated inline-4; there is no physical engine, dyno or car. Numbers are computed from the code, `spec/*.yaml` and the committed fixtures by `python -m report.build`, which also regenerates the figures under `out/` (git-ignored, so the image links resolve after a build). Built 2026-11-24.
 
 ## Headline numbers
 
@@ -27,15 +27,17 @@ Reference engine from `spec/engine.yaml`: 86 x 86 mm, 1998 cc, CR 10.5, rod/stro
 
 | Item | CAD | Budget | Error |
 |---|---|---|---|
-| Piston assembly | 0.3322 kg | 0.33 kg | 0.68 % |
-| Conrod | 0.4836 kg | 0.48 kg | 0.75 % |
-| Reciprocating mass | 0.4773 kg | 0.474 kg | 0.70 % |
-| Crank inertia | 0.02003 kg m^2 | 0.02 kg m^2 | 0.14 % |
-| Clearance volume (CR from CAD) | 52.60 cm^3 (CR 10.497) | 52.58 cm^3 | 0.028 % |
+| Piston assembly | 0.3776 kg | 0.377 kg | 0.16 % |
+| Conrod | 0.4873 kg | 0.48 kg | 1.53 % |
+| Reciprocating mass | 0.5238 kg | 0.521 kg | 0.54 % |
+| Crank inertia | 0.02001 kg m^2 | 0.02 kg m^2 | 0.07 % |
+| Clearance volume (CR from CAD) | 52.52 cm^3 (CR 10.512) | 52.58 cm^3 | -0.131 % |
 
-Exports: STEP / STL / glTF in `out/cad/` (`python -m cad.build`); the glTF parts drive the M10 replay.
+| Flywheel + ring gear + bolts inertia | 0.0901 kg m^2 | 0.09 kg m^2 | 0.09 % |
 
-*Known gaps:* the block is monolithic (no separate main caps), crank fillets are not in the solid, the head is a simplified slab with chambers, seats and port throats, and the camshafts, valves, intake manifold and exhaust header of the plan are not CAD parts (cams exist as kin.cam profiles only).
+Exports: STEP / STL / glTF in `out/cad/` (`python -m cad.build`, absolute-deflection tessellation from cad/tess.py). Clash, clearance, support and tessellation audit: `python -m cad.audit --tag final` (docs/CAD-AUDIT.md, renders in docs/renders/).
+
+*Known gaps:* crank fillets are not in the CAD solid (FEA only); threads are line-to-line cylinders; the head has no water jacket, oil drains or cam cover; springs are placed at installed length and checked at full lift separately; spec/dynamics.yaml bearing diameters (56/48 mm) differ from the CAD journals (52/45 mm).
 
 ## M2: two-zone crank-angle thermodynamics (3000 rpm, full load)
 
@@ -121,9 +123,9 @@ gmsh second-order tets + CalculiX, Goodman fatigue, three mesh levels per part (
 | Part | Safety factors | Targets | Peak-stress change, finest two meshes | Result |
 |---|---|---|---|---|
 | conrod | buckling 5.93, fatigue 1.53 | fatigue 1.5, buckling 3.0 | 0.72 % | PASS |
-| crankshaft | fatigue 2.59 | fatigue 1.5 | 0.47 % | PASS |
+| crankshaft | fatigue 2.58 | fatigue 1.5 | 0.48 % | PASS |
 | piston | fatigue 1.57, static 2.41 | fatigue 1.5, static 1.5 | 4.19 % | PASS |
-| main_cap | fatigue 6.10, bolt_fatigue 4.99 | fatigue 1.5, bolt_fatigue 1.5 | 0.20 % | PASS |
+| main_cap | fatigue 5.55, bolt_fatigue 4.98 | fatigue 1.5, bolt_fatigue 1.5 | 2.89 % | PASS |
 
 The M1 piston (pin boss hung from a thin rib) could not reach fatigue SF 1.5 in any mass budget. It became a forged 2618-T61 pillar-boss design at 0.377 kg (budget raised from 0.330 kg) with under-crown oil jets (Stevens & Webb impingement correlation); the converged 505 K piston temperature is fed back into the cycle model and the jet pump cost into FMEP. Conrod flange widened to keep fatigue SF above 1.5 under the higher reciprocating mass.
 
