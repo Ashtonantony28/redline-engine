@@ -6,6 +6,19 @@ structural FEA, and an engine control unit that runs hardware-in-the-loop on the
 
 All numbers are **modelled**. Plan: see `docs/PLAN.md`.
 
+## Gallery
+
+![Three.js replay of the modelled engine](docs/media/replay.gif)
+
+*The three.js replay (`viz/replay/index.html`) at 3000 rpm, wide-open throttle. It shows the CAD crank train moving with exact slider-crank kinematics, next to cylinder 1's P-V loop, the four cylinder pressures, crank torque and valve lift. Pressures come from the M4 1D gas-dynamics engine. **All numbers are modelled**; there is no physical engine. Recorded headless with `node viz/record_demo.mjs`. [MP4](docs/media/replay.mp4)*
+
+| | |
+|---|---|
+| ![Front three-quarter](docs/renders/assembly_front34.png) | ![Exploded](docs/renders/exploded.png) |
+| ![Cylinder 1 section](docs/renders/section_cyl1.png) | ![Valvetrain cutaway](docs/renders/valvetrain_cutaway.png) |
+
+*CAD renders from `cad/` (build123d). The interference audit is in [docs/CAD-AUDIT.md](docs/CAD-AUDIT.md).*
+
 ## Quick start
 ```
 pip install -r requirements.txt
