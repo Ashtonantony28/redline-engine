@@ -1,7 +1,7 @@
 """M10 stretch: turbocharged variant Redline I4-2.0T (synthetic maps, wastegate PI, intercooler, KLSA).
 
-Verify: /home/user/redline-venv/bin/python -m pytest -q tests/test_turbo.py tests/test_m4_gasdyn.py
-        /home/user/redline-venv/bin/python -m sim.wot_turbo --sweep 1500:6500:500
+Verify: python -m pytest -q tests/test_turbo.py tests/test_m4_gasdyn.py
+        python -m sim.wot_turbo --sweep 1500:6500:500
 Analytic anchors first (CLAUDE.md rule 2): compressor power closed form, turbine isentropic relation and
 nozzle flow, shaft power balance, map surge / choke monotonicity, NA engine unchanged by the hooks; then the
 engine-level checks on two steady WOT points and a tip-in. All numbers are MODELLED (no physical engine);

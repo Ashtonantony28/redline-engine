@@ -1,7 +1,7 @@
 """M4 exit criteria: 1D finite-volume gas dynamics coupled to four cylinders, full-load curve.
 
-Verify: /home/user/redline-venv/bin/python -m pytest -q tests/test_m4_gasdyn.py tests/test_m2_thermo.py
-        /home/user/redline-venv/bin/python -m sim.wot --sweep 1000:7000:250
+Verify: python -m pytest -q tests/test_m4_gasdyn.py tests/test_m2_thermo.py
+        python -m sim.wot --sweep 1000:7000:250
 Analytic references first (CLAUDE.md rule 2), then the engine-level exit criteria of docs/PLAN.md sec. 5.
 All engine numbers are MODELLED (no physical engine exists).
 """

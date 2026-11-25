@@ -1,7 +1,7 @@
 """M3: cam design, VVT, piston-to-valve clearance, valvetrain dynamics, Hertz stress.
 
 Analytic anchors first (CLAUDE.md rule 2), then the M3 exit criteria. All results modelled.
-Verify: /home/user/redline-venv/bin/python -m pytest -q tests/test_m3_valvetrain.py
+Verify: python -m pytest -q tests/test_m3_valvetrain.py
 """
 import dataclasses
 import math

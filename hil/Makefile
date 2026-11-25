@@ -13,7 +13,7 @@
 # Vortex-V is consumed read-only from $(VORTEX_V_ROOT) (default in ecu/targets/rv64/soc.mk).
 RV64 := ../ecu/targets/rv64
 include $(RV64)/soc.mk
-PYTHON ?= /home/user/redline-venv/bin/python
+PYTHON ?= python3
 VERILATOR ?= verilator
 OBJ := build/obj_dir
 JOBS ?= 4
