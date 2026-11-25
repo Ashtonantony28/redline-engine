@@ -122,7 +122,7 @@ def look(pos_dir, target, dist, fov=28.0):
 # --------------------------------------------------------------------------------------------- audit views
 def material_for(kind: str) -> str:
     k = kind
-    table = [("exhaust_header", "header"), ("bracket_bolt", "bolt"), ("intake_bracket", "steel_dark"),
+    table = [("exhaust_stay_bolt", "bolt"), ("exhaust_stay", "steel_dark"), ("exhaust_header", "header"), ("bracket_bolt", "bolt"), ("intake_bracket", "steel_dark"),
              ("throttle", "machined_al"),
              ("block", "cast_al"), ("head_gasket", "gasket"), ("head_bolt", "bolt"), ("head", "cast_al_warm"),
              ("liner", "iron"), ("main_cap_bolt", "bolt"), ("main_cap", "iron"), ("shell", "bearing"),
@@ -178,7 +178,8 @@ def audit_views(tag: str, out_dir: Path) -> dict:
 EXPLODE_MM = {   # exploded view: offset (x, y, z) per part family, mm (first match wins)
     "intake_manifold": (0, -140, 260), "throttle_body": (90, -140, 260), "intake_bracket": (120, 0, 120),
     "bracket_bolt_block": (170, 0, 120), "bracket_bolt_pad": (120, 0, 80),
-    "manifold_bolt_intake": (0, -110, 0), "exhaust_header": (0, 170, 0),
+    "manifold_bolt_intake": (0, -110, 0), "exhaust_header": (0, 170, 0), "exhaust_stay_bolt_block": (0, 135, 0),
+    "exhaust_stay_bolt_pad": (0, 170, 40), "exhaust_stay": (0, 120, 0),
     "manifold_bolt_exhaust": (0, 110, 0), "cam_cap_bolt": (0, 0, 330), "cam_cap": (0, 0, 290),
     "camshaft": (0, 0, 250), "cam_pulley": (-60, 0, 250), "timing_belt": (-110, 0, 60), "idler": (-90, 0, 0),
     "tensioner": (-90, 0, 0), "bucket": (0, 0, 215), "shim": (0, 0, 215), "retainer": (0, 0, 200),
@@ -259,7 +260,7 @@ def clearance_annotations(p, theta: float, pairs) -> list:
     return out
 
 
-ASSEMBLY_FRAME = {"width": 1100, "height": 1400}   # portrait: the header and outlet make the assembly tall
+ASSEMBLY_FRAME = {"width": 1400, "height": 1100}   # landscape: the header runs rearward past the flywheel
 
 
 def final_renders(out_dir: Path | None = None, only=None) -> dict:
@@ -286,7 +287,8 @@ def final_renders(out_dir: Path | None = None, only=None) -> dict:
     views.append({"name": "assembly_rear34_exhaust", "objects": objs, **ASSEMBLY_FRAME,
                   "camera": {**look([1.0, 1.3, 0.55], [0, 0, 150], 2500, 26), "fit": 0.95}, "key": [0.5, 0.9, 1.5]})
 
-    hide_sec = ("intake_manifold", "exhaust_header", "manifold_bolt", "throttle_body", "intake_bracket", "bracket_bolt")
+    hide_sec = ("intake_manifold", "exhaust_header", "exhaust_stay", "manifold_bolt", "throttle_body", "intake_bracket",
+                "bracket_bolt")
     sec, shapes = section_objects(theta_open, p.cyl_x(0), 1.0, p, work, hide=hide_sec, tag="sec")
     kinds |= set(shapes)
     views.append({"name": "section_cyl1", "objects": sec, "width": 1250, "height": 1300,
@@ -316,10 +318,11 @@ def final_renders(out_dir: Path | None = None, only=None) -> dict:
     # measured header gaps (the same exact distances as docs/CAD-AUDIT.md key clearances)
     # (the flywheel disc, 77 mm, sits just inboard of its ring gear, so the ring gear gap is the flywheel's minimum)
     ann = clearance_annotations(p, 0.0, [
-        ("exhaust_header", "oil_pan", "header to oil pan", {"offset": [0, 70, -55], "size": 0.032}),
-        ("exhaust_header", "ring_gear", "header to flywheel ring gear", {"offset": [0, 40, 40], "size": 0.032})])
+        ("exhaust_header", "oil_pan", "header to oil pan", {"offset": [60, -40, -60], "size": 0.032}),
+        ("exhaust_header", "pan_bolt", "header to pan bolt", {"offset": [-90, 40, -60], "size": 0.032}),
+        ("exhaust_header", "ring_gear", "header to flywheel ring gear", {"offset": [80, 40, 40], "size": 0.032})])
     views.append({"name": "exhaust_clearance", "objects": objs, "annotations": ann, **ASSEMBLY_FRAME,
-                  "camera": {**look([0.45, 1.0, -0.4], [60, 150, -150], 1600, 28), "fit": 0.95},
+                  "camera": {**look([0.5, 0.75, -0.6], [150, 120, -60], 1600, 28), "fit": 0.95},
                   "key": [0.3, 0.8, 1.4], "ground": False})
 
     # intake cutaway: everything cut on runner 2's centre-line plane (the swan neck lies in that plane), so the bore
@@ -328,7 +331,7 @@ def final_renders(out_dir: Path | None = None, only=None) -> dict:
     x_in = p.cyl_x(1)
     g = mf._runner_y(p)
     pg = mf.plenum_geom(p)
-    hide_in = ("exhaust_header", "manifold_bolt_exhaust", "timing_belt", "cam_pulley", "idler", "tensioner", "oil_pan",
+    hide_in = ("exhaust_header", "exhaust_stay", "manifold_bolt_exhaust", "timing_belt", "cam_pulley", "idler", "tensioner", "oil_pan",
                "pan_bolt", "crank", "conrod", "main_", "big_end", "flywheel", "ring_gear", "damper", "piston",
                "wrist_pin", "ring_", "clip", "liner", "block", "head_gasket", "head_bolt", "intake_bracket",
                "bracket_bolt")

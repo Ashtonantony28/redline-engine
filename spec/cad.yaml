@@ -55,6 +55,7 @@ materials:                     # which engine.yaml material each part is made fr
   throttle_body: al_block           # cast aluminium throttle-body housing (blade and shaft lumped)
   intake_bracket: steel_plate      # pressed-steel manifold stay
   bracket_bolt: bolt_steel
+  exhaust_stay: steel_plate         # pressed-steel header stay
 material_data:                   # CAD-only materials (mass reporting and rendering; no structural analysis uses them)
   main_cap_iron: {from: fea.materials.main_cap}
   bolt_steel: {rho: 7850.0}      # quenched and tempered alloy steel (class 10.9 bolts)
@@ -381,25 +382,44 @@ manifolds:
       pad_bolt_dy: 0.010        # m, the two pad bolts at +- this from the bracket centre line (y)
       thread_depth: 0.014       # m, bracket bolts into the block
       pad_thread_depth: 0.008   # m
-  exhaust:                      # 4-2-1: pairs 1+4 and 2+3 merge, then the two secondaries merge in the collector
-    bend_radius: 0.040          # m, centre-line bend radius of every duct bend (~2 D)
-    primary_out: 0.050          # m, straight leg out of the head flange before the first bend
-    merge_y: 0.090              # m, pair 2+3 merge outboard of the exhaust flange (at x = 0)
-    merge_pair_dy: 0.075        # m, pair 1+4 merge further outboard
-    merge_drop: 0.330           # m, pair 1+4 merge below the port centre
-    inner_pair_extra_drop: 0.077  # m, pair 2+3 merges this much deeper (its primaries need the drop for their length)
-    merge_offset: 0.008         # m, each entering pipe's axis offset from the merge-cone axis
-    mouth_margin: 0.003         # m, mouth radius beyond the entering pipes' reach (no tangency)
-    entry_length: 0.045         # m, straight vertical entry into a merge cone / the collector
+  exhaust:                      # 4-2-1 long-tube: pairs 1+4 and 2+3 merge beside the skirt, secondaries run rearward
+    primary_bend_radius: 0.070    # m, centre-line radius of every primary bend (1.59 x the 44 mm OD)
+    secondary_bend_radius: 0.080  # m, every secondary bend (1.57 x the 51 mm OD)
+    min_bend_to_od: 1.5           # smallest allowed bend radius / tube outer diameter (cad/manifolds.py checks it)
+    primary_out: 0.110            # m, straight leg out of the head flange before the drop (pair 1+4, inboard plane)
+    outer_pair_extra_out: 0.080   # m, pair 2+3 drops in a plane this much further outboard
+    merge_drop: 0.305             # m, pair 1+4 merge-cone mouth below the port centre
+    outer_pair_drop_offset: -0.020  # m, pair 2+3 mouth this much deeper (negative: higher)
+    merge_offset: 0.008           # m, each entering pipe's axis offset from the merge-cone axis
+    mouth_margin: 0.0015          # m, cone mouth bore beyond the entering bores' reach (< wall: the pipe walls sink into the cone wall)
+    entry_length: 0.045           # m, straight vertical entry into a merge cone
     merge_cone_length: 0.040
-    secondary_drop: 0.330       # m, collector mouth below the deeper merge cone outlet
-    secondary_vertical: 0.090   # m, straight leg below each merge cone before the sideways swing
-    min_secondary_swing: 0.010  # m, bracket of the solved sideways swing (0 would make a straight, unfilletable corner)
-    max_secondary_swing: 0.200
-    collector_mouth_over: 0.014 # m, each secondary's axis offset from the collector axis
+    collector_from_rear_face: 0.170  # m, collector mouth behind the block rear face (x)
+    collector_y: 0.090            # m, collector axis outboard of the head flange face (y)
+    collector_below_pan_floor: 0.010  # m, collector axis below the sump floor (z)
+    collector_entry_length: 0.060 # m, straight entry of each secondary along +x into the collector mouth
+    collector_mouth_over: 0.014   # m, each secondary's axis offset from the collector axis (y)
     collector_length: 0.080
-    outlet_length: 0.080
+    outlet_length: 0.050          # m, outlet stub (start of the gasdyn tailpipe_front downpipe)
     outlet_flange_over: 0.020
+    outlet_flange_bolts: 3        # downpipe joint bolts on the outlet flange
+    max_drop_below_pan_floor: 0.060  # m, packaging limit: lowest header point below the sump floor (tests/test_cad_audit.py)
+    joint_overlap: 0.002          # m, each duct end sinks this far into the flange / cone it is welded to (one solid)
+    stay:                         # steel stay: tab on the skirt rib of a bulkhead, arm down to a pad on the 1+4 secondary
+      bulkhead: 3                 # main bulkhead index whose external skirt rib carries the tab (x = main_x)
+      thickness: 0.006            # m, plate
+      tab_width: 0.034            # m, tab and foot along x; the arm is the tab's front edge (clear of the bolt heads)
+      tab_z: [-0.036, 0.016]      # m, tab extent on the rib (bottom 12 mm above the pan-rail lip)
+      bolt_z: [-0.022, 0.002]     # m, tab bolts into the rib / bulkhead
+      thread_depth: 0.014         # m, tab bolts into the block
+      knee: [0.030, -0.010]       # m, arm inner edge runs (y, z) this far from the tab bottom before dropping (clears the rail lip)
+      arm_top_width: 0.040        # m, arm top edge along y from the rib face
+      foot_length: 0.040          # m, foot along y, centred on the secondary
+      arm_end_height: 0.025       # m, arm outer edge height above the foot
+      pad_length: 0.030           # m, welded pad on the secondary (x)
+      pad_width: 0.030            # m, (y)
+      pad_height: 0.012           # m, pad top above the secondary tube top
+      pad_thread_depth: 0.008     # m, foot bolt into the pad (stays inside the pad)
 export:                         # tessellation of STL/glTF exports (cad/tess.py), absolute chordal deviation
   linear_deflection: 0.00002    # m (0.02 mm)
   angular_deflection_rad: 0.08

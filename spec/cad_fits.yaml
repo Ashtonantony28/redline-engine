@@ -121,6 +121,12 @@ fits:
   - {parts: [bracket_bolt_block, intake_bracket], type: contact, required: true, reason: stay bolt head on the plate}
   - {parts: [bracket_bolt_pad, intake_manifold], type: contact, required: true, reason: stay bolt thread engagement in the plenum pad}
   - {parts: [bracket_bolt_pad, intake_bracket], type: contact, required: true, reason: stay bolt head under the tab}
+  - {parts: [exhaust_stay, block], type: contact, required: true, reason: header stay tab on the skirt rib of bulkhead 4}
+  - {parts: [exhaust_stay, exhaust_header], type: contact, required: true, reason: header stay foot on the pad welded to the 1+4 secondary}
+  - {parts: [exhaust_stay_bolt_block, block], type: contact, required: true, reason: stay bolt thread engagement in the skirt rib / bulkhead}
+  - {parts: [exhaust_stay_bolt_block, exhaust_stay], type: contact, required: true, reason: stay bolt head on the tab}
+  - {parts: [exhaust_stay_bolt_pad, exhaust_header], type: contact, required: true, reason: stay bolt thread engagement in the secondary pad}
+  - {parts: [exhaust_stay_bolt_pad, exhaust_stay], type: contact, required: true, reason: stay bolt head on the foot}
 # Far-apart pairs whose exact minimum distance is reported anyway (packaging clearances, docs/CAD-AUDIT.md).
 report_clearances:
   - {parts: [exhaust_header, oil_pan], reason: hot 4-2-1 header and collector past the sump}

@@ -201,11 +201,20 @@ def block(p: Params):
     ms = p.section("manifolds")
     for (x, y, z) in bracket_bolts(p)["block"]:
         body -= cyl_x(p.L(ms["bolt_diameter"]) / 2, x - p.L(ms["intake"]["bracket"]["thread_depth"]), x + 1.0, y, z)
+    # header stay bolts in the skirt rib / bulkhead (cad/manifolds.py stay_bolts)
+    from cad.manifolds import stay_bolts
+    st = ms["exhaust"]["stay"]
+    for (x, y, z) in stay_bolts(p)["block"]:
+        body -= _ycyl(p.L(ms["bolt_diameter"]) / 2, y - p.L(st["thread_depth"]), y + 1.0, x, z)
     # pan-bolt threads in the rail lip
     for (x, y) in pan_bolt_xy(p):
         body -= cyl_z(p.L(p.section("oil_pan")["bolt_diameter"]) / 2, zr - 1.0, zr + p.L(p.section("oil_pan")["thread_depth"]),
                       x, y)
     return body
+
+
+def _ycyl(r: float, y0: float, y1: float, x: float, z: float):
+    return Solid.make_cylinder(r, y1 - y0, Plane(origin=(x, y0, z), z_dir=(0, 1, 0)))
 
 
 def _plan(p: Params):
@@ -314,6 +323,12 @@ def _pan_body(p: Params, inset: float, top_extra: float):
 
 
 @lru_cache(maxsize=None)
+def pan_floor_z(p: Params) -> float:
+    """z of the outer sump floor (deep rear sump, the lowest point of the pan)."""
+    op = p.section("oil_pan")
+    return rail_z(p) - p.L(op["flange_thickness"]) - p.L(op["sump_depth"])
+
+
 def oil_pan(p: Params):
     op = p.section("oil_pan")
     zr = rail_z(p)

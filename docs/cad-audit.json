@@ -1,7 +1,7 @@
 {
  "note": "MODELLED geometry (no physical engine). CAD units mm.",
  "tag": "final",
- "source_hash": "da02237b9f70f141",
+ "source_hash": "72e4a59ad9471957",
  "pose": {
   "crank_deg": 0.0,
   "vvt_advance_deg": 0.0
@@ -11,22 +11,22 @@
   "overlap_mm3": 0.01
  },
  "summary": {
-  "instances": 349,
-  "pairs": 60726,
-  "bbox_candidates": 1478,
+  "instances": 353,
+  "pairs": 62128,
+  "bbox_candidates": 1493,
   "overlaps": 0,
   "overlaps_allowed": 0,
-  "contacts": 580,
-  "contacts_allowed": 580,
+  "contacts": 588,
+  "contacts_allowed": 588,
   "unexplained_overlaps": 0,
   "unexplained_contacts": 0,
   "missing_required_contacts": 0,
   "floating": 0,
   "floating_without_unlisted_contacts": 0,
-  "moving_pairs": 1140,
+  "moving_pairs": 1144,
   "moving_clashes": 0,
   "tessellation_fail": 0,
-  "seconds": 734.7443997859955
+  "seconds": 3774.846542596817
  },
  "defects": [],
  "missing_required_contacts": [],
@@ -437,8 +437,8 @@
      146.0
     ],
     "facet_angle_max_rad": 0.07877453676978674,
-    "triangles": 71436,
-    "vertices": 63200,
+    "triangles": 72720,
+    "vertices": 64500,
     "ok": true
    },
    "liner": {
@@ -1006,15 +1006,15 @@
     "ok": true
    },
    "exhaust_header": {
-    "chord_max_mm": 0.019173847681525743,
+    "chord_max_mm": 0.019291081988105658,
     "chord_at_mm": [
-     19.240308440876305,
-     264.8251917728941,
-     -540.0216219429172
+     394.5,
+     195.20154725357548,
+     -243.0536638046301
     ],
-    "facet_angle_max_rad": 0.07104122902842906,
-    "triangles": 417294,
-    "vertices": 228837,
+    "facet_angle_max_rad": 0.07401116829564397,
+    "triangles": 406982,
+    "vertices": 223620,
     "ok": true
    },
    "throttle_body": {
@@ -1065,6 +1065,42 @@
     "vertices": 1268,
     "ok": true
    },
+   "exhaust_stay": {
+    "chord_max_mm": 0.0008895160347319051,
+    "chord_at_mm": [
+     94.76369945974862,
+     208.37469728324845,
+     -159.3740774323328
+    ],
+    "facet_angle_max_rad": 0.039767050044477004,
+    "triangles": 1952,
+    "vertices": 1976,
+    "ok": true
+   },
+   "exhaust_stay_bolt_block": {
+    "chord_max_mm": 0.0012848564945752627,
+    "chord_at_mm": [
+     2.516765047345255,
+     8.500000000000002,
+     5.99159346191712
+    ],
+    "facet_angle_max_rad": 0.039767050044474214,
+    "triangles": 1260,
+    "vertices": 1268,
+    "ok": true
+   },
+   "exhaust_stay_bolt_pad": {
+    "chord_max_mm": 0.0012848564945752228,
+    "chord_at_mm": [
+     -1.029383639916469,
+     -6.416671086965504,
+     11.0
+    ],
+    "facet_angle_max_rad": 0.039767050044477004,
+    "triangles": 1260,
+    "vertices": 1268,
+    "ok": true
+   },
    "manifold_bolt_intake": {
     "chord_max_mm": 0.0012848564945752627,
     "chord_at_mm": [
@@ -1090,9 +1126,9 @@
     "ok": true
    }
   },
-  "max_chord_mm": 0.0192812754117201,
+  "max_chord_mm": 0.019291081988105658,
   "max_facet_angle_rad": 0.07999972942102203,
-  "triangles_total": 3189972
+  "triangles_total": 3185416
  },
  "key_clearances": [
   {
@@ -1100,13 +1136,13 @@
     "exhaust_header",
     "oil_pan"
    ],
-   "min_mm": 45.56411276858646,
+   "min_mm": 73.11286648390112,
    "a": "exhaust_header",
    "b": "oil_pan",
    "at": [
-    28.803545858156358,
-    151.96740321012715,
-    -48.04358635097608
+    207.3237063435155,
+    167.28764714471959,
+    -196.7808460782387
    ],
    "reason": "hot 4-2-1 header and collector past the sump"
   },
@@ -1115,13 +1151,13 @@
     "exhaust_header",
     "pan_bolt"
    ],
-   "min_mm": 44.222986923176876,
+   "min_mm": 77.19441945488323,
    "a": "exhaust_header",
-   "b": "pan_bolt_10",
+   "b": "pan_bolt_8",
    "at": [
-    30.121282778640346,
-    149.75465177392718,
-    -39.83918284356804
+    -7.844792754034484,
+    183.49247262319923,
+    -61.77162194291711
    ],
    "reason": "header past the pan flange bolts"
   },
@@ -1130,13 +1166,13 @@
     "exhaust_header",
     "flywheel"
    ],
-   "min_mm": 77.13235181364902,
+   "min_mm": 107.81258991342939,
    "a": "exhaust_header",
    "b": "flywheel",
    "at": [
-    162.85690713580334,
-    146.3462506087549,
-    86.86656241796885
+    185.0,
+    94.0,
+    213.22837805708286
    ],
    "reason": "collector and outlet near the flywheel"
   },
@@ -1145,13 +1181,13 @@
     "exhaust_header",
     "ring_gear"
    ],
-   "min_mm": 73.12079178073857,
+   "min_mm": 98.90955409086935,
    "a": "exhaust_header",
    "b": "ring_gear",
    "at": [
-    163.94261915086474,
-    147.37650666070135,
-    90.01730234231526
+    185.0,
+    94.0,
+    213.22837805708286
    ],
    "reason": "collector and outlet near the starter ring gear"
   },
@@ -1164,7 +1200,7 @@
    "a": "exhaust_header",
    "b": "block",
    "at": [
-    185.0,
+    89.0,
     94.0,
     213.22837805708286
    ],
@@ -1819,6 +1855,33 @@
    "overlap_mm3": 0.0,
    "allowed": true,
    "reason": "stay bolt thread engagement in the block rear wall"
+  },
+  {
+   "a": "block",
+   "b": "exhaust_stay",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "header stay tab on the skirt rib of bulkhead 4"
+  },
+  {
+   "a": "block",
+   "b": "exhaust_stay_bolt_block_a",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "stay bolt thread engagement in the skirt rib / bulkhead"
+  },
+  {
+   "a": "block",
+   "b": "exhaust_stay_bolt_block_b",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "stay bolt thread engagement in the skirt rib / bulkhead"
   },
   {
    "a": "head_gasket",
@@ -6447,6 +6510,24 @@
    "reason": "stay bolt thread engagement in the plenum pad"
   },
   {
+   "a": "exhaust_header",
+   "b": "exhaust_stay",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "header stay foot on the pad welded to the 1+4 secondary"
+  },
+  {
+   "a": "exhaust_header",
+   "b": "exhaust_stay_bolt_pad_a",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "stay bolt thread engagement in the secondary pad"
+  },
+  {
    "a": "intake_bracket",
    "b": "bracket_bolt_block_a",
    "state": "contact",
@@ -6481,6 +6562,33 @@
    "overlap_mm3": 0.0,
    "allowed": true,
    "reason": "stay bolt head under the tab"
+  },
+  {
+   "a": "exhaust_stay",
+   "b": "exhaust_stay_bolt_block_a",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "stay bolt head on the tab"
+  },
+  {
+   "a": "exhaust_stay",
+   "b": "exhaust_stay_bolt_block_b",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "stay bolt head on the tab"
+  },
+  {
+   "a": "exhaust_stay",
+   "b": "exhaust_stay_bolt_pad_a",
+   "state": "contact",
+   "distance_mm": 0.0,
+   "overlap_mm3": 0.0,
+   "allowed": true,
+   "reason": "stay bolt head on the foot"
   }
  ],
  "sweep": [
@@ -10102,9 +10210,33 @@
    "param": "crank",
    "vvt_advance_deg": 0.0,
    "mode": false,
-   "min_mm": 84.30401202582526,
+   "min_mm": 143.57633459123727,
    "at_deg": 0.0,
-   "certified_lb_mm": 38.59202883521277,
+   "certified_lb_mm": 89.09202883521277,
+   "max_overlap_mm3": null,
+   "clash": false
+  },
+  {
+   "a": "crankshaft",
+   "b": "exhaust_stay_bolt_block_a",
+   "param": "crank",
+   "vvt_advance_deg": 0.0,
+   "mode": false,
+   "min_mm": 24.10948251993984,
+   "at_deg": 102.7265625,
+   "certified_lb_mm": 22.552682838089634,
+   "max_overlap_mm3": null,
+   "clash": false
+  },
+  {
+   "a": "crankshaft",
+   "b": "exhaust_stay_bolt_block_b",
+   "param": "crank",
+   "vvt_advance_deg": 0.0,
+   "mode": false,
+   "min_mm": 21.932803259972104,
+   "at_deg": 88.828125,
+   "certified_lb_mm": 20.37535596190418,
    "max_overlap_mm3": null,
    "clash": false
   },
@@ -10158,6 +10290,18 @@
   },
   {
    "a": "flywheel",
+   "b": "exhaust_header",
+   "param": "crank",
+   "vvt_advance_deg": 0.0,
+   "mode": false,
+   "min_mm": 110.90005592928395,
+   "at_deg": 116.0,
+   "certified_lb_mm": 107.2717019903105,
+   "max_overlap_mm3": null,
+   "clash": false
+  },
+  {
+   "a": "flywheel",
    "b": "intake_bracket",
    "param": "crank",
    "vvt_advance_deg": 0.0,
@@ -10189,6 +10333,18 @@
    "min_mm": 51.01148031555001,
    "at_deg": 36.0,
    "certified_lb_mm": 47.383126376576556,
+   "max_overlap_mm3": null,
+   "clash": false
+  },
+  {
+   "a": "ring_gear",
+   "b": "exhaust_header",
+   "param": "crank",
+   "vvt_advance_deg": 0.0,
+   "mode": false,
+   "min_mm": 105.32657854633646,
+   "at_deg": 256.0234375,
+   "certified_lb_mm": 101.54447817113129,
    "max_overlap_mm3": null,
    "clash": false
   },
@@ -10558,9 +10714,9 @@
    "param": "crank",
    "vvt_advance_deg": 0.0,
    "mode": false,
-   "min_mm": 104.83153791902701,
+   "min_mm": 155.8165802197251,
    "at_deg": 0.0,
-   "certified_lb_mm": 50.60091099737945,
+   "certified_lb_mm": 99.94816048838703,
    "max_overlap_mm3": null,
    "clash": false
   },
@@ -11614,9 +11770,9 @@
    "param": "crank",
    "vvt_advance_deg": 0.0,
    "mode": false,
-   "min_mm": 110.09758261632831,
+   "min_mm": 150.03890935424576,
    "at_deg": 0.0,
-   "certified_lb_mm": 39.92190154125473,
+   "certified_lb_mm": 94.65706477761573,
    "max_overlap_mm3": null,
    "clash": false
   },
@@ -12670,9 +12826,9 @@
    "param": "crank",
    "vvt_advance_deg": 0.0,
    "mode": false,
-   "min_mm": 110.09758261632831,
+   "min_mm": 150.03890935424576,
    "at_deg": 0.0,
-   "certified_lb_mm": 39.92190154125473,
+   "certified_lb_mm": 94.65706477761573,
    "max_overlap_mm3": null,
    "clash": false
   },
@@ -13690,9 +13846,9 @@
    "param": "crank",
    "vvt_advance_deg": 0.0,
    "mode": false,
-   "min_mm": 105.02303067775169,
+   "min_mm": 155.81658021972513,
    "at_deg": 0.0,
-   "certified_lb_mm": 51.26020206322893,
+   "certified_lb_mm": 99.94816048838703,
    "max_overlap_mm3": null,
    "clash": false
   },

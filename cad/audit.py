@@ -853,6 +853,15 @@ SIMPLIFICATIONS = (
     "length (port + flange + runner to the bellmouth lip) is met exactly, and there is no cam cover modelled under "
     "the plenum. The throttle body is held by flange contact (no flange bolts modelled) and its blade is fixed at "
     "the rendered angle.",
+    "Exhaust: 4-2-1 long-tube header. Primaries leave the ports, bend down beside the block (pair 1+4 in the inboard "
+    "plane, 2+3 outboard) and merge at x = 0 beside the skirt; the secondaries bend rearward and run beside the sump "
+    "to a collector whose axis is 10 mm below the sump floor, outlet flange facing rearward. Every duct centre line "
+    "is solved to the gasdyn length (primaries 450 mm flange face to merge mouth, secondaries 450 mm cone outlet to "
+    "collector mouth; tests/test_cad_audit.py checks them) with bends >= 1.5 x tube OD. 450 + 450 mm cannot be "
+    "folded inside the block length, so the collector and outlet sit behind the flywheel (under where the gearbox "
+    "would be; no bellhousing, starter or downpipe is modelled). One pressed-steel stay ties the 1+4 secondary to "
+    "the skirt rib of bulkhead 4. Merges are plain cones (no formed merge spike); the gasdyn collector volume is "
+    "not matched by the CAD collector.",
     "Bearings: spec/dynamics.yaml now uses the CAD journal diameters (main 52 mm, big end 45 mm, spec/cad.yaml "
     "crankshaft; tests/test_m5_dynamics.py::test_bearing_diameters_match_cad keeps them equal), so the oil-film model "
     "and the 3D shells describe the same bearings. The shells are plain half tubes (no oil grooves, holes or "
@@ -872,8 +881,8 @@ SIMPLIFICATIONS = (
 
 DOC_RENDERS = (
     ("assembly_front34", "full assembly, 3/4 front (intake side): swan-neck runners, plenum, throttle body, stay"),
-    ("assembly_rear34_exhaust", "full assembly, 3/4 rear (exhaust side): 4-2-1 header, flywheel"),
-    ("exhaust_clearance", "header past the oil pan and flywheel (gaps in the key clearances table above)"),
+    ("assembly_rear34_exhaust", "full assembly, 3/4 rear (exhaust side): 4-2-1 header and its stay, flywheel"),
+    ("exhaust_clearance", "header past the oil pan, pan bolts and flywheel, from below (gaps in the key clearances table above)"),
     ("section_cyl1", "exact section through cylinder 1 near full intake lift"),
     ("valvetrain_cutaway", "head sectioned through cylinder 1's rear valve pair: cams, caps, buckets, springs, guides, seats"),
     ("intake_cutaway", "plenum sectioned through the runner axes: bellmouths inside the plenum, runner curl, port"),
@@ -962,8 +971,8 @@ def docs_markdown(final: dict, baseline: dict | None) -> str:
         L += ["", "## Key clearances (selected pairs, exact minimum distance in the static pose)", "",
               "Pairs whose boxes are far apart never reach the exact check above; these are measured anyway because "
               "they matter for packaging (spec/cad_fits.yaml report_clearances). Rotating partners (flywheel, ring "
-              "gear) are axisymmetric, so the static distance holds over the cycle. The header-to-pan and "
-              "header-to-flywheel gaps are shown in docs/renders/exhaust_clearance.png.", "",
+              "gear) are axisymmetric, so the static distance holds over the cycle. The header-to-pan, header-to-pan-bolt "
+              "and header-to-flywheel gaps are shown in docs/renders/exhaust_clearance.png.", "",
               "| Pair (kinds) | Min distance mm | Closest instances | Why it matters |", "|---|---|---|---|"]
         for k in final["key_clearances"]:
             L.append(f"| {k['parts'][0]} / {k['parts'][1]} | {_f(k['min_mm'], 1)} | {k['a']} / {k['b']} | {k['reason']} |")

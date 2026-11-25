@@ -8,7 +8,8 @@ from (taken when the run starts), so a stale audit fails. A few live checks re-m
 
 Stated tolerances (never loosened silently): contact <= 0.05 mm and overlap <= 0.01 mm^3 (spec/cad_fits.yaml);
 tessellation chord <= export.max_chord_mm and facet angle <= export.max_facet_angle_rad (spec/cad.yaml); CAD
-piston-to-valve minimum inside the analytic bracket [min(M3 gap, pocket wall), M3 gap] within PV_TOL_MM.
+piston-to-valve minimum inside the analytic bracket [min(M3 gap, pocket wall), M3 gap] within PV_TOL_MM; exhaust
+header duct lengths equal the gasdyn lengths within EXHAUST_LEN_TOL_MM.
 """
 from __future__ import annotations
 
@@ -21,6 +22,7 @@ from cad.params import params
 
 AUDIT = OUT_DIR / "audit_final.json"
 PV_TOL_MM = 0.05    # sweep resolution on the piston-to-valve bracket (audit resolution_mm scale)
+EXHAUST_LEN_TOL_MM = 1e-3   # header duct centre lines vs gasdyn lengths (solver bisection converges far below this)
 
 
 @pytest.fixture(scope="module")
@@ -97,6 +99,31 @@ def test_intake_runner_length_matches_gasdyn():
     g = M.plenum_geom(p)
     vol = M._rbox(g["x0"], g["x1"], g["y0"], g["y1"], g["z0"], g["z1"], g["rf"]).volume
     assert vol == pytest.approx(p.gas["intake"]["plenum"]["volume"] * p.k**3, rel=1e-6)
+
+
+def test_exhaust_header_matches_gasdyn_and_packaging():
+    """Every primary (head flange face to merge-cone mouth) and secondary (cone outlet to collector mouth) centre line
+    measured on the CAD wire equals the spec/gasdyn.yaml length (EXHAUST_LEN_TOL_MM; the closed-form arc length used
+    by the solver agrees), every bend radius is >= min_bend_to_od x the tube OD, the header is one solid, and its
+    lowest point is within max_drop_below_pan_floor of the sump floor (no header hanging far below the engine)."""
+    from cad import manifolds as M
+    from cad.block import pan_floor_z
+    p = params()
+    g, me, w = p.gas["exhaust"], p.section("manifolds")["exhaust"], p.L(p.section("manifolds")["wall"])
+    R, r = M.bend_radii(p), M.exhaust_radii(p)
+    for i in range(p.cylinders):
+        L = M.primary_length(p, i)
+        assert L == pytest.approx(p.L(g["primary"]["length"]), abs=EXHAUST_LEN_TOL_MM), (i, L)
+        assert M.poly_length(M.primary_points(p, i), R["primary"]) == pytest.approx(L, abs=EXHAUST_LEN_TOL_MM)
+    for pair in (0, 1):
+        L = M.secondary_length(p, pair)
+        assert L == pytest.approx(p.L(g["secondary"]["length"]), abs=EXHAUST_LEN_TOL_MM), (pair, L)
+        assert M.poly_length(M.secondary_points(p, pair), R["secondary"]) == pytest.approx(L, abs=EXHAUST_LEN_TOL_MM)
+    for k in ("primary", "secondary"):
+        assert R[k] >= float(me["min_bend_to_od"]) * 2.0 * (r[k] + w), k
+    h = M.exhaust_header(p)
+    assert len(h.solids()) == 1
+    assert h.bounding_box().min.Z >= pan_floor_z(p) - p.L(me["max_drop_below_pan_floor"])
 
 
 def test_tessellation_within_limits(audit):

@@ -267,9 +267,15 @@ def _zcyl(r, z0, z1, x, y):
 
 
 # --------------------------------------------------------------------------------------------- exhaust
-# Exhaust ducts are swept along straight legs joined by tangent bends of radius bend_radius (cylinders + tori:
-# analytic surfaces, so the 2-into-1 unions are robust). Where two pipes enter a merge cone or the collector they
-# run parallel, side by side (offset +-merge_offset / +-collector_mouth_over), into a mouth wider than both.
+# 4-2-1 header routed like a production long-tube header: each primary leaves its port along +y, bends down and drops
+# in a vertical plane parallel to the block side, then swings diagonally in x into a vertical 2-into-1 merge cone
+# beside the block skirt at x = 0 (pairs 1+4 and 2+3 are 360 deg apart in the firing order 1-3-4-2 and symmetric
+# about the block middle). Pair 1+4 drops in the inboard plane, pair 2+3 in an outboard plane (longer out leg), so
+# no primaries cross. Each secondary drops from its cone, bends rearward and slopes down to the collector, whose axis
+# runs along +x (towards the flywheel end) at about the sump floor; the outlet flange faces rearward. Centre lines are
+# straight legs joined by tangent torus bends (FilletPolyline: analytic surfaces, robust booleans); every bend radius
+# is at least min_bend_to_od x the tube outer diameter. The free leg of every duct is solved so the centre-line
+# length equals the spec/gasdyn.yaml primary / secondary length.
 def _poly_pipe(pts, r, bend):
     from build123d import FilletPolyline
     path = FilletPolyline(*[Vector(*q) for q in pts], radius=bend)
@@ -277,140 +283,248 @@ def _poly_pipe(pts, r, bend):
     return sweep(Plane(origin=Vector(*pts[0]), z_dir=t0) * Circle(r), path=path), path.length
 
 
-def _merge_centre(p: Params, pair: int):
-    """Merge-cone mouth centre of a pair (pairs 1+4 and 2+3: 360 deg apart in firing order 1-3-4-2). Pair 1+4 (outer
-    cylinders) merges further outboard, pair 2+3 deeper, so the two sets of primaries never cross."""
-    me = mc(p)["exhaust"]
-    yf = side_y(p, "exhaust") + p.L(mc(p)["flange_thickness"])
-    zf = port_flange_z(p, "exhaust")
-    return 0.0, yf + p.L(me["merge_y"]) + (1 - pair) * p.L(me["merge_pair_dy"]), \
-        zf - p.L(me["merge_drop"]) - pair * p.L(me["inner_pair_extra_drop"])
+def _corner_tangents(pts, bend):
+    """Tangent length R tan(turn/2) at every interior corner of a polyline (0 at the ends)."""
+    t = [0.0]
+    for a, b, c in zip(pts, pts[1:], pts[2:]):
+        u = (Vector(*b) - Vector(*a)).normalized()
+        v = (Vector(*c) - Vector(*b)).normalized()
+        turn = math.acos(max(-1.0, min(1.0, u.dot(v))))
+        t.append(bend * math.tan(turn / 2.0))
+    return t + [0.0]
+
+
+def poly_length(pts, bend):
+    """Exact centre-line length of a polyline whose corners are replaced by tangent arcs of radius bend, or None when
+    a leg is shorter than the tangents of its two corners (the bends would overlap: not routable)."""
+    if any((Vector(*b) - Vector(*a)).length < 1e-6 for a, b in zip(pts, pts[1:])):
+        return None
+    t = _corner_tangents(pts, bend)
+    L = 0.0
+    for k, (a, b) in enumerate(zip(pts, pts[1:])):
+        s = (Vector(*b) - Vector(*a)).length
+        if s < t[k] + t[k + 1] - 1e-9:
+            return None
+        L += s
+    for k in range(1, len(pts) - 1):
+        turn = 2.0 * math.atan(t[k] / bend) if bend > 0 else 0.0
+        L -= 2.0 * t[k] - bend * turn
+    return L
+
+
+def _solve_leg(f, lo, hi, target, what):
+    """Bisect the scalar leg parameter q in [lo, hi] for poly_length(f(q)) = target. The routable q form one interval;
+    it is found on a fine scan first, then the length (monotonic in q) is bisected inside it."""
+    n = 400
+    qs = [lo + (hi - lo) * k / n for k in range(n + 1)]
+    ok = [(q, f(q)) for q in qs]
+    ok = [(q, L) for q, L in ok if L is not None]
+    if not ok:
+        raise ValueError(f"{what}: no routable layout (adjust spec/cad.yaml manifolds.exhaust)")
+    (qa, La), (qb, Lb) = ok[0], ok[-1]
+    if not min(La, Lb) <= target <= max(La, Lb):
+        raise ValueError(f"{what}: spec length {target:.1f} mm outside the routable range {min(La, Lb):.1f}.."
+                         f"{max(La, Lb):.1f} mm (adjust spec/cad.yaml manifolds.exhaust)")
+    rising = Lb > La
+    for _ in range(SOLVE_STEPS):
+        mid = 0.5 * (qa + qb)
+        Lm = f(mid)
+        if Lm is None:
+            raise ValueError(f"{what}: routable range is not an interval")
+        if (Lm < target) == rising:
+            qa = mid
+        else:
+            qb = mid
+    return 0.5 * (qa + qb)
+
+
+def _ex(p: Params) -> dict:
+    return mc(p)["exhaust"]
+
+
+def exhaust_radii(p: Params) -> dict:
+    """Bore radii of the primaries, secondaries and outlet (spec/gasdyn.yaml diameters)."""
+    g = p.gas["exhaust"]
+    return {"primary": port_exit_r(p, "exhaust"), "secondary": p.L(g["secondary"]["diameter"]) / 2,
+            "outlet": p.L(g["tailpipe_front"]["diameter"]) / 2}
+
+
+@lru_cache(maxsize=None)
+def bend_radii(p: Params) -> dict:
+    """Centre-line bend radius of the primaries and secondaries; each must be >= min_bend_to_od x the tube OD."""
+    me, w, r = _ex(p), p.L(mc(p)["wall"]), exhaust_radii(p)
+    out = {k: p.L(me[f"{k}_bend_radius"]) for k in ("primary", "secondary")}
+    for k, R in out.items():
+        od = 2.0 * (r[k] + w)
+        if R < float(me["min_bend_to_od"]) * od - 1e-9:
+            raise ValueError(f"{k} bend radius {R:.1f} mm < {me['min_bend_to_od']} x OD {od:.1f} mm")
+    return out
+
+
+def _flange_out_y(p: Params) -> float:
+    return side_y(p, "exhaust") + p.L(mc(p)["flange_thickness"])
 
 
 def _pair_side(p: Params, idx: int):
+    """(pair, side): pair 0 = cylinders 1+4 (inboard plane), pair 1 = 2+3 (outboard); side = sign of the cylinder x."""
     return (0 if idx in (0, p.cylinders - 1) else 1), (-1.0 if p.cyl_x(idx) < 0 else 1.0)
 
 
+def primary_out(p: Params, pair: int) -> float:
+    """Straight leg of a pair's primaries out of the head flange (the pair's drop plane is at flange face + this)."""
+    me = _ex(p)
+    return p.L(me["primary_out"]) + pair * p.L(me["outer_pair_extra_out"])
+
+
+def merge_centre(p: Params, pair: int):
+    """Merge-cone mouth centre (x, y, z): x = 0, y = the pair's drop plane, merge_drop (+ the outer pair's extra)
+    below the port centre."""
+    me = _ex(p)
+    z = port_flange_z(p, "exhaust") - p.L(me["merge_drop"]) - pair * p.L(me["outer_pair_drop_offset"])
+    return 0.0, _flange_out_y(p) + primary_out(p, pair), z
+
+
 def _primary_points(p: Params, idx: int, h: float):
-    """Flange -> out -> down by h (solved) -> diagonal -> vertical entry into the merge mouth."""
-    me = mc(p)["exhaust"]
-    yf = side_y(p, "exhaust") + p.L(mc(p)["flange_thickness"])
-    zf = port_flange_z(p, "exhaust")
+    """Flange face -> out along +y -> down by h (solved) -> diagonal in x -> vertical entry into the merge mouth."""
+    me = _ex(p)
+    yf, zf = _flange_out_y(p), port_flange_z(p, "exhaust")
     pair, side = _pair_side(p, idx)
-    xm, ym, zm = _merge_centre(p, pair)
+    xm, ym, zm = merge_centre(p, pair)
     x = p.cyl_x(idx)
-    a = p.L(me["primary_out"])
     xe = xm + side * p.L(me["merge_offset"])
     z3 = zm + p.L(me["entry_length"])
-    return [(x, yf, zf), (x, yf + a, zf), (x, yf + a, zf - h), (xe, ym, z3), (xe, ym, zm)]
-
-
-def _bend(p: Params) -> float:
-    return p.L(mc(p)["exhaust"]["bend_radius"])
+    return [(x, yf, zf), (x, ym, zf), (x, ym, zf - h), (xe, ym, z3), (xe, ym, zm)]
 
 
 @lru_cache(maxsize=None)
 def primary_drop(p: Params, idx: int) -> float:
-    """Vertical drop h of primary idx solved for the spec primary length (length grows monotonically with h)."""
-    target = p.L(p.gas["exhaust"]["primary"]["length"])
-    r = port_exit_r(p, "exhaust")
-    me = mc(p)["exhaust"]
-    pair, _ = _pair_side(p, idx)
+    """Vertical drop h of primary idx solved for the spec primary length (length grows with h)."""
+    R = bend_radii(p)["primary"]
     zf = port_flange_z(p, "exhaust")
-    z3 = _merge_centre(p, pair)[2] + p.L(me["entry_length"])
-    lo, hi = 2.0 * _bend(p), zf - z3 - 2.0 * _bend(p)
-    L = lambda h: _poly_pipe(_primary_points(p, idx, h), r, _bend(p))[1]
-    if not L(lo) <= target <= L(hi):
-        raise ValueError(f"primary {idx + 1}: spec length {target:.0f} mm outside the routable range "
-                         f"{L(lo):.0f}..{L(hi):.0f} mm (adjust manifolds.exhaust)")
-    for _ in range(SOLVE_STEPS):
-        mid = 0.5 * (lo + hi)
-        lo, hi = (mid, hi) if L(mid) < target else (lo, mid)
-    return 0.5 * (lo + hi)
+    z3 = merge_centre(p, _pair_side(p, idx)[0])[2] + p.L(_ex(p)["entry_length"])
+    return _solve_leg(lambda h: poly_length(_primary_points(p, idx, h), R), 0.0, zf - z3,
+                      p.L(p.gas["exhaust"]["primary"]["length"]), f"primary {idx + 1}")
+
+
+def primary_points(p: Params, idx: int):
+    return _primary_points(p, idx, primary_drop(p, idx))
 
 
 def primary_length(p: Params, idx: int) -> float:
-    return _poly_pipe(_primary_points(p, idx, primary_drop(p, idx)), port_exit_r(p, "exhaust"), _bend(p))[1]
+    """Measured CAD centre-line length (FilletPolyline wire), head flange face to merge-cone mouth."""
+    return _poly_pipe(primary_points(p, idx), exhaust_radii(p)["primary"], bend_radii(p)["primary"])[1]
 
 
-def _collector_centre(p: Params):
-    """Collector mouth: below the pair merges, at the y midway between them; depth so each secondary (vertical,
-    diagonal, vertical entry) has the spec secondary length."""
-    me = mc(p)["exhaust"]
-    _, y0, z0 = _merge_centre(p, 0)
-    _, y1, z1 = _merge_centre(p, 1)
-    yc = 0.5 * (y0 + y1)
-    return 0.0, yc, min(z0, z1) - p.L(me["merge_cone_length"]) - p.L(me["secondary_drop"])
+def collector_centre(p: Params):
+    """Collector mouth centre: collector_from_rear_face behind the block rear face, collector_y outboard of the head
+    flange face, collector_below_pan_floor below the sump floor; the collector axis runs along +x."""
+    from cad.block import block_x_extent, pan_floor_z
+    me = _ex(p)
+    return (block_x_extent(p)[1] + p.L(me["collector_from_rear_face"]), _flange_out_y(p) + p.L(me["collector_y"]),
+            pan_floor_z(p) - p.L(me["collector_below_pan_floor"]))
 
 
-def _secondary_points(p: Params, pair: int, w: float):
-    """Merge-cone outlet -> short vertical -> swing out sideways by w in x (solved: the two secondaries start at
-    different heights but must have the same spec length) -> vertical entry into the collector mouth."""
-    me = mc(p)["exhaust"]
-    xm, ym, zm = _merge_centre(p, pair)
-    xc, yc, zc = _collector_centre(p)
-    side = 1.0 if ym > yc else -1.0
-    ye = yc + side * p.L(me["collector_mouth_over"])
+def _secondary_points(p: Params, pair: int, zb: float):
+    """Merge-cone outlet -> vertical drop to zb (solved) -> rearward slope -> straight entry along +x into the
+    collector mouth beside the other secondary (offset +- collector_mouth_over in y)."""
+    me = _ex(p)
+    xm, ym, zm = merge_centre(p, pair)
+    xc, yc, zc = collector_centre(p)
+    ye = yc + (1.0 if pair else -1.0) * p.L(me["collector_mouth_over"])
     z0 = zm - p.L(me["merge_cone_length"])
-    z1 = z0 - p.L(me["secondary_vertical"])
-    z3 = zc + p.L(me["entry_length"])
-    sx = -1.0 if pair == 0 else 1.0
-    return [(xm, ym, z0), (xm, ym, z1), (xm + sx * w, 0.5 * (ym + ye), 0.5 * (z1 + z3)), (xc, ye, z3), (xc, ye, zc)]
+    return [(xm, ym, z0), (xm, ym, zb), (xc - p.L(me["collector_entry_length"]), ye, zc), (xc, ye, zc)]
 
 
 @lru_cache(maxsize=None)
-def secondary_h(p: Params, pair: int) -> float:
-    """Sideways swing w of a secondary solved for the spec secondary length (length grows with w)."""
-    target = p.L(p.gas["exhaust"]["secondary"]["length"])
-    r = p.L(p.gas["exhaust"]["secondary"]["diameter"]) / 2
-    lo, hi = p.L(mc(p)["exhaust"]["min_secondary_swing"]), p.L(mc(p)["exhaust"]["max_secondary_swing"])
-    L = lambda w: _poly_pipe(_secondary_points(p, pair, w), r, _bend(p))[1]
-    if not L(lo) <= target <= L(hi):
-        raise ValueError(f"secondary {pair}: spec length {target:.0f} mm outside {L(lo):.0f}..{L(hi):.0f} mm")
-    for _ in range(SOLVE_STEPS):
-        mid = 0.5 * (lo + hi)
-        lo, hi = (mid, hi) if L(mid) < target else (lo, mid)
-    return 0.5 * (lo + hi)
+def secondary_bend_z(p: Params, pair: int) -> float:
+    """Height zb of a secondary's rearward bend solved for the spec secondary length (length falls as zb rises)."""
+    R = bend_radii(p)["secondary"]
+    z0 = merge_centre(p, pair)[2] - p.L(_ex(p)["merge_cone_length"])
+    zc = collector_centre(p)[2]
+    return _solve_leg(lambda zb: poly_length(_secondary_points(p, pair, zb), R), zc, z0,
+                      p.L(p.gas["exhaust"]["secondary"]["length"]), f"secondary {pair}")
+
+
+def secondary_points(p: Params, pair: int):
+    return _secondary_points(p, pair, secondary_bend_z(p, pair))
+
+
+def secondary_length(p: Params, pair: int) -> float:
+    """Measured CAD centre-line length, merge-cone outlet to collector mouth."""
+    return _poly_pipe(secondary_points(p, pair), exhaust_radii(p)["secondary"], bend_radii(p)["secondary"])[1]
+
+
+def _overlap(pts, d0: float, d1: float):
+    """The same centre line with its end legs extended straight by d0 before the start and d1 past the end, so a duct
+    sinks into the flange / cone it butts against and the union is one solid (a butt joint on a shared face is not
+    fused reliably). Lengths are always measured on the unextended line."""
+    a, b = Vector(*pts[0]), Vector(*pts[1])
+    c, e = Vector(*pts[-2]), Vector(*pts[-1])
+    s = a - (b - a).normalized() * d0
+    t = e + (e - c).normalized() * d1
+    return [tuple(s)] + list(pts[1:-1]) + [tuple(t)]
+
+
+def outlet_flange_x(p: Params) -> float:
+    """Rear face of the outlet flange (downpipe joint)."""
+    me = _ex(p)
+    return collector_centre(p)[0] + p.L(me["collector_length"]) + p.L(me["outlet_length"])
 
 
 @lru_cache(maxsize=None)
 def exhaust_header(p: Params):
     m = mc(p)
-    me = m["exhaust"]
+    me = _ex(p)
     wall = p.L(m["wall"])
-    bend = _bend(p)
-    r1 = port_exit_r(p, "exhaust")
-    r2 = p.L(p.gas["exhaust"]["secondary"]["diameter"]) / 2
-    r3 = p.L(p.gas["exhaust"]["tailpipe_front"]["diameter"]) / 2
+    R = bend_radii(p)
+    r = exhaust_radii(p)
+    r1, r2, r3 = r["primary"], r["secondary"], r["outlet"]
+    ov = p.L(me["joint_overlap"])
+    if not 0.0 < p.L(me["mouth_margin"]) < wall:
+        raise ValueError("mouth_margin must be in (0, wall): the entering pipe walls must sink into the cone wall")
     outer, inner = [], []
     for i in range(p.cylinders):
-        pts = _primary_points(p, i, primary_drop(p, i))
-        outer.append(_poly_pipe(pts, r1 + wall, bend)[0])
-        inner.append(_poly_pipe(pts, r1, bend)[0])
+        pts = _overlap(primary_points(p, i), ov, ov)
+        outer.append(_poly_pipe(pts, r1 + wall, R["primary"])[0])
+        inner.append(_poly_pipe(pts, r1, R["primary"])[0])
     Lc = p.L(me["merge_cone_length"])
     for pair in (0, 1):
-        xm, ym, zm = _merge_centre(p, pair)
-        rm = r1 + p.L(me["merge_offset"]) + p.L(me["mouth_margin"])   # wider than both entering pipes
+        xm, ym, zm = merge_centre(p, pair)
+        rm = r1 + p.L(me["merge_offset"]) + p.L(me["mouth_margin"])   # clears both entering bores
         outer.append(_cone_z(rm + wall, r2 + wall, zm, zm - Lc, xm, ym))
         inner.append(_cone_z(rm, r2, zm + 0.5, zm - Lc - 0.5, xm, ym))
-        pts = _secondary_points(p, pair, secondary_h(p, pair))
-        outer.append(_poly_pipe(pts, r2 + wall, bend)[0])
-        inner.append(_poly_pipe(pts, r2, bend)[0])
-    xc, yc, zc = _collector_centre(p)
+        pts = _overlap(secondary_points(p, pair), ov, ov)
+        outer.append(_poly_pipe(pts, r2 + wall, R["secondary"])[0])
+        inner.append(_poly_pipe(pts, r2, R["secondary"])[0])
+    # collector cone and outlet along +x, rearward-facing outlet flange with its bolt holes
+    xc, yc, zc = collector_centre(p)
     Lk = p.L(me["collector_length"])
     rcm = r2 + p.L(me["collector_mouth_over"]) + p.L(me["mouth_margin"])
-    outer.append(_cone_z(rcm + wall, r3 + wall, zc, zc - Lk, xc, yc))
-    inner.append(_cone_z(rcm, r3, zc + 0.5, zc - Lk - 0.5, xc, yc))
-    Lo = p.L(me["outlet_length"])
-    outer.append(_zc(r3 + wall, zc - Lk - Lo, zc - Lk, xc, yc))
-    inner.append(_zc(r3, zc - Lk - Lo - 1.0, zc - Lk + 1.0, xc, yc))
+    outer.append(_cone_x(rcm + wall, r3 + wall, xc, xc + Lk, yc, zc))
+    inner.append(_cone_x(rcm, r3, xc - 0.5, xc + Lk + 0.5, yc, zc))
+    xo = outlet_flange_x(p)
+    outer.append(cyl_x(r3 + wall, xc + Lk - ov, xo, yc, zc))
+    inner.append(cyl_x(r3, xc + Lk - 1.0, xo + 1.0, yc, zc))
     tf = p.L(m["flange_thickness"])
-    outer.append(_zc(r3 + p.L(me["outlet_flange_over"]), zc - Lk - Lo, zc - Lk - Lo + tf, xc, yc))
+    over = p.L(me["outlet_flange_over"])
+    outer.append(cyl_x(r3 + over, xo - tf, xo, yc, zc))
+    holes = []
+    rbc = r3 + 0.5 * (wall + over)                       # bolt circle midway between tube wall and flange rim
+    nb = int(me["outlet_flange_bolts"])
+    for k in range(nb):
+        a = 2.0 * math.pi * (k + 0.5) / nb
+        holes.append(cyl_x(p.L(m["bolt_diameter"]) / 2 + p.L(m["bolt_hole_clearance"]), xo - tf - 1.0, xo + 1.0,
+                           yc + rbc * math.cos(a), zc + rbc * math.sin(a)))
+    # welded stay pad on the 1+4 secondary (its bore is cut with the tube's), tapped for the stay foot bolt
+    sg = stay_geom(p)
+    outer.append(box(sg["xs"] - sg["pl"] / 2, sg["xs"] + sg["pl"] / 2, sg["yp"] - sg["pw"] / 2, sg["yp"] + sg["pw"] / 2,
+                     sg["zaxis"], sg["zp"]))
+    for (x, y, z) in stay_bolts(p)["pad"]:
+        holes.append(_zcyl(p.L(m["bolt_diameter"]) / 2, z - p.L(me["stay"]["pad_thread_depth"]), z + 1.0, x, y))
     # per-port flanges on the head exhaust face
     yf = side_y(p, "exhaust")
     hz = p.L(m["flange_half_height"])
     zf = port_flange_z(p, "exhaust")
-    holes = []
     for i in range(p.cylinders):
         bx = port_bolt_xz(p, "exhaust", i)
         x0 = bx[0][0] - p.L(m["exhaust_flange_bolt_margin"])
@@ -423,15 +537,88 @@ def exhaust_header(p: Params):
     return body.cut(*inner, *holes)
 
 
-def _zc(r, z0, z1, x, y):
-    from cad.primitives import cyl_z
-    return cyl_z(r, min(z0, z1), max(z0, z1), x, y)
+# Header stay (spec manifolds.exhaust.stay): the header hangs ~0.5 m from the head flanges, so a pressed-steel stay
+# ties the 1+4 secondary to the block: a tab bolted to the external skirt rib of one bulkhead (solid bulkhead behind
+# it for the thread), an arm in a y-z plane (the tab's front edge, clear of the bolt heads) dropping outboard past the
+# pan-rail lip, and a foot bolted to a pad welded on top of the secondary.
+def _secondary_axis_at_x(p: Params, pair: int, x: float):
+    """Point of a secondary's centre line at a given x (on its rearward run)."""
+    from build123d import FilletPolyline
+    w = FilletPolyline(*[Vector(*q) for q in secondary_points(p, pair)], radius=bend_radii(p)["secondary"])
+    lo, hi = 0.0, 1.0
+    for _ in range(SOLVE_STEPS + 20):
+        mid = 0.5 * (lo + hi)
+        lo, hi = (mid, hi) if w.position_at(mid).X < x else (lo, mid)
+    q = w.position_at(0.5 * (lo + hi))
+    return q.X, q.Y, q.Z
+
+
+@lru_cache(maxsize=None)
+def stay_geom(p: Params) -> dict:
+    from cad.block import bsec, rail_z
+    st, w = _ex(p)["stay"], p.L(mc(p)["wall"])
+    b = bsec(p)
+    xs = p.main_x(int(st["bulkhead"]))
+    yr = p.L(b["half_width"]) + p.L(b["rib_height"])           # rib face
+    _x, yp, zaxis = _secondary_axis_at_x(p, 0, xs)
+    zp = zaxis + exhaust_radii(p)["secondary"] + w + p.L(st["pad_height"])
+    t, tw = p.L(st["thickness"]), p.L(st["tab_width"])
+    z0, z1 = (p.L(v) for v in st["tab_z"])
+    lip_top = rail_z(p) + p.L(b["pan_rail_height"])
+    if z0 <= lip_top:
+        raise ValueError("stay tab must sit above the pan-rail lip")
+    return {"xs": xs, "yr": yr, "yp": yp, "zaxis": zaxis, "zp": zp, "t": t, "tw": tw, "z0": z0, "z1": z1,
+            "xa0": xs - tw / 2, "pl": p.L(st["pad_length"]), "pw": p.L(st["pad_width"])}
+
+
+def stay_bolts(p: Params) -> dict:
+    """Placements (x, y, z) of the stay bolts: 'block' (origin on the rib face, thread along -y), 'pad' (origin on
+    the pad top, thread along -z)."""
+    g, st = stay_geom(p), _ex(p)["stay"]
+    return {"block": [(g["xs"], g["yr"], p.L(z)) for z in st["bolt_z"]], "pad": [(g["xs"], g["yp"], g["zp"])]}
+
+
+@lru_cache(maxsize=None)
+def exhaust_stay(p: Params):
+    m, st, g = mc(p), _ex(p)["stay"], stay_geom(p)
+    t, yr, yp, zp = g["t"], g["yr"], g["yp"], g["zp"]
+    xa0, xa1 = g["xa0"], g["xa0"] + g["tw"]
+    tab = box(xa0, xa1, yr, yr + t, g["z0"], g["z1"])
+    fl = p.L(st["foot_length"])
+    foot = box(xa0, xa1, yp - fl / 2, yp + fl / 2, zp, zp + t)
+    ky, kz = (p.L(v) for v in st["knee"])
+    arm_pts = [(yr, g["z1"]), (yr, g["z0"]), (yr + ky, g["z0"] + kz), (yp - fl / 2, zp), (yp + fl / 2, zp),
+               (yp + fl / 2, zp + p.L(st["arm_end_height"])), (yr + p.L(st["arm_top_width"]), g["z1"])]
+    from build123d import Plane as _Pl, Polygon, extrude
+    arm = extrude(_Pl.YZ.offset(xa0) * Polygon(*arm_pts, align=None), amount=t)
+    body = tab.fuse(foot, arm).clean()
+    hole = p.L(m["bolt_diameter"]) / 2 + p.L(m["bolt_hole_clearance"])
+    tools = [_cyl_y(hole, yr - 1.0, yr + t + 1.0, x, z) for (x, _y, z) in stay_bolts(p)["block"]]
+    tools += [_zcyl(hole, zp - 1.0, zp + t + 1.0, x, y) for (x, y, _z) in stay_bolts(p)["pad"]]
+    return body.cut(*tools)
+
+
+def stay_bolt(p: Params, kind: str):
+    """Stay bolt in its local frame (origin on the clamped face of the threaded part): 'block' along -y, 'pad' -z."""
+    m, st, g = mc(p), _ex(p)["stay"], stay_geom(p)
+    r, t = p.L(m["bolt_diameter"]) / 2, g["t"]
+    rh, hh = p.L(m["bolt_head_diameter"]) / 2, p.L(m["bolt_head_height"])
+    if kind == "block":
+        return _cyl_y(r, -p.L(st["thread_depth"]), t, 0.0, 0.0) + _cyl_y(rh, t, t + hh, 0.0, 0.0)
+    return _zcyl(r, -p.L(st["pad_thread_depth"]), t, 0.0, 0.0) + _zcyl(rh, t, t + hh, 0.0, 0.0)
 
 
 def _cone_z(r_top, r_bot, z_top, z_bot, x, y):
     from build123d import Cone, Pos
     from cad.primitives import BOTTOM
     return Pos(x, y, z_bot) * Cone(r_bot, r_top, z_top - z_bot, align=BOTTOM)
+
+
+def _cone_x(r0, r1, x0, x1, y, z):
+    """Cone along +x from radius r0 at x0 to r1 at x1."""
+    from build123d import Cone, Pos, Rot
+    from cad.primitives import BOTTOM
+    return Pos(x0, y, z) * Rot(0, 90, 0) * Cone(r0, r1, x1 - x0, align=BOTTOM)
 
 
 def manifold_bolt(p: Params, kind: str, x: float, z: float):

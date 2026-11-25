@@ -151,7 +151,8 @@ VIZ_GROUPS = {
     "front": ("world", lambda it: it.kind in ("timing_belt", "idler", "tensioner")),
     "intake_manifold": ("world", lambda it: it.kind in ("intake_manifold", "throttle_body", "intake_bracket")
                         or it.kind.startswith("bracket_bolt_")),
-    "exhaust_header": ("world", lambda it: it.kind == "exhaust_header"),
+    "exhaust_header": ("world", lambda it: it.kind in ("exhaust_header", "exhaust_stay")
+                       or it.kind.startswith("exhaust_stay_bolt_")),
 }
 
 

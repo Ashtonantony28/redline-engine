@@ -141,6 +141,9 @@ def parts(p: Params | None = None) -> dict:
     out["intake_bracket"] = (manifolds.intake_bracket(p), "intake_bracket")
     out["bracket_bolt_block"] = (manifolds.bracket_bolt(p, "block"), "bracket_bolt")
     out["bracket_bolt_pad"] = (manifolds.bracket_bolt(p, "pad"), "bracket_bolt")
+    out["exhaust_stay"] = (manifolds.exhaust_stay(p), "exhaust_stay")
+    out["exhaust_stay_bolt_block"] = (manifolds.stay_bolt(p, "block"), "bracket_bolt")
+    out["exhaust_stay_bolt_pad"] = (manifolds.stay_bolt(p, "pad"), "bracket_bolt")
     out["manifold_bolt_intake"] = (manifolds.manifold_bolt(p, "intake", 0.0, 0.0), "manifold_bolt")
     out["manifold_bolt_exhaust"] = (manifolds.manifold_bolt(p, "exhaust", 0.0, 0.0), "manifold_bolt")
     return out
@@ -229,6 +232,10 @@ def instances(p: Params | None = None) -> tuple:
     for kind, pts in manifolds.bracket_bolts(p).items():
         for k, (bx, by, bz) in enumerate(pts):
             out.append(Inst(f"bracket_bolt_{kind}_{'ab'[k]}", f"bracket_bolt_{kind}", S, Pos(bx, by, bz)))
+    out.append(Inst("exhaust_stay", "exhaust_stay", S))
+    for kind, pts in manifolds.stay_bolts(p).items():
+        for k, (bx, by, bz) in enumerate(pts):
+            out.append(Inst(f"exhaust_stay_bolt_{kind}_{'ab'[k]}", f"exhaust_stay_bolt_{kind}", S, Pos(bx, by, bz)))
     assert all(it.kind in src for it in out)
     assert len({it.name for it in out}) == len(out)
     return tuple(out)

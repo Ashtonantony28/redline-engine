@@ -4,7 +4,7 @@ All numbers describe the parametric CAD model; there is no physical engine. Rege
 
 ## Method
 
-* **Static clash** (crank 0 deg, VVT parked): every pair of the 349 placed part instances (60726 pairs) is screened with exact (optimal) bounding boxes; the 1478 pairs whose boxes come within the contact tolerance get an exact BRep boolean common volume and an exact minimum distance (BRepExtrema). Overlap > 0.01 mm^3 = overlap, distance <= 0.05 mm = contact. Every contact/overlap must be listed in spec/cad_fits.yaml with its build reason; anything else is a defect.
+* **Static clash** (crank 0 deg, VVT parked): every pair of the 353 placed part instances (62128 pairs) is screened with exact (optimal) bounding boxes; the 1493 pairs whose boxes come within the contact tolerance get an exact BRep boolean common volume and an exact minimum distance (BRepExtrema). Overlap > 0.01 mm^3 = overlap, distance <= 0.05 mm = contact. Every contact/overlap must be listed in spec/cad_fits.yaml with its build reason; anything else is a defect.
 * **Moving sweep**: every pair with at least one moving part whose swept boxes come within 5 mm is swept. Crank-driven pairs: 2 deg grid over the full period (720 deg when a cam or valve is involved, at VVT parked and at full intake advance when only one side is phased), local refinement of the minimum down to 0.01 deg, then a branch and bound with a rigorous Lipschitz bound (largest surface speed of the bodies) certifies a lower bound. Valve parts against static parts are swept over the valve lift (0.5 mm grid, refined) instead of the crank angle. Running-contact pairs (bearings, sliding fits, cam on bucket) are checked for penetration (common volume) instead of clearance.
 * **Support graph**: union-find over the contact/overlap pairs, rooted at the block; a part not connected is floating (and connections through unlisted contacts are reported separately).
 * **Tessellation**: every source solid is meshed with the export settings and the chordal deviation of every triangle from the exact surface (exact point projection of the worst samples) and the largest angle between exact vertex normals inside a triangle are measured. OCCT's mesher alone does not honour the angular deflection across tori and swept B-spline faces, so cad/tess.py refines every curved face afterwards on the exact surface (red-green splits at surface midpoints) until the chord and facet-angle targets hold.
@@ -13,14 +13,14 @@ All numbers describe the parametric CAD model; there is no physical engine. Rege
 
 | Check | Baseline | Final |
 |---|---|---|
-| instances | 35 | 349 |
-| bbox candidates | 89 | 1478 |
+| instances | 35 | 353 |
+| bbox candidates | 89 | 1493 |
 | overlaps | 0 | 0 |
 | unexplained overlaps | 0 | 0 |
-| contacts | 45 | 580 |
+| contacts | 45 | 588 |
 | unexplained contacts | 1 | 0 |
 | floating | 1 | 0 |
-| moving pairs | 129 | 1140 |
+| moving pairs | 129 | 1144 |
 | moving clashes | 1 | 0 |
 | tessellation fail | 1 | 0 |
 | worst chord mm | 0.0253 | 0.0193 |
@@ -32,25 +32,25 @@ Baseline defects: block / crankshaft contact at 0.000 mm. Baseline floating: hea
 
 | Check | Count |
 |---|---|
-| instances | 349 |
-| pairs | 60726 |
-| bbox candidates | 1478 |
+| instances | 353 |
+| pairs | 62128 |
+| bbox candidates | 1493 |
 | overlaps | 0 |
 | overlaps allowed | 0 |
-| contacts | 580 |
-| contacts allowed | 580 |
+| contacts | 588 |
+| contacts allowed | 588 |
 | unexplained overlaps | 0 |
 | unexplained contacts | 0 |
 | missing required contacts | 0 |
 | floating | 0 |
 | floating without unlisted contacts | 0 |
-| moving pairs | 1140 |
+| moving pairs | 1144 |
 | moving clashes | 0 |
 | tessellation fail | 0 |
 
 ## Static part pairs (every pair with touching bounding boxes, aggregated by part kind)
 
-All other 59248 pairs have exact bounding boxes more than 0.05 mm apart (clear).
+All other 60635 pairs have exact bounding boxes more than 0.05 mm apart (clear).
 
 | Part kinds | State | Pairs | Min distance mm | Max overlap mm^3 | Allowed | Reason |
 |---|---|---|---|---|---|---|
@@ -62,6 +62,8 @@ All other 59248 pairs have exact bounding boxes more than 0.05 mm apart (clear).
 | big_end_shell_upper / conrod_cap | contact | 4 | 0.000 | 0.000 | yes | upper shell joint face meets the cap at the split plane |
 | big_end_shell_upper / crankshaft | contact | 4 | 0.022 | 0.000 | yes | big-end running clearance 22 um radial (spec/dynamics.yaml bearings.big_end) = oil film |
 | block / bracket_bolt_block | contact | 2 | 0.000 | 0.000 | yes | stay bolt thread engagement in the block rear wall |
+| block / exhaust_stay | contact | 1 | 0.000 | 0.000 | yes | header stay tab on the skirt rib of bulkhead 4 |
+| block / exhaust_stay_bolt_block | contact | 2 | 0.000 | 0.000 | yes | stay bolt thread engagement in the skirt rib / bulkhead |
 | block / head_bolt | contact | 10 | 0.000 | 0.000 | yes | head bolt thread engagement in the block |
 | block / head_gasket | contact | 1 | 0.000 | 0.000 | yes | gasket on the deck |
 | block / idler | contact | 1 | 0.000 | 0.000 | yes | idler boss bolted to the block front face |
@@ -115,8 +117,12 @@ All other 59248 pairs have exact bounding boxes more than 0.05 mm apart (clear).
 | crankshaft / main_shell_upper | contact | 5 | 0.025 | 0.000 | yes | main running clearance 25 um radial (spec/dynamics.yaml bearings.main) = oil film |
 | damper_hub / damper_rubber | contact | 1 | 0.000 | 0.000 | yes | rubber bonded to the hub rim |
 | damper_ring / damper_rubber | contact | 1 | 0.000 | 0.000 | yes | inertia ring bonded to the rubber |
+| exhaust_header / exhaust_stay | contact | 1 | 0.000 | 0.000 | yes | header stay foot on the pad welded to the 1+4 secondary |
+| exhaust_header / exhaust_stay_bolt_pad | contact | 1 | 0.000 | 0.000 | yes | stay bolt thread engagement in the secondary pad |
 | exhaust_header / head | contact | 1 | 0.000 | 0.000 | yes | header flanges on the head exhaust face |
 | exhaust_header / manifold_bolt_exhaust | contact | 8 | 0.000 | 0.000 | yes | bolt head on the header flange |
+| exhaust_stay / exhaust_stay_bolt_block | contact | 2 | 0.000 | 0.000 | yes | stay bolt head on the tab |
+| exhaust_stay / exhaust_stay_bolt_pad | contact | 1 | 0.000 | 0.000 | yes | stay bolt head on the foot |
 | flywheel / flywheel_bolt | contact | 6 | 0.000 | 0.000 | yes | flywheel bolt head on the flywheel hub |
 | flywheel / ring_gear | contact | 1 | 0.000 | 0.000 | yes | ring gear shrunk on the flywheel seat |
 | guide_exhaust / head | contact | 8 | 0.000 | 0.000 | yes | valve guide pressed in its bore |
@@ -241,8 +247,13 @@ All other 59248 pairs have exact bounding boxes more than 0.05 mm apart (clear).
 | crankshaft / ring_gear | clear | 1 | 84.890 | 0.000 | - |  |
 | crankshaft / timing_belt | clear | 1 | 10.052 | 0.000 | - |  |
 | damper_hub / damper_ring | clear | 1 | 4.000 | 0.000 | - |  |
-| exhaust_header / oil_pan | clear | 1 | 45.564 | 0.000 | - |  |
-| exhaust_header / pan_bolt | clear | 6 | 44.223 | 0.000 | - |  |
+| exhaust_header / exhaust_stay_bolt_block | clear | 2 | 78.639 | 0.000 | - |  |
+| exhaust_header / flywheel | clear | 1 | 107.813 | 0.000 | - |  |
+| exhaust_header / oil_pan | clear | 1 | 73.113 | 0.000 | - |  |
+| exhaust_header / pan_bolt | clear | 7 | 77.194 | 0.000 | - |  |
+| exhaust_header / ring_gear | clear | 1 | 98.910 | 0.000 | - |  |
+| exhaust_stay / oil_pan | clear | 1 | 21.503 | 0.000 | - |  |
+| exhaust_stay / pan_bolt | clear | 1 | 13.282 | 0.000 | - |  |
 | flywheel_bolt / ring_gear | clear | 6 | 97.532 | 0.000 | - |  |
 | guide_exhaust / intake_bracket | clear | 1 | 50.250 | 0.000 | - |  |
 | guide_exhaust / intake_manifold | clear | 8 | 100.300 | 0.000 | - |  |
@@ -308,14 +319,14 @@ All other 59248 pairs have exact bounding boxes more than 0.05 mm apart (clear).
 
 ## Key clearances (selected pairs, exact minimum distance in the static pose)
 
-Pairs whose boxes are far apart never reach the exact check above; these are measured anyway because they matter for packaging (spec/cad_fits.yaml report_clearances). Rotating partners (flywheel, ring gear) are axisymmetric, so the static distance holds over the cycle. The header-to-pan and header-to-flywheel gaps are shown in docs/renders/exhaust_clearance.png.
+Pairs whose boxes are far apart never reach the exact check above; these are measured anyway because they matter for packaging (spec/cad_fits.yaml report_clearances). Rotating partners (flywheel, ring gear) are axisymmetric, so the static distance holds over the cycle. The header-to-pan, header-to-pan-bolt and header-to-flywheel gaps are shown in docs/renders/exhaust_clearance.png.
 
 | Pair (kinds) | Min distance mm | Closest instances | Why it matters |
 |---|---|---|---|
-| exhaust_header / oil_pan | 45.6 | exhaust_header / oil_pan | hot 4-2-1 header and collector past the sump |
-| exhaust_header / pan_bolt | 44.2 | exhaust_header / pan_bolt_10 | header past the pan flange bolts |
-| exhaust_header / flywheel | 77.1 | exhaust_header / flywheel | collector and outlet near the flywheel |
-| exhaust_header / ring_gear | 73.1 | exhaust_header / ring_gear | collector and outlet near the starter ring gear |
+| exhaust_header / oil_pan | 73.1 | exhaust_header / oil_pan | hot 4-2-1 header and collector past the sump |
+| exhaust_header / pan_bolt | 77.2 | exhaust_header / pan_bolt_8 | header past the pan flange bolts |
+| exhaust_header / flywheel | 107.8 | exhaust_header / flywheel | collector and outlet near the flywheel |
+| exhaust_header / ring_gear | 98.9 | exhaust_header / ring_gear | collector and outlet near the starter ring gear |
 | exhaust_header / block | 16.5 | exhaust_header / block | primaries along the block exhaust side |
 | exhaust_header / intake_* | 72.0 | exhaust_header / intake_bracket | hot header to the intake system and stay |
 | intake_manifold / camshaft_* | 31.3 | intake_manifold / camshaft_exhaust | runners and plenum over the cams |
@@ -443,8 +454,10 @@ Pairs whose boxes are far apart never reach the exact check above; these are mea
 | oil_pan | crankshaft | crank | 0 | clearance | 1 | 20.100 | oil_pan / crankshaft at 254.00 | 18.532 | clear |
 | conrod | valve | crank | 40 | clearance | 8 | 20.237 | conrod_1 / valve_1_intake_1 at 365.99 | 19.276 | clear |
 | block | big_end_shell_lower | crank | 0 | clearance | 4 | 21.914 | block / big_end_shell_lower_1 at 228.25 | 20.960 | clear |
+| crankshaft | exhaust_stay_bolt_block_b | crank | 0 | clearance | 1 | 21.933 | crankshaft / exhaust_stay_bolt_block_b at 88.83 | 20.375 | clear |
 | retainer | guide | lift | 0 | clearance | 16 | 22.000 | retainer_1_exhaust_1 / guide_1_exhaust_1 at 0.00 | 3.266 | clear |
 | conrod | ring | crank | 0 | clearance | 12 | 23.013 | conrod_4 / ring_3_4 at 128.00 | 21.277 | clear |
+| crankshaft | exhaust_stay_bolt_block_a | crank | 0 | clearance | 1 | 24.109 | crankshaft / exhaust_stay_bolt_block_a at 102.73 | 22.553 | clear |
 | bucket | spring_seat | lift | 0 | clearance | 16 | 24.659 | bucket_1_exhaust_2 / spring_seat_1_exhaust_2 at 0.00 | 2.110 | clear |
 | conrod | valve | crank | 0 | clearance | 16 | 24.868 | conrod_2 / valve_2_intake_1 at 187.88 | 23.890 | clear |
 | flywheel | bracket_bolt_block_a | crank | 0 | clearance | 1 | 27.955 | flywheel / bracket_bolt_block_a at 20.00 | 24.327 | clear |
@@ -489,8 +502,10 @@ Pairs whose boxes are far apart never reach the exact check above; these are mea
 | head | ring_gear | crank | 0 | clearance | 1 | 72.073 | head / ring_gear at 69.98 | 68.290 | clear |
 | head_gasket | flywheel | crank | 0 | clearance | 1 | 80.324 | head_gasket / flywheel at 4.00 | 76.696 | clear |
 | head | flywheel | crank | 0 | clearance | 1 | 80.987 | head / flywheel at 0.00 | 0.568 | clear |
-| crankshaft | exhaust_header | crank | 0 | clearance | 1 | 84.304 | crankshaft / exhaust_header at 0.00 | 38.592 | clear |
-| conrod_cap | exhaust_header | crank | 0 | clearance | 4 | 104.832 | conrod_cap_1 / exhaust_header at 0.00 | 39.922 | clear |
+| ring_gear | exhaust_header | crank | 0 | clearance | 1 | 105.327 | ring_gear / exhaust_header at 256.02 | 101.544 | clear |
+| flywheel | exhaust_header | crank | 0 | clearance | 1 | 110.900 | flywheel / exhaust_header at 116.00 | 107.272 | clear |
+| crankshaft | exhaust_header | crank | 0 | clearance | 1 | 143.576 | crankshaft / exhaust_header at 0.00 | 89.092 | clear |
+| conrod_cap | exhaust_header | crank | 0 | clearance | 4 | 150.039 | conrod_cap_2 / exhaust_header at 0.00 | 94.657 | clear |
 
 ## Valve springs and piston-to-valve
 
@@ -507,15 +522,15 @@ The CAD minimum is the 3D distance over the 720-deg sweep; M3 is the gap along t
 
 ## Tessellation
 
-Export settings: absolute chordal deflection 0.02 mm, angular 0.08 rad. Worst measured chordal deviation 0.0193 mm (limit 0.02), worst facet angle 0.0800 rad (limit 0.1), 3189972 triangles over all source solids. glTF exports carry exact per-vertex surface normals (smooth shading).
+Export settings: absolute chordal deflection 0.02 mm, angular 0.08 rad. Worst measured chordal deviation 0.0193 mm (limit 0.02), worst facet angle 0.0800 rad (limit 0.1), 3185416 triangles over all source solids. glTF exports carry exact per-vertex surface normals (smooth shading).
 
 Baseline (build123d exporters, relative deflection 0.001, 0.1 rad): worst chord 0.0253 mm, facet angle 0.0914 rad, no exported normals.
 
 ## Renders (docs/renders/, `python -m cad.render`)
 
 * `assembly_front34.png`: full assembly, 3/4 front (intake side): swan-neck runners, plenum, throttle body, stay
-* `assembly_rear34_exhaust.png`: full assembly, 3/4 rear (exhaust side): 4-2-1 header, flywheel
-* `exhaust_clearance.png`: header past the oil pan and flywheel (gaps in the key clearances table above)
+* `assembly_rear34_exhaust.png`: full assembly, 3/4 rear (exhaust side): 4-2-1 header and its stay, flywheel
+* `exhaust_clearance.png`: header past the oil pan, pan bolts and flywheel, from below (gaps in the key clearances table above)
 * `section_cyl1.png`: exact section through cylinder 1 near full intake lift
 * `valvetrain_cutaway.png`: head sectioned through cylinder 1's rear valve pair: cams, caps, buckets, springs, guides, seats
 * `intake_cutaway.png`: plenum sectioned through the runner axes: bellmouths inside the plenum, runner curl, port
@@ -529,6 +544,7 @@ Baseline (build123d exporters, relative deflection 0.001, 0.1 rad): worst chord 
 * Valve springs are static solids at the installed length in the assembly; the audit rebuilds each spring at the lift of its valve for the static pose and checks coil bind and neighbour distances at full lift instead of sweeping the deforming coil.
 * Head bolts sit under the cam axes in closed pockets below the journals (bolts cannot be removed with the cams fitted, as on some production heads); the pocket roof is head_bolt_pocket_roof below the journal bore.
 * Intake: swan-neck runners curl over the head into a plenum above the cam area; the 550 mm gasdyn runner length (port + flange + runner to the bellmouth lip) is met exactly, and there is no cam cover modelled under the plenum. The throttle body is held by flange contact (no flange bolts modelled) and its blade is fixed at the rendered angle.
+* Exhaust: 4-2-1 long-tube header. Primaries leave the ports, bend down beside the block (pair 1+4 in the inboard plane, 2+3 outboard) and merge at x = 0 beside the skirt; the secondaries bend rearward and run beside the sump to a collector whose axis is 10 mm below the sump floor, outlet flange facing rearward. Every duct centre line is solved to the gasdyn length (primaries 450 mm flange face to merge mouth, secondaries 450 mm cone outlet to collector mouth; tests/test_cad_audit.py checks them) with bends >= 1.5 x tube OD. 450 + 450 mm cannot be folded inside the block length, so the collector and outlet sit behind the flywheel (under where the gearbox would be; no bellhousing, starter or downpipe is modelled). One pressed-steel stay ties the 1+4 secondary to the skirt rib of bulkhead 4. Merges are plain cones (no formed merge spike); the gasdyn collector volume is not matched by the CAD collector.
 * Bearings: spec/dynamics.yaml now uses the CAD journal diameters (main 52 mm, big end 45 mm, spec/cad.yaml crankshaft; tests/test_m5_dynamics.py::test_bearing_diameters_match_cad keeps them equal), so the oil-film model and the 3D shells describe the same bearings. The shells are plain half tubes (no oil grooves, holes or locating tangs).
 * 12 clearance pairs keep a constant gap while they move: crank vs conrod and conrod cap (1.0 mm side gaps) and conrod vs piston (0.5 mm small-end side gap). The faces involved are planes normal to the common rotation axis, so the gap is exactly constant and the grid minimum is the true minimum; the Lipschitz certificate cannot see that (it bounds the surface speed, not the gap's derivative) and reports a lower bound of 0 for these pairs (Certified column).
 * Running-contact pairs (bearing shells, sliding fits, cam lobe on bucket) are checked for penetration by exact common volume on a subsampled grid (spec/cad_fits.yaml sweep.contact_volume_step_deg/_mm), not certified between samples; clearance pairs carry the Lipschitz certificate.
