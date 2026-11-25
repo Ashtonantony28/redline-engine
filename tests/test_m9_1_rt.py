@@ -15,9 +15,10 @@ Anchors first, then the exit criteria. Stated tolerances (never loosened silentl
       every event, and the worst tooth-to-event latency as an angle .. <= 0.5 deg at 2000 rpm
   real time, 7000 rpm, 100 MHz (the board oscillator undivided) ...... all of the above, every event and
                                                                       the worst-case latency <= 0.5 deg
-  KNOWN GAP, asserted so that it is reported and not hidden: at 7000 rpm and 50 MHz an event that falls
-  right behind its reference tooth is armed late: the worst tooth-to-event latency is more than 0.5 deg
-  of crank travel (and less than 1 deg). See ADR 0005, Consequences.
+  real time, 7000 rpm, 50 MHz, since M9.3 (ADR 0008 scheduler arm-ahead): every event and the worst
+  case (worst tooth-to-event latency minus the scheduler's lead) <= 0.5 deg. Until M9.3 this was a
+  KNOWN GAP (0.70 deg observed, 0.75 deg worst case): an event right behind its reference tooth was
+  armed late.
   the M9 firmware (polled, libgcc soft-float) in real time ........... fails: spark error > 5 deg (slow-marked)
 Tests that need riscv64-unknown-elf-gcc / verilator / the Vortex-V checkout skip without them.
 """
@@ -38,7 +39,6 @@ BOARD_HZ = float(rv64.cosim_spec()["core_clock_hz"])
 OSC_HZ = 100.0e6                 # Arty A7 oscillator (Vortex-V fpga/arty_a7_100t.xdc), MMCM divider 10
 LOAD_MAX = 0.60
 SLOW_FRACTION_MAX = 0.50
-GAP_DEG_MAX = 1.0                # upper bound of the documented 50 MHz worst case
 M9_SPARK_ERROR_MIN_DEG = 5.0     # the M9 firmware is at least this wrong in real time
 START_INJ_DIFF_MAX = 4           # one start-up injection per cylinder
 SOFTFP_VECTORS = 300000
@@ -81,13 +81,14 @@ def test_softfp_and_divide_bit_identical_to_host():
     assert len(rows) == 11 and all(int(r[1]) > SOFTFP_VECTORS and int(r[3]) == 0 for r in rows)
 
 
-def test_portable_core_unchanged():
-    """ADR 0003 / 0005: the RV64 work is HAL, build and target arithmetic only."""
-    if not (ROOT / ".git").exists():
-        pytest.skip("not a git checkout")
-    st = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "ecu/src", "ecu/include", "ecu/host"],
-                        capture_output=True, text=True).stdout
-    assert st.strip() == "", f"portable core / host HAL modified:\n{st}"
+def test_portable_core_changed_only_by_adr_0008():
+    """ADR 0003 / 0005: the RV64 work is HAL, build and target arithmetic only. The core itself
+    changed once since, on purpose, in M9.3 (ADR 0008: scheduler arm-ahead): relative to the M9.2
+    commit only the ADR 0008 files may differ. (Until M9.3 this required a clean `git status`.)"""
+    changed = rv64.core_files_changed_since(rv64.CORE_BASE_M92)
+    if changed is None:
+        pytest.skip("not a git checkout, or the M9.2 commit is unknown")
+    assert changed <= rv64.ADR_0008_CORE_FILES, f"core changed outside ADR 0008: {sorted(changed - rv64.ADR_0008_CORE_FILES)}"
 
 
 @needs_rv
@@ -155,14 +156,16 @@ def test_real_time_redline_at_board_clock(redline_50):
 
 
 @needs_rv
-def test_real_time_redline_worst_case_gap_is_reported(redline_50):
-    """KNOWN GAP (ADR 0005): the scheduler arms an event from the tooth just before it, so an event
-    right behind a tooth is late by the handler's latency. At 7000 rpm and 50 MHz that is more
-    than 0.5 deg; the figure is reported and bounded here, not hidden."""
+def test_real_time_redline_meets_spec_at_board_clock(redline_50):
+    """M9.3 (ADR 0008): the scheduler arms an event that lies less than the arm-ahead guard behind a
+    tooth from the tooth before, so the handler's latency (about 19 us, 0.8 deg at 7000 rpm) no longer
+    makes it late: every event and the worst case are within 0.5 deg at 50 MHz in the M9.1 mailbox
+    mode too. (Until M9.3 this test asserted the known gap: worst case above 0.5 deg, below 1 deg.)"""
     _, m = redline_50
-    worst = max(m["worst_case_angle_error_deg"], m["event_angle_error_max_deg"])
-    assert SPEC_DEG < worst < GAP_DEG_MAX
-    assert not m["meets_spec"] and m["rt_ok"]
+    assert m["events_late"] == 0
+    assert m["lead_min_deg"] > m["tooth_to_event_max_deg"]
+    assert m["event_angle_error_max_deg"] <= SPEC_DEG and m["worst_case_angle_error_deg"] <= SPEC_DEG
+    assert m["meets_spec"] and m["rt_ok"]
 
 
 @needs_rv

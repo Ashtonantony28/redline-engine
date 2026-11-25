@@ -205,6 +205,34 @@ The SoC is built with Vortex-V's capture/compare unit (its ADR 0017, `CAPCMP=1`)
 
 *Known gaps:* the unit fires every compare armed before its tick exactly on that tick, but at 7000 rpm and 50 MHz the scheduler still arms events right behind a tooth after their tick (9 of 74 pushed late; worst 0.72 deg, worst case 0.80 deg against 0.5 deg). The M9.1 gap was arming latency, not output jitter, so a hardware compare alone does not close it; ADR 0007 proposes a scheduler arm-ahead window (a core change with a new host fixture) and rejects HAL look-ahead pre-arming, which was measured. Knock windows still use the mailbox. The capture/compare pins are not on the Arty board yet, and Vortex-V has not verified FPGA timing at any of these clocks.
 
+## M9.3: scheduler arm-ahead (ADR 0008)
+
+The portable scheduler now arms an event that lies less than an arm-ahead guard G behind a tooth from the tooth before (window [tooth, next tooth + G), extrapolated with that tooth's period), so the handler's latency after a tooth no longer makes it late. The core change is the window bound in `sched.c`; frozen-time outputs stay bit-exact against the host build. All values MODELLED (`make -C ecu test`, `make -C hil cosim`, `make -C hil cc-sweep`).
+
+* Window: the guard G is a time, 100 us (`spec/ecu.yaml` decoder.arm_ahead_s -> `ECU_ARM_AHEAD_TICKS`, regenerated `ecu_calib_gen.h`), converted to angle with the tooth period and capped below one pitch: 4.2 deg at 7000 rpm. It covers the worst edge-to-armed latency (about 20 us at 50 MHz) plus the measured tooth-to-tooth motion of injection-start targets (up to ~55 us at 7000 rpm in host runs). A fixed 4 deg also met the event spec but pushed the M9 supervisor's adversarial 1500 rpm tip-in to lambda 1.212, outside its 0.8-1.2 band; the time guard keeps it at the M9.2 value (1.196). Extrapolation under the M8 acceleration case (12000 rpm/s at 5800 rpm, across the gap): 0.029 deg analytic (0.007 deg more than without the window); the C sweep of spark targets through every 1/16 deg of a pitch at +/- 12000 rpm/s stays within the analytic bound (worst 0.078 deg).
+* Gap, loss of sync, rev limiter: the window of the tooth before the gap reaches G past it; nothing is armed without full sync; an event armed ahead before a loss is detected is not cancelled (no cancel in the HAL or the unit) and lies at most G beyond what ADR 0003 already armed; the cut is decided once per event at the arming tooth.
+* Real time at 50 MHz on the capture/compare unit, M9.2 vs M9.3 (the M9.1 mailbox mode, same core, in brackets):
+
+| | 7000 rpm (redline_rt), M9.2 | 7000 rpm (redline_rt), M9.3 | 2000 rpm (tipin), M9.2 | 2000 rpm (tipin), M9.3 |
+|---|---|---|---|---|
+| any event angle error, max | 0.722 deg [0.696] | 0.270 deg [0.252] | 0.216 deg [0.208] | 0.005 deg [0.000] |
+| events late (compare pushed after its tick) | 9 of 74 [9] | 0 of 74 [0] | 4 of 60 [4] | 0 of 60 [0] |
+| worst tooth-to-event latency | 19.1 us | 20.5 us | 20.2 us | 21.1 us |
+| smallest lead over the arming tooth | 0 | 3.78 deg | 0 | 1.42 deg |
+| worst event vs host: dwell / spark | 0.024 / 0.024 deg | 0.270 / 0.060 deg | 0.005 / 0.005 deg | 0.005 / 0.005 deg |
+| worst case (latency - smallest lead) | 0.80 deg [0.75] | 0.00 deg [0.00] | 0.24 deg [0.23] | 0.00 deg [0.00] |
+| max pending compares | 2 of 8 | 2 of 8 | 2 of 8 | 2 of 8 |
+| cycles with 2 compares pending | 3214 | 17759 | 20842 | 61158 |
+| CPU load | 48.0 % [47.9 %] | 48.5 % [48.4 %] | 38.4 % [37.7 %] | 38.5 % [37.8 %] |
+| captures lost / CAP_OVF / loss of sync / slow overruns | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 | 0 / 0 / 0 / 0 |
+| every event within 0.5 deg | no [no] | yes [yes] | yes [yes] | yes [yes] |
+
+  The worst case is now the worst latency minus the smallest lead an event gets (G, or less for a catch-up); in M9.2 it was the latency itself (an event could sit at its arming tooth). The M9.3 dwell figure at 7000 rpm is one dwell start shortly after sync, 6 us earlier than the host's: the slow loop's outputs reach the scheduler at a different tooth on target (ADR 0005 snapshot commit), and the event is decided one tooth earlier; it is not late.
+* Clock sweep on redline_rt (M9.3), every-event error / worst case: 10 MHz 1.02 / 0.59 deg (real time lost, 100 slow steps skipped); 20 MHz 0.27 / 0.00 deg (real time lost, 53 slow steps skipped); 21 MHz 0.48 / 0.00 deg (real time lost, 52 slow steps skipped); 24 MHz 0.50 / 0.83 deg (real time lost, 48 slow steps skipped); 25 MHz 0.27 / 0.00 deg (real time lost, 42 slow steps skipped); 26 MHz 0.27 / 0.00 deg; 32 MHz 0.27 / 0.00 deg; 50 MHz 0.27 / 0.00 deg; 55 MHz 0.27 / 0.00 deg; 100 MHz 0.06 / 0.00 deg. Minimum whole-MHz clock meeting the spec: 26 MHz (M9.2: 80 MHz). It is now set by the CPU load (slow-loop overruns), not by the angle spec.
+* tipin (2000 rpm), every-event error / worst case: 20 MHz 0.51 / 0.000 deg (real time lost); 25 MHz 0.28 / 0.507 deg (spec missed); 50 MHz 0.01 / 0.000 deg. At 25 MHz one injection start fires by late catch-up during the pedal step (its target jumps behind the tooth by more than the guard); its worst-case bound is the 42 us latency. 26 MHz meets the spec there too (checked separately).
+
+*Known gaps:* late catch-up remains for targets that jump behind the tooth by more than the guard (the first injection after sync, a pulse-width step in a fast transient), late by the handler latency: not seen at 50 MHz, seen once in the tip-in at 25-26 MHz, where it makes 25 MHz miss the spec by 0.007 deg. Events armed ahead are not cancelled on a loss of sync. Below the minimum clock the slow loop overruns and real time is lost. The capture/compare pins are not on the Arty board yet, and Vortex-V has not verified FPGA timing at any of these clocks.
+
 ## M10: vehicle, drive cycle, replay
 
 Generic compact sedan (`spec/vehicle.yaml`, sources cited there): WLTP test mass 1442 kg, c_d A 0.638 m^2, c_r 0.01, 6-speed manual [3.62, 2.12, 1.45, 1.1, 0.89, 0.74] x final drive 4.06, driveline efficiency 0.92. Fuel flow from a Willans fit to the M7 maps (throttled points reproduced to 0.95 % rms, max 2.4 %), WOT envelope from the M4 fixture, overrun fuel cut, idle at standstill.
@@ -232,7 +260,7 @@ Replay: `viz/replay/index.html` (self-contained page, three.js 0.160.0 pinned on
 ## What remains
 
 * **Stretch, done:** turbocharged I4-2.0T (`turbo/`, ADR 0004; modelled 275 Nm peak, 165 kW, 2.1 s to 90 % boost at 2000 rpm, synthetic compressor/turbine maps, turbine inlet ~1320 K without enrichment) and the STM32H743 ECU board in Zener (`ecad/`, 230 parts, KiCad DRC 0/0/0; conformal-coating clearance, ETB copper and datasheet VERIFY items open, see docs/ecad.md). Intake-port CFD is not planned.
-* Open items: ECU loop against the crank-angle model (M8); event timing 0.76 deg vs the 0.5 deg spec at 50 MHz on Vortex-V (needs a capture/compare unit or >= 77.5 MHz, M9.1); maps at low-speed part load where M4 residuals are high (M7); M4 traces with the flame model for the dynamics (M5/M10); a fourth piston mesh level (M6); and the GitHub repository.
+* Open items: ECU loop against the crank-angle model (M8); the M9.3 scheduler arm-ahead (ADR 0008) meets the 0.5 deg event spec at 7000 rpm and 50 MHz on Vortex-V (minimum clock now 26 MHz, set by CPU load), but the capture/compare pins are not on the Arty board and FPGA timing is unverified (M9.2 / M9.3); late catch-up remains for targets that jump behind a tooth by more than the guard (M9.3); maps at low-speed part load where M4 residuals are high (M7); M4 traces with the flame model for the dynamics (M5/M10); a fourth piston mesh level (M6); and the GitHub repository.
 
 ## Regenerate
 

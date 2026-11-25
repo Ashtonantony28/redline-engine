@@ -322,6 +322,172 @@ static void test_scheduler_accuracy_7000rpm(void)
     CHECK(err < 0.5);
 }
 
+/* ---------------- arm-ahead (ADR 0008) ---------------- */
+static double g_arm_theta[MAXEV];      /* true crank angle of the edge whose call emitted each event */
+static int g_arm_first[MAXEV];         /* emitted by the first tooth with full sync (start-up) */
+
+static int drive_ecu_arming(ecu_t *e, const wheel_t *w, double th_s, double th_e)
+{
+    int n = build_edges(w, th_s, th_e, g_edges, (int)(sizeof g_edges / sizeof g_edges[0]));
+    int nev = 0, full_teeth = 0;
+    for (int i = 0; i < n; ++i) {
+        uint32_t tk = tick_of(w, time_of(w, g_edges[i].theta));
+        if (g_edges[i].kind == E_CAM) ecu_cam_edge(e, tk);
+        else ecu_crank_edge(e, tk);
+        if (g_edges[i].kind != E_CAM && e->dec.sync == ECU_SYNC_FULL) ++full_teeth;
+        int m = hil_drain(ev_tick + nev, ev_arg + nev, ev_type + nev, ev_cyl + nev, MAXEV - nev);
+        for (int j = 0; j < m; ++j) {
+            g_arm_theta[nev + j] = g_edges[i].theta;
+            g_arm_first[nev + j] = full_teeth == 1;
+        }
+        nev += m;
+    }
+    return nev;
+}
+
+/* Extrapolation error bound [deg] of an event d deg past its arming tooth under constant angular
+ * acceleration alpha [deg/s^2] at speed omega [deg/s] with a period averaged over hist deg of
+ * history (ADR 0008): alpha d (hist + d) / (2 omega^2), plus timer quantisation (1 us ticks: half a
+ * tick on the event, half a tick on the arming tooth's capture, one tick on the averaged span scaled
+ * to d). */
+static double arm_bound_deg(double alpha, double omega, double d, double hist)
+{
+    return fabs(alpha) * d * (hist + d) / (2.0 * omega * omega) + omega / US * (1.0 + d / hist);
+}
+
+/* Spark targets swept through every 1/16 deg position of a tooth pitch, also right after the
+ * missing-tooth gap, at 7000 rpm steady and with +/- 12000 rpm/s (the M8 acceleration case):
+ *   every spark is armed from a tooth at least the arm-ahead guard (ECU_ARM_AHEAD_TICKS as angle at
+ *   that speed) before it (never at its own tooth), at most span + guard before it; exactly one spark per cylinder per cycle;
+ *   angle error within the analytic extrapolation bound and within 0.5 deg. */
+static void test_arm_ahead_window(void)
+{
+    const double tol = 0.05;   /* deg: the guard is converted with the averaged, not the instantaneous, speed */
+    const double p = pitch_deg();
+    const double alphas[3] = {0.0, 12000.0, -12000.0};
+    const double rpm0[3] = {7000.0, 5800.0, 7000.0};   /* the + case stays below the rev limiter */
+    /* spark at TDC - adv: tooth k sits at tooth0 + 6k; adv 30..36 sweeps a normal pitch (targets
+     * after tooth 6), adv 60..68 the teeth right after the gap (TDC 180 - adv near tooth0) */
+    const double ranges[2][2] = {{30.0, 36.0}, {60.0, 68.0}};
+    double worst = 0.0, worst_bound = 0.0, min_lead = 1e9, max_lead = 0.0, min_over = 1e9;
+    int bad_lead = 0, bad_count = 0, bad_err = 0, runs = 0;
+    for (int a = 0; a < 3; ++a) {
+        for (int r = 0; r < 2; ++r) {
+            for (double adv = ranges[r][0]; adv < ranges[r][1]; adv += 1.0 / 16.0) {
+                hil_reset();
+                ecu_t e;
+                ecu_init(&e);
+                wheel_t w = wheel(rpm0[a], 0.0);
+                w.alpha = alphas[a] * DEG_PER_REV / 60.0;
+                for (int c = 0; c < ECU_NCYL; ++c) {
+                    e.sch.adv_u[c] = (int32_t)llround(adv * ECU_ANGLE_U_PER_DEG);
+                    e.sch.pw_ticks[c] = 0u;
+                }
+                double adv_q = (double)e.sch.adv_u[0] / ECU_ANGLE_U_PER_DEG;
+                int nev = drive_ecu_arming(&e, &w, 0.0, 4.0 * DEG_PER_CYCLE);
+                int nspark = 0;
+                for (int i = 0; i < nev; ++i) {
+                    if (ev_type[i] != ECU_EV_SPARK) continue;
+                    ++nspark;
+                    if (g_arm_first[i]) continue;   /* start-up: no earlier tooth could arm it */
+                    double t = t_of_tick(&w, ev_tick[i]);
+                    double tdc = (double)ECU_TDC_U[ev_cyl[i]] / ECU_ANGLE_U_PER_DEG;
+                    double target = tdc - adv_q;
+                    double lead = fmod(target - fmod(g_arm_theta[i], DEG_PER_CYCLE) + 2.0 * DEG_PER_CYCLE, DEG_PER_CYCLE);
+                    double t_arm = time_of(&w, g_arm_theta[i]);
+                    double g_deg = (double)ECU_ARM_AHEAD_TICKS / US * (w.omega + w.alpha * t_arm);
+                    double g_max = (double)ECU_ARM_AHEAD_MAX_U / ECU_ANGLE_U_PER_DEG;
+                    if (g_deg > g_max) g_deg = g_max;
+                    if (lead - g_deg < min_over) min_over = lead - g_deg;
+                    if (lead < g_deg - tol || lead >= 3.0 * p + g_deg + tol) {
+                        if (bad_lead == 0) printf("    adv %.4f alpha %.0f: lead %.4f\n", adv, alphas[a], lead);
+                        ++bad_lead;
+                    }
+                    if (lead < min_lead) min_lead = lead;
+                    if (lead > max_lead) max_lead = lead;
+                    double err = fabs(wrap180(theta_of(&w, t) - target));
+                    double om = w.omega + w.alpha * t;
+                    double bound = arm_bound_deg(w.alpha, om < w.omega ? om : w.omega, lead, 4.0 * p);
+                    if (err > bound || err >= 0.5) {
+                        if (bad_err == 0) printf("    adv %.4f alpha %.0f: lead %.3f err %.4f bound %.4f\n", adv, alphas[a], lead, err, bound);
+                        ++bad_err;
+                    }
+                    if (err > worst) { worst = err; worst_bound = bound; }
+                }
+                /* sync on the first gap + cam: at least 3 full cycles of sparks, 4 per cycle */
+                if (nspark < 3 * ECU_NCYL || nspark > 4 * ECU_NCYL) {
+                    if (bad_count == 0) printf("    adv %.4f alpha %.0f: %d sparks\n", adv, alphas[a], nspark);
+                    ++bad_count;
+                }
+                ++runs;
+            }
+        }
+    }
+    printf("    %d runs: spark lead over its arming tooth %.3f .. %.3f deg (guard %u us), smallest lead - guard %.3f deg, "
+           "worst angle error %.4f deg (analytic bound there %.4f deg)\n", runs, min_lead, max_lead,
+           (unsigned)ECU_ARM_AHEAD_TICKS, min_over, worst, worst_bound);
+    CHECK(bad_lead == 0);
+    CHECK(bad_count == 0);
+    CHECK(bad_err == 0);
+    CHECK(min_over < 1.0 / 16.0 + tol);             /* the sweep did reach the arm-ahead boundary */
+    CHECK(max_lead > 3.0 * p);                      /* ... and the window across the gap */
+}
+
+/* Loss of sync (an accepted spurious edge: the count is off by one and the gap comes at the wrong
+ * tooth): from the edge that detects the loss until full sync is regained nothing is armed, and
+ * what was armed before the detection reaches at most one window (span + guard) past the last
+ * tooth that armed it. */
+static void test_arm_ahead_sync_loss(void)
+{
+    hil_reset();
+    ecu_t e;
+    ecu_init(&e);
+    for (int c = 0; c < ECU_NCYL; ++c) {
+        e.sch.adv_u[c] = 30 * ECU_ANGLE_U_PER_DEG;
+        e.sch.pw_ticks[c] = 4000u;
+    }
+    wheel_t w = wheel(7000.0, 0.0);
+    w.extra_k = 200;
+    int n = build_edges(&w, 0.0, 5.0 * DEG_PER_CYCLE, g_edges, (int)(sizeof g_edges / sizeof g_edges[0]));
+    uint32_t loss_seen = 0u, armed_while_lost = 0u;
+    int lost = 0;
+    uint32_t last_arm_tick = 0u, last_period_q8 = 0u, last_span = 0u;
+    double worst_overhang = 0.0;
+    for (int i = 0; i < n; ++i) {
+        uint32_t tk = tick_of(&w, time_of(&w, g_edges[i].theta));
+        if (g_edges[i].kind == E_CAM) ecu_cam_edge(&e, tk);
+        else ecu_crank_edge(&e, tk);
+        int m = hil_drain(ev_tick, ev_arg, ev_type, ev_cyl, MAXEV);
+        if (e.dec.n_loss != loss_seen) {
+            loss_seen = e.dec.n_loss;
+            lost = 1;
+        }
+        if (lost && e.dec.sync != ECU_SYNC_FULL) {           /* until the cam re-establishes the cycle angle */
+            armed_while_lost += (uint32_t)m;
+        } else if (lost) {
+            lost = 0;
+        }
+        if (!lost && m > 0 && g_edges[i].kind != E_CAM) {
+            last_arm_tick = tk;
+            last_period_q8 = e.dec.period_q8;
+            last_span = (e.dec.tooth == ECU_TEETH_REAL - 1) ? (ECU_TEETH_MISSING + 1u) * ECU_PITCH_U : ECU_PITCH_U;
+            for (int j = 0; j < m; ++j) {
+                double ahead_u = (double)(uint32_t)(ev_tick[j] - last_arm_tick) * ECU_PITCH_U * ECU_Q8 / last_period_q8;
+                double guard_u = (double)ECU_ARM_AHEAD_TICKS * ECU_PITCH_U * ECU_Q8 / last_period_q8;
+                if (guard_u > ECU_ARM_AHEAD_MAX_U) guard_u = ECU_ARM_AHEAD_MAX_U;
+                double over = ahead_u - ((double)last_span + guard_u);
+                if (over > worst_overhang) worst_overhang = over;
+            }
+        }
+    }
+    CHECK(loss_seen == 1u);
+    CHECK(armed_while_lost == 0u);
+    printf("    events armed while sync was lost: %u; worst arming beyond span + arm-ahead: %.2f units\n",
+           armed_while_lost, worst_overhang);
+    CHECK(worst_overhang <= 1.0);                   /* <= 1 angle unit of tick rounding */
+    CHECK(e.dec.sync == ECU_SYNC_FULL);
+}
+
 static void test_rev_limiter(void)
 {
     hil_reset();
@@ -433,6 +599,8 @@ int main(void)
     RUN(test_loss_of_sync_and_recovery);
     RUN(test_stall_and_timer_wrap);
     RUN(test_scheduler_accuracy_7000rpm);
+    RUN(test_arm_ahead_window);
+    RUN(test_arm_ahead_sync_loss);
     RUN(test_rev_limiter);
     RUN(test_knock_retard_and_recover);
     RUN(test_speed_density_pulse_width);

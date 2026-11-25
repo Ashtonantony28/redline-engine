@@ -45,6 +45,30 @@ U32 = 4
 U64 = 8
 
 
+# The portable core (ecu/src, ecu/include, ecu/host) was unchanged from M8 through M9.2 (ADR 0003,
+# 0005, 0007: RV64 work is HAL, build and co-sim only). M9.3 changed it on purpose (ADR 0008:
+# scheduler arm-ahead): exactly these files, relative to the M9.2 commit.
+CORE_PATHS = ("ecu/src", "ecu/include", "ecu/host")
+CORE_BASE_M92 = "20a0571"                 # M9.2: ECU HAL on the capture/compare unit (ADR 0007)
+ADR_0008_CORE_FILES = frozenset({"ecu/src/sched.c", "ecu/include/ecu/ecu_calib_gen.h"})
+
+
+def core_files_changed_since(base: str) -> set | None:
+    """Core files that differ between commit `base` and the working tree (committed or not), or None
+    when this is not a git checkout or `base` is unknown."""
+    if not (ROOT / ".git").exists():
+        return None
+    ok = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "--verify", "-q", f"{base}^{{commit}}"],
+                        capture_output=True, text=True)
+    if ok.returncode != 0:
+        return None
+    out = subprocess.run(["git", "-C", str(ROOT), "diff", "--name-only", base, "--", *CORE_PATHS],
+                         capture_output=True, text=True, check=True).stdout
+    new = subprocess.run(["git", "-C", str(ROOT), "ls-files", "--others", "--exclude-standard", "--", *CORE_PATHS],
+                         capture_output=True, text=True, check=True).stdout
+    return {ln.strip() for ln in (out + new).splitlines() if ln.strip()}
+
+
 @lru_cache(maxsize=None)
 def cosim_spec() -> dict:
     with open(COSIM_PATH) as f:

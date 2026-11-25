@@ -175,11 +175,11 @@ def test_portable_libm_within_one_ulp_of_glibc():
 
 
 @needs_rv
-def test_rv64_sync_units_have_no_float_and_core_is_unchanged():
+def test_rv64_sync_units_have_no_float_and_core_changed_only_by_adr_0008():
     """rv64im / lp64 turns any float operation into a soft-float call, so the sync-path
     objects (decoder, scheduler, knock control) and the int8 kernel must reference none; the
     slow-loop object must (it is the proof that the check can fail). The portable core sources are
-    the committed ones."""
+    the committed M9.2 ones apart from the ADR 0008 scheduler change (M9.3)."""
     subprocess.run(["make", "-s", "-C", str(RV64_DIR), "all"], check=True,
                    env={**__import__("os").environ, "VORTEX_V_ROOT": str(rv64.VORTEX_V_ROOT)})
 
@@ -200,10 +200,10 @@ def test_rv64_sync_units_have_no_float_and_core_is_unchanged():
     # mtvec, mcause) are expected since M9.1
     assert not any(tok in dis for tok in ("\tfadd", "\tfmul", "\tfmv", "\tfld", "\tflw", "\tfcvt", "fcsr", "\tfrcsr",
                                           "\tfscsr", "\tfrrm", "\tfsrm", "fflags"))
-    if (ROOT / ".git").exists():
-        st = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", "ecu/src", "ecu/include", "ecu/host"],
-                            capture_output=True, text=True).stdout
-        assert st.strip() == "", f"portable core / host HAL modified:\n{st}"
+    # the core sources are the committed M9.2 ones except the files ADR 0008 (M9.3) changed on purpose
+    changed = rv64.core_files_changed_since(rv64.CORE_BASE_M92)
+    if changed is not None:
+        assert changed <= rv64.ADR_0008_CORE_FILES, f"core changed outside ADR 0008: {sorted(changed - rv64.ADR_0008_CORE_FILES)}"
 
 
 def test_session_reproduces_runner():

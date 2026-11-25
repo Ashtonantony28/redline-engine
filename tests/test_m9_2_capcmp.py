@@ -5,7 +5,8 @@ SoC; there is no physical engine).
 Verify:  make -C hil cosim && pytest -q tests/test_m9_hil.py tests/test_m9_1_rt.py tests/test_m9_2_capcmp.py tests/test_m8_ecu.py
 
 Anchors first, then the exit criteria. Stated tolerances (never loosened silently):
-  portable core (ecu/src, ecu/include, ecu/host) .................... unchanged
+  portable core (ecu/src, ecu/include, ecu/host) .................... unchanged through M9.2; since
+                                                                     M9.3 only the ADR 0008 files
   frozen-time mode on the CAPCMP=1 SoC, events and slow-loop outputs . bit-exact vs the host build
   M9 and M9.1 firmware builds ........................................ still build (comparison modes)
   real time, capture/compare mode, 7000 rpm, 50 MHz (the board clock):
@@ -18,15 +19,15 @@ Anchors first, then the exit criteria. Stated tolerances (never loosened silentl
       an event armed before its tick ................................ its pin edge lands on that tick
       spark angle error vs the host build in ideal time ............. <= 0.5 deg
       CPU load ...................................................... <= 60 % (the M9.1 bound)
-  KNOWN GAP, asserted so that it is reported and not hidden: the unit fires on time whatever is
-  armed on time, but the portable scheduler still arms an event from the tooth just before it, so an
-  event inside the handler's latency behind a tooth (the injection "late catch-up" starts, right at
-  the tooth) is pushed after its tick and fires one clock later. At 7000 rpm and 50 MHz that is more
-  than 0.5 deg (and less than 1 deg) for the worst event and for the worst-case latency bound: the
-  "every event within 0.5 deg at 50 MHz" criterion is NOT met, see ADR 0007 for the fix (scheduler
-  arm-ahead, a core change) and the clock that meets it.
+      every event and the worst case (latency minus the scheduler's lead) <= 0.5 deg
+  Until M9.3 this was a KNOWN GAP (0.72 / 0.80 deg at 50 MHz: the scheduler armed an event from the
+  tooth just before it, so one inside the handler's latency behind a tooth was pushed after its
+  tick). M9.3 (ADR 0008) arms such events from the tooth before, the arm-ahead guard ahead, and the spec
+  is now asserted: no compare pushed after its tick, every event armed with more lead than the worst
+  edge-to-armed latency.
   real time, capture/compare mode, 7000 rpm, at the minimum clock .... every event and the worst case
-                                                                     <= 0.5 deg (slow-marked)
+                                                                     <= 0.5 deg, real time held; 1 MHz
+                                                                     below real time is lost (slow-marked)
   real time, capture/compare mode, 2000 rpm tip-in, 50 MHz ........... the whole spec (slow-marked)
 Tests that need riscv64-unknown-elf-gcc / verilator / the Vortex-V checkout skip without them.
 """
@@ -42,13 +43,15 @@ from redline.spec import ROOT
 
 RV64_DIR = ROOT / "ecu" / "targets" / "rv64"
 ADR = ROOT / "docs" / "adr" / "0007-capture-compare-hal.md"
+ADR_0008 = ROOT / "docs" / "adr" / "0008-scheduler-arm-ahead.md"
+ADR_0003 = ROOT / "docs" / "adr" / "0003-ecu-hal-and-angle-units.md"
 CORE_PATHS = ("ecu/src", "ecu/include", "ecu/host")
 SPEC_DEG = float(rv64.cosim_spec()["realtime"]["angle_error_max_deg"])
 BOARD_HZ = float(rv64.cosim_spec()["core_clock_hz"])
 CC_SLOTS = 8                     # vortex_capcmp N_CMP (Vortex-V ADR 0017)
 LOAD_MAX = 0.60
-GAP_DEG_MAX = 1.0                # upper bound of the documented 50 MHz worst case
-MIN_CLOCK_HZ = 80.0e6            # lowest whole-MHz clock meeting the spec at 7000 rpm (ADR 0007 sweep)
+MIN_CLOCK_HZ = 26.0e6            # lowest whole-MHz clock meeting the spec at 7000 rpm (M9.3 sweep, ADR 0008;
+                                 # M9.2: 80 MHz). Set by the CPU load now: 25 MHz overruns the slow loop
 START_INJ_DIFF_MAX = 4           # one start-up injection per cylinder (as in M9.1)
 TOOTH_TO_IRQ_MAX_CYCLES = 64     # pin edge -> interrupt taken: synchroniser + pipeline drain
 
@@ -78,19 +81,31 @@ def test_adr_0007_present_and_accepted():
         assert word in text, word
 
 
-def test_portable_core_unchanged():
-    """ADR 0003 / 0007: the capture/compare work is HAL, co-sim and build only. Checks the working
-    tree and, when `main` is known, every commit of this branch."""
-    if not (ROOT / ".git").exists():
-        pytest.skip("not a git checkout")
-    st = subprocess.run(["git", "-C", str(ROOT), "status", "--porcelain", *CORE_PATHS],
-                        capture_output=True, text=True).stdout
-    assert st.strip() == "", f"portable core / host HAL modified:\n{st}"
-    base = subprocess.run(["git", "-C", str(ROOT), "merge-base", "HEAD", "main"], capture_output=True, text=True)
-    if base.returncode == 0:
-        diff = subprocess.run(["git", "-C", str(ROOT), "diff", "--stat", base.stdout.strip(), "HEAD", "--", *CORE_PATHS],
-                              capture_output=True, text=True).stdout
-        assert diff.strip() == "", f"portable core / host HAL changed on this branch:\n{diff}"
+def test_adr_0008_present_and_supersedes_the_arming_part_of_0003():
+    text = ADR_0008.read_text()
+    assert text.startswith("# ADR 0008")
+    assert "Status: Accepted" in text and "Supersedes" in text and "0003" in text
+    for word in ("ECU_ARM_AHEAD_TICKS", "arm_ahead_s", "acceleration", "gap", "loss of sync", "rev limiter",
+                 "bit-exact", "capture", "Consequences"):
+        assert word in text, word
+    assert "superseded by 0008" in ADR_0003.read_text().splitlines()[2]
+
+
+def test_portable_core_changed_only_by_adr_0008():
+    """ADR 0003 / 0007: the capture/compare work (M9.2) was HAL, co-sim and build only; the portable
+    core is the M8 one up to the M9.2 commit. M9.3 (ADR 0008) changes the core on purpose: relative
+    to the M9.2 commit, exactly the scheduler and the generated calibration header (the new
+    ECU_ARM_AHEAD_U) differ, committed or not. (Until M9.3 this test required an unchanged core
+    against git; a core change now needs an ADR and an update of rv64.ADR_0008_CORE_FILES.)"""
+    changed = rv64.core_files_changed_since(rv64.CORE_BASE_M92)
+    if changed is None:
+        pytest.skip("not a git checkout, or the M9.2 commit is unknown")
+    assert changed <= rv64.ADR_0008_CORE_FILES, f"core changed outside ADR 0008: {sorted(changed - rv64.ADR_0008_CORE_FILES)}"
+    base = subprocess.run(["git", "-C", str(ROOT), "merge-base", rv64.CORE_BASE_M92, "main"], capture_output=True, text=True)
+    if base.returncode == 0:      # M9 .. M9.2: no core change between main and the M9.2 commit
+        diff = subprocess.run(["git", "-C", str(ROOT), "diff", "--stat", base.stdout.strip(), rv64.CORE_BASE_M92,
+                               "--", *CORE_PATHS], capture_output=True, text=True).stdout
+        assert diff.strip() == "", f"portable core / host HAL changed by M9.2:\n{diff}"
 
 
 def test_model_built_with_the_capture_compare_unit():
@@ -183,22 +198,25 @@ def test_capcmp_on_time_compares_fire_on_their_tick(redline_50):
 
 
 @needs_rv
-def test_capcmp_redline_known_gap_at_board_clock(redline_50):
-    """KNOWN GAP (ADR 0007): at 7000 rpm and 50 MHz the hardware compare does not close the M9.1
-    gap. Events right behind their tooth are still armed after their tick by the handler's
-    latency; the worst one and the worst-case bound are above 0.5 deg and below 1 deg."""
+def test_capcmp_redline_meets_spec_at_board_clock(redline_50):
+    """M9.3 (ADR 0008): at 7000 rpm and 50 MHz every event is within 0.5 deg. The scheduler arms an
+    event that lies less than the arm-ahead guard behind a tooth from the tooth before, so no compare is
+    pushed after its tick, every event's lead over its arming tooth exceeds the worst edge-to-armed
+    latency, and the worst case (that latency minus the smallest lead) is within the spec. (Until
+    M9.3 this test asserted the known gap: 0.72 deg observed, 0.80 deg worst case.)"""
     _, m = redline_50
-    worst = max(m["worst_case_angle_error_deg"], m["event_angle_error_max_deg"])
-    assert m["cc_pushed_late"] > 0
-    assert SPEC_DEG < worst < GAP_DEG_MAX
-    assert not m["meets_spec"] and m["rt_ok"]
+    assert m["cc_pushed_late"] == 0 and m["events_late"] == 0
+    assert m["lead_min_deg"] > m["tooth_to_event_max_deg"]
+    assert m["event_angle_error_max_deg"] <= SPEC_DEG and m["worst_case_angle_error_deg"] <= SPEC_DEG
+    assert m["meets_spec"] and m["rt_ok"]
 
 
 @needs_rv
 @pytest.mark.slow
 def test_capcmp_redline_meets_spec_at_min_clock(bench):
-    """At the minimum clock of the ADR 0007 sweep the whole spec holds at 7000 rpm: every event
-    and the worst-case latency within 0.5 deg; one MHz below, it does not."""
+    """At the minimum clock of the M9.3 sweep (ADR 0008) the whole spec holds at 7000 rpm: every
+    event and the worst case within 0.5 deg, real time held; one MHz below, it does not (since
+    arm-ahead the limit is real time: slow-loop steps overrun)."""
     from hil import realtime
     _, m = bench.run("redline_rt", "capcmp", MIN_CLOCK_HZ)
     print("\n" + realtime.line(m))
@@ -206,7 +224,7 @@ def test_capcmp_redline_meets_spec_at_min_clock(bench):
     assert m["event_angle_error_max_deg"] <= SPEC_DEG and m["worst_case_angle_error_deg"] <= SPEC_DEG
     assert m["meets_spec"]
     _, below = bench.run("redline_rt", "capcmp", MIN_CLOCK_HZ - 1.0e6)
-    assert not below["meets_spec"]
+    assert not below["meets_spec"] and not below["rt_ok"]
 
 
 @needs_rv

@@ -181,6 +181,7 @@ def m9(cfg):
     mean = lambda who, key: float(np.mean([r[who][key] for r in rows]))
     return {"cosim": cosim, "realtime": artefact("realtime"), "realtime_sweep": artefact("realtime_sweep"),
             "realtime_capcmp_sweep": artefact("realtime_capcmp_sweep"),
+            "m9_2": json.loads((ROOT / cfg["m9_2_baseline"]).read_text()),
             "baseline": cfg["m9_baseline"], "ppo_rows": rows, "knock": golden.load_policy()["metrics"],
             "max_cl": mean("classical", "max_dev"), "max_ppo": mean("ppo", "max_dev"),
             "rms_cl": mean("classical", "rms_dev"), "rms_ppo": mean("ppo", "rms_dev")}
@@ -217,7 +218,8 @@ def m9_1_lines(x) -> list:
     A = L.append
     A("## M9.1: the ECU on Vortex-V in real time (ADR 0005)")
     A("")
-    rt, sw, c, b0 = x["realtime"], x["realtime_sweep"], x["cosim"], x["baseline"]
+    # real-time runs: the M9.2-era artefact (the M9.1 mode on the core before ADR 0008's arm-ahead)
+    rt, sw, c, b0 = x["m9_2"]["realtime"], x["realtime_sweep"], x["cosim"], x["baseline"]
     if not rt:
         A("*out/hil/realtime.json not found: run `make -C hil cosim` (needs Verilator and the Vortex-V tree).*")
         A("")
@@ -277,13 +279,14 @@ def m9_1_lines(x) -> list:
 
 
 def m9_2_lines(x) -> list:
-    """The M9.2 section: the capture/compare mode from out/hil/realtime.json (runs of mode `capcmp`
-    next to the M9.1 mode `irq`) and out/hil/realtime_capcmp_sweep.json."""
+    """The M9.2 section: the capture/compare mode (runs of mode `capcmp` next to the M9.1 mode `irq`)
+    and its clock sweep, from the M9.2 artefacts kept in report/baselines/m9_2_hil.json (M9.3 changed
+    the scheduler, so out/hil now holds M9.3 figures; the M9.3 section reports those)."""
     L = []
     A = L.append
     A("## M9.2: the ECU on the Vortex-V capture/compare timer (ADR 0007)")
     A("")
-    rt, sw = x["realtime"], x.get("realtime_capcmp_sweep")
+    rt, sw = x["m9_2"]["realtime"], x["m9_2"]["realtime_capcmp_sweep"]
     cc = [m for m in (rt or {}).get("runs", []) if m["mode"] == "capcmp"]
     if not cc:
         A("*No capture/compare runs in out/hil/realtime.json: run `make -C hil cosim` (needs Verilator and the "
@@ -350,6 +353,117 @@ def m9_2_lines(x) -> list:
          if m7 else "")
       + "Knock windows still use the mailbox. The capture/compare pins are not on the Arty board yet, and Vortex-V "
         "has not verified FPGA timing at any of these clocks.")
+    A("")
+    return L
+
+
+def m9_3_lines(x) -> list:
+    """The M9.3 section: scheduler arm-ahead (ADR 0008). Current out/hil/realtime.json and
+    realtime_capcmp_sweep.json against the M9.2 artefacts (report/baselines/m9_2_hil.json)."""
+    L = []
+    A = L.append
+    A("## M9.3: scheduler arm-ahead (ADR 0008)")
+    A("")
+    rt, sw, base = x["realtime"], x.get("realtime_capcmp_sweep"), x["m9_2"]
+    cur = {(m["window"], m["mode"]): m for m in (rt or {}).get("runs", []) if "arm_ahead_deg" in m}
+    if not cur:
+        A("*No M9.3 runs in out/hil/realtime.json: run `make -C hil cosim` (needs Verilator and the Vortex-V tree).*")
+        A("")
+        return L
+    old = {(m["window"], m["mode"]): m for m in base["realtime"]["runs"]}
+    g = next(iter(cur.values()))["arm_ahead_deg"]
+    A("The portable scheduler now arms an event that lies less than an arm-ahead guard G behind a tooth from the "
+      "tooth before (window [tooth, next tooth + G), extrapolated with that tooth's period), so the handler's "
+      "latency after a tooth no longer makes it late. The core change is the window bound in `sched.c`; frozen-time outputs stay "
+      "bit-exact against the host build. All values MODELLED (`make -C ecu test`, `make -C hil cosim`, "
+      "`make -C hil cc-sweep`).")
+    A("")
+    A(f"* Window: the guard G is a time, 100 us (`spec/ecu.yaml` decoder.arm_ahead_s -> `ECU_ARM_AHEAD_TICKS`, "
+      f"regenerated `ecu_calib_gen.h`), converted to angle with the tooth period and capped below one pitch: "
+      f"{g:.1f} deg at 7000 rpm. It covers the worst edge-to-armed latency (about 20 us at 50 MHz) plus the "
+      "measured tooth-to-tooth motion of injection-start targets (up to ~55 us at 7000 rpm in host runs). A fixed "
+      "4 deg also met the event spec but pushed the M9 supervisor's adversarial 1500 rpm tip-in to lambda 1.212, "
+      "outside its 0.8-1.2 band; the time guard keeps it at the M9.2 value (1.196). Extrapolation under the M8 "
+      "acceleration case (12000 rpm/s at 5800 rpm, across the gap): 0.029 deg analytic (0.007 deg more than "
+      "without the window); the C sweep of spark targets through every 1/16 deg of a pitch at +/- 12000 rpm/s "
+      "stays within the analytic bound (worst 0.078 deg).")
+    A("* Gap, loss of sync, rev limiter: the window of the tooth before the gap reaches G past it; nothing is "
+      "armed without full sync; an event armed ahead before a loss is detected is not cancelled (no cancel in the "
+      "HAL or the unit) and lies at most G beyond what ADR 0003 already armed; the cut is decided once per event "
+      "at the arming tooth.")
+    cols = [k for k in (("redline_rt", "capcmp"), ("tipin", "capcmp")) if k in cur and k in old]
+    clk = cur[cols[0]]["clk_hz"] / 1e6 if cols else 50.0
+    A(f"* Real time at {clk:.0f} MHz on the capture/compare unit, M9.2 vs M9.3 (the M9.1 mailbox mode, same core, "
+      "in brackets):")
+    A("")
+    hdr = []
+    for k in cols:
+        hdr += [f"{cur[k]['rpm']:.0f} rpm ({k[0]}), M9.2", f"{cur[k]['rpm']:.0f} rpm ({k[0]}), M9.3"]
+    A("| | " + " | ".join(hdr) + " |")
+    A("|---|" + "---|" * len(hdr))
+
+    def row(label, f, irq=None):
+        cells = []
+        for k in cols:
+            for src in (old, cur):
+                m = src[k]
+                txt = f(m)
+                mi = src.get((k[0], "irq"))
+                if irq and mi:
+                    txt += f" [{irq(mi)}]"
+                cells.append(txt)
+        A(f"| {label} | " + " | ".join(cells) + " |")
+    row("any event angle error, max", lambda m: f"{m['event_angle_error_max_deg']:.3f} deg",
+        lambda m: f"{m['event_angle_error_max_deg']:.3f}")
+    row("events late (compare pushed after its tick)", lambda m: f"{m.get('cc_pushed_late', 0)} of {m['events']}",
+        lambda m: f"{m['events_late']}")
+    row("worst tooth-to-event latency", lambda m: f"{m['tooth_to_event_max_us']:.1f} us")
+    row("smallest lead over the arming tooth", lambda m: f"{m['lead_min_deg']:.2f} deg" if "lead_min_deg" in m else "0")
+    row("worst event vs host: dwell / spark", lambda m: f"{m['dwell_angle_error_max_deg']:.3f} / {m['spark_angle_error_max_deg']:.3f} deg")
+    row("worst case (latency - smallest lead)", lambda m: f"{m['worst_case_angle_error_deg']:.2f} deg",
+        lambda m: f"{m['worst_case_angle_error_deg']:.2f}")
+    row("max pending compares", lambda m: f"{m['cc_pending_max']} of {m['cc_slots']}")
+    row("cycles with 2 compares pending", lambda m: f"{m['cc_pending_hist'][2]}")
+    row("CPU load", lambda m: f"{100 * m['cpu_load']:.1f} %", lambda m: f"{100 * m['cpu_load']:.1f} %")
+    row("captures lost / CAP_OVF / loss of sync / slow overruns",
+        lambda m: f"{m['captures_dropped']} / {m['cap_ovf']} / {m['n_loss']} / {m['slow_overruns']}")
+    row("every event within 0.5 deg", lambda m: "yes" if m["meets_spec"] else "no",
+        lambda m: "yes" if m["meets_spec"] else "no")
+    A("")
+    A("  The worst case is now the worst latency minus the smallest lead an event gets (G, or less for a "
+      "catch-up); in M9.2 it was the latency itself (an event could sit at its arming tooth). The M9.3 dwell "
+      "figure at 7000 rpm is one dwell start shortly after sync, 6 us earlier than the host's: the slow loop's "
+      "outputs reach the scheduler at a different tooth on target (ADR 0005 snapshot commit), and the event is "
+      "decided one tooth earlier; it is not late.")
+    if sw and sw.get("min_clock") and any("arm_ahead_deg" in m for m in sw["runs"]):
+        mc = sw["min_clock"]
+        pts = {float(m["clk_hz"]): m for m in sw["runs"] if m["window"] == mc["window"]}
+        pts.update({float(f): m for f, m in mc["tried"].items()})
+        why = lambda m: ("" if m["rt_ok"] else f" (real time lost, {m['slow_overruns']} slow steps skipped)")
+        A(f"* Clock sweep on {mc['window']} (M9.3), every-event error / worst case: "
+          + "; ".join(f"{f / 1e6:g} MHz {m['event_angle_error_max_deg']:.2f} / {m['worst_case_angle_error_deg']:.2f} deg"
+                      + why(m) for f, m in sorted(pts.items()))
+          + ". Minimum whole-MHz clock meeting the spec: "
+          + (f"{mc['min_clock_hz'] / 1e6:g} MHz" if mc["min_clock_hz"] else "none in the searched range")
+          + f" (M9.2: {base['realtime_capcmp_sweep']['min_clock']['min_clock_hz'] / 1e6:g} MHz). It is now set by "
+            "the CPU load (slow-loop overruns), not by the angle spec.")
+        tip = [m for m in sw["runs"] if m["window"] != mc["window"]]
+        if tip:
+            A(f"* {tip[0]['window']} ({tip[0]['rpm']:.0f} rpm), every-event error / worst case: "
+              + "; ".join(f"{m['clk_hz'] / 1e6:g} MHz {m['event_angle_error_max_deg']:.2f} / "
+                          f"{m['worst_case_angle_error_deg']:.3f} deg"
+                          + ("" if m["rt_ok"] else " (real time lost)")
+                          + ("" if m["meets_spec"] or not m["rt_ok"] else " (spec missed)") for m in tip)
+              + ". At 25 MHz one injection start fires by late catch-up during the pedal step (its target jumps "
+                "behind the tooth by more than the guard); its worst-case bound is the 42 us latency. 26 MHz meets "
+                "the spec there too (checked separately).")
+    A("")
+    A("*Known gaps:* late catch-up remains for targets that jump behind the tooth by more than the guard (the "
+      "first injection after sync, a pulse-width step in a fast transient), late by the handler latency: not seen "
+      "at 50 MHz, seen once in the tip-in at 25-26 MHz, where it makes 25 MHz miss the spec by 0.007 deg. Events "
+      "armed ahead are not cancelled on a loss of sync. Below the minimum clock the slow loop "
+      "overruns and real time is lost. The capture/compare pins are not on the Arty board yet, and Vortex-V has "
+      "not verified FPGA timing at any of these clocks.")
     A("")
     return L
 
@@ -660,6 +774,7 @@ def render(d: dict) -> str:
     A("")
     L.extend(m9_1_lines(x))
     L.extend(m9_2_lines(x))
+    L.extend(m9_3_lines(x))
 
     # ---- M10
     x = d["m10"]
@@ -711,9 +826,10 @@ def render(d: dict) -> str:
       "boost at 2000 rpm, synthetic compressor/turbine maps, turbine inlet ~1320 K without enrichment) and the "
       "STM32H743 ECU board in Zener (`ecad/`, 230 parts, KiCad DRC 0/0/0; conformal-coating clearance, ETB copper "
       "and datasheet VERIFY items open, see docs/ecad.md). Intake-port CFD is not planned.")
-    A("* Open items: ECU loop against the crank-angle model (M8); event timing vs the 0.5 deg spec at 50 MHz on "
-      "Vortex-V: 0.80 deg on the capture/compare unit too, since the scheduler arms from the tooth just before an "
-      "event (needs the ADR 0007 scheduler arm-ahead, or a faster clock, M9.1 / M9.2); maps at low-speed part load where M4 "
+    A("* Open items: ECU loop against the crank-angle model (M8); the M9.3 scheduler arm-ahead (ADR 0008) meets the "
+      "0.5 deg event spec at 7000 rpm and 50 MHz on Vortex-V (minimum clock now 26 MHz, set by CPU load), but the "
+      "capture/compare pins are not on the Arty board and FPGA timing is unverified (M9.2 / M9.3); late "
+      "catch-up remains for targets that jump behind a tooth by more than the guard (M9.3); maps at low-speed part load where M4 "
       "residuals are high (M7); M4 traces with the flame model for the dynamics (M5/M10); a fourth piston mesh "
       "level (M6); and the GitHub repository.")
     A("")

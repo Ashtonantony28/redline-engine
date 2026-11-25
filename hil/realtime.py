@@ -399,9 +399,11 @@ def _cc_events(obs: dict, caps: list, clk: float, hz: float, ncyl: int) -> tuple
     level (a set on a coil that is already charging, a pulse while the injector is still open, a
     clear on a coil that never charged) leaves no edge: it is kept with the unit's fire time and
     flagged `no_edge`, and `edge_missing` counts those whose level should have changed (a fault).
-    `cap` names the tooth whose window the event is in (the last crank edge whose captured tick is
-    not after the event's tick): the scheduler armed it from that tooth. Also returns the service
-    stamps aligned with the posted captures: hardware pops for crank / cam, mailbox pops for knock."""
+    `cap` names the tooth that armed the event: the crank capture in service when it was pushed (the
+    first crank capture popped at or after the push; the handler pops a capture after servicing it).
+    Since M9.3 (ADR 0008) this is not the tooth just before the event's tick: an event up to the
+    arm-ahead guard behind a tooth is armed from the tooth before. Also returns the service stamps
+    aligned with the posted captures: hardware pops for crank / cam, mailbox pops for knock."""
     t0 = obs["t0"]
     P = int(round(clk / hz))
     edges: dict = {}                                 # (out, rising) -> [edge]
@@ -424,6 +426,16 @@ def _cc_events(obs: dict, caps: list, clk: float, hz: float, ncyl: int) -> tuple
     posted = [c for c in caps if not c["dropped"]]
     crank_idx = [i for i, c in enumerate(posted) if c["kind"] == "HIL_CAP_CRANK"]
     crank_tick = [posted[i]["a0"] for i in crank_idx]
+    hw = iter(obs["pops"])
+    mb = iter(obs["mbox_service"])
+    service = []
+    for c in posted:
+        nxt = next(hw if c["kind"] in CC_PIN else mb, None)
+        if nxt is None:
+            break
+        service.append(nxt["cycle"] if isinstance(nxt, dict) else nxt)
+    crank_srv_idx = [i for i in crank_idx if i < len(service)]
+    crank_srv = [service[i] for i in crank_srv_idx]
     events = []
     for p in obs["pushes"]:
         w = p["wdata"]
@@ -446,9 +458,14 @@ def _cc_events(obs: dict, caps: list, clk: float, hz: float, ncyl: int) -> tuple
         else:
             ed = by_tick.get(key, {}).get(tick)
             rule = (((tick - t0) & U32_MASK) * P) - P // 2 + CC_EDGE_AFTER_TICK
-        j = bisect.bisect_right(crank_tick, (tick - t0) & U32_MASK) - 1   # the tooth whose window it is in
+        j = bisect.bisect_left(crank_srv, p["cycle"])          # the crank capture in service at the push
+        if j < len(crank_srv):
+            cap = crank_srv_idx[j]
+        else:                                                    # pushed after the last pop: newest tooth
+            j = bisect.bisect_right(crank_tick, (tick - t0) & U32_MASK) - 1
+            cap = crank_idx[j] if j >= 0 else len(posted)
         ev = {"tick": (tick - t0) & U32_MASK, "arg": p["arg"] if typ == EV_TYPES["inj"] else 0, "type": typ,
-              "cyl": cyl, "out": o, "arm_cycle": int(p["cycle"]), "cap": crank_idx[j] if j >= 0 else len(posted),
+              "cyl": cyl, "out": o, "arm_cycle": int(p["cycle"]), "cap": cap,
               "pushed_late": late, "pending_before": p["pending"],
               "edge_cycle": ed["cycle"] if ed else None, "edge_tick": ed["tick"] if ed else None,
               "no_edge": ed is None, "edge_missing": False}
@@ -466,18 +483,21 @@ def _cc_events(obs: dict, caps: list, clk: float, hz: float, ncyl: int) -> tuple
             nxt = [f for f in events if f["out"] == e["out"] and f["type"] == e["type"] and
                    0 < (f["tick"] - e["tick"]) & U32_MASK < e["pulse_ticks"] + 1 and f is not e]
             e["pulse_overlap"] = bool(nxt)
-    hw = iter(obs["pops"])
-    mb = iter(obs["mbox_service"])
-    service = []
-    for c in posted:
-        nxt = next(hw if c["kind"] in CC_PIN else mb, None)
-        if nxt is None:
-            break
-        service.append(nxt["cycle"] if isinstance(nxt, dict) else nxt)
     return events, service
 
 
 # --------------------------------------------------------------------------- metrics
+def arm_ahead_deg(omega_deg_s: float) -> float:
+    """The scheduler's arm-ahead guard at a crank speed [deg/s], as ecu/src/sched.c computes it from
+    the generated constants (ADR 0008): ECU_ARM_AHEAD_TICKS as angle, capped below one pitch."""
+    es, ms = params.ecu_spec(), params.mvem_spec()
+    upd = int(es["hardware"]["angle_units_per_deg"])
+    hz = float(es["hardware"]["timer_hz"])
+    ticks = int(round(float(es["decoder"]["arm_ahead_s"]) * hz))
+    max_u = 360 * upd // int(ms["trigger"]["teeth_total"]) - 1
+    return min(ticks / hz * omega_deg_s, max_u / upd)
+
+
 def _by_cyl(events, typ, key):
     out: dict = {}
     for e in events:
@@ -531,14 +551,27 @@ def metrics(r: RtResult, host: dict) -> dict:
     # every event's error: sparks and dwell against the host's fire time, and the lateness of any
     # event (an injection's start moves with its pulse width, so only its lateness is an error)
     observed = max([out["spark_angle_error_max_deg"], out["dwell_angle_error_max_deg"]] + late_deg, default=0.0)
-    # an event can fall anywhere in a tooth window, also right at its start: it is then late by the
-    # whole tooth-to-armed latency. The worst latency seen bounds that case.
-    bound = (max(lat_event) / clk * om_end) if lat_event else 0.0
+    # Worst case (ADR 0008): an event can fall anywhere in its arming tooth's window, also at the
+    # smallest lead the scheduler gives it, the arm-ahead guard (before M9.3 that lead was 0: right at
+    # the tooth). It is then late by the worst tooth-to-armed latency minus that lead. Events armed with
+    # less lead than designed (late catch-up of a target that moved behind its tooth, the first
+    # injection after sync) are bounded by the worst latency minus their own lead.
+    lat_max_deg = (max(lat_event) / clk * om_end) if lat_event else 0.0
+    g_deg = arm_ahead_deg(om_end)
+    leads = [(((e["tick"] - posted[e["cap"]]["a0"]) & U32_MASK) / consts_hz * omega_deg(e["t_fire"]),
+              arm_ahead_deg(omega_deg(e["t_fire"])))
+             for e in r.events if e["cap"] < len(posted) and posted[e["cap"]]["kind"] == "HIL_CAP_CRANK"]
+    lead_deg = [ld for ld, _ in leads]
+    short = [ld for ld, g in leads if ld < g]
+    bound = max([lat_max_deg - g_deg] + [lat_max_deg - ld for ld in short] + [0.0])
     idle_cycles = s["idle_iters"] * s["idle_cal_cycles"] / max(s["idle_cal_iters"], 1)
     out.update({
         "sparks_compared": n_match, "spark_count_difference": missing,
         "event_angle_error_max_deg": float(observed),
         "worst_case_angle_error_deg": float(bound),
+        "tooth_to_event_max_deg": float(lat_max_deg), "arm_ahead_deg": g_deg,
+        "lead_min_deg": float(min(lead_deg)) if lead_deg else float("nan"),
+        "events_short_lead": len(short),
         "angle_within_spec": bool(err_deg and missing == 0 and max(observed, bound) <= spec_deg),
         "inj_pulse_diff_max_us": float(max(pw)) / consts_hz * US_PER_S if pw else float("nan"),
         "event_late_max_us": float(max(late)) * US_PER_S if late else 0.0,

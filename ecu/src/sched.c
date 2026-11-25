@@ -1,13 +1,22 @@
 /* Angle-domain event scheduler. Fixed point only (built with -mgeneral-regs-only).
  *
  * On every tooth with full sync, each cylinder's three angle events (injection start, dwell
- * start, spark) are tested against the window [tooth angle, next real tooth). An event inside the
- * window is armed as an absolute timer compare: tick + delta_u * period / pitch_u, i.e. linear
- * interpolation on the per-pitch period averaged over the last few teeth (Q8 sub-tick). Time-defined quantities (injector pulse, coil dwell)
- * are converted to angle with the same period. A repeat guard stops an event firing twice per cycle
- * when its target moves; an event whose target slipped up to one pitch behind the current tooth fires
- * immediately (late catch-up) instead of being lost. The rev limiter (fuel + spark cut with hysteresis) compares the
- * revolution period against generated tick thresholds.
+ * start, spark) are tested against the window [tooth angle, next real tooth + G) (ADR 0008,
+ * superseding the arming contract of ADR 0003). G, the arm-ahead guard, is the time
+ * ECU_ARM_AHEAD_TICKS converted to angle with this tooth's period, capped at ECU_ARM_AHEAD_MAX_U
+ * (less than one pitch). An event inside the window is armed as an absolute timer compare:
+ * tick + delta_u * period / pitch_u, i.e. linear interpolation on the per-pitch period averaged over
+ * the last few teeth (Q8 sub-tick), extrapolated past the next tooth for the arm-ahead part. An event
+ * that lies less than G behind a tooth is therefore armed from the tooth before, so the handler's
+ * latency after that tooth never makes it late; the windows of consecutive teeth overlap and the
+ * repeat guard keeps each event to one arming per cycle. Time-defined quantities (injector pulse, coil
+ * dwell, the guard) are converted to angle with the same period. The repeat guard stops an event
+ * firing twice per cycle when its target moves; an event whose target slipped up to one pitch behind
+ * the current tooth fires immediately (late catch-up) instead of being lost. The rev limiter (fuel +
+ * spark cut with hysteresis) compares the revolution period against generated tick thresholds; the cut
+ * is decided once per event, at the tooth that arms it. Nothing is armed without full sync, so no
+ * event is armed from a tooth after a loss of sync; an event armed ahead before the loss was detected
+ * (at most G past the last good tooth's window) is not cancelled (ADR 0008).
  */
 #include "ecu/ecu.h"
 #include "ecu/ecu_hal.h"
@@ -43,6 +52,8 @@ void ecu_sched_tooth(ecu_sched_t *s, const ecu_decoder_t *d, const ecu_tooth_t *
         }
     }
     uint32_t dwell_u = ticks_to_u(ECU_DWELL_TICKS, t->period_q8, ECU_REV_U / 2u);
+    /* arm-ahead guard (ADR 0008): a time (the handler latency is a time), as angle at this speed */
+    uint32_t ahead_u = ticks_to_u(ECU_ARM_AHEAD_TICKS, t->period_q8, ECU_ARM_AHEAD_MAX_U);
     for (uint8_t c = 0u; c < ECU_NCYL; ++c) {
         for (uint8_t k = 0u; k < EV_N; ++k) {
             int32_t target;
@@ -58,7 +69,7 @@ void ecu_sched_tooth(ecu_sched_t *s, const ecu_decoder_t *d, const ecu_tooth_t *
                 target = ECU_TDC_U[c] - s->adv_u[c];
             }
             uint32_t delta = (uint32_t)ecu_angle_wrap(target - t->angle_u);
-            if (delta >= t->span_u) {
+            if (delta >= t->span_u + ahead_u) {
                 /* late by less than one pitch (target jittered across the window edge, or moved
                  * back): fire now rather than lose the event; the repeat guard blocks doubles */
                 if ((uint32_t)ECU_CYCLE_U - delta > (uint32_t)ECU_PITCH_U) {
