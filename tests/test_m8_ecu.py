@@ -8,6 +8,7 @@ Stated tolerances (never loosened silently):
   steady throttle flow vs independent orifice formula ........... 1e-12 relative (same equation),
                                                                    steady manifold balance 1e-4
   event scheduler, 7000 rpm, tooth-interpolated ................. 0.5 deg
+  arm-ahead (ADR 0008) extrapolation at 12000 rpm/s, analytic .... <= 0.1 deg (a fifth of the 0.5 deg spec)
   steady-state lambda (every combustion event in the window) ..... +/- 3 %
   idle 800 rpm after a 10 Nm accessory step, after settling ...... +/- 25 rpm
   tip-in lambda excursion (2000 rpm, pedal 0.10 -> 0.40 in 0.1 s)  |lambda - 1| <= 0.12 per event
@@ -333,6 +334,39 @@ def test_scheduler_spark_within_half_degree_at_7000rpm(ecu):
                 errs.append(min(e, 720.0 - e))
     assert len(errs) >= 3 * k.ncyl
     assert max(errs) < 0.5
+
+
+ARM_ACCEL_RPM_S = 12000.0        # M8 acceleration case (ecu/tests/test_ecu.c: WOT free-rev to redline)
+ARM_EXTRAP_MAX_DEG = 0.1
+
+
+def test_arm_ahead_window_generated_and_extrapolation_bounded():
+    """ADR 0008: the arm-ahead guard is a generated calibration constant (a time, converted to angle
+    with the tooth period and capped below one pitch), and the extra extrapolation it adds stays far
+    inside the spec. An event d deg past its arming tooth, timed with the period averaged over hist
+    deg, is off by alpha d (hist + d) / (2 omega^2) under a constant acceleration alpha (time error of
+    a backward-looking mean speed, to second order). The largest d is across the missing-tooth gap: 3
+    pitches + the guard, with 4 normal pitches of history; the slowest speed of the M8 case
+    (5800 rpm) gives the largest error."""
+    import re
+    es = params.ecu_spec()
+    upd = int(es["hardware"]["angle_units_per_deg"])
+    hz = int(es["hardware"]["timer_hz"])
+    hdr = (ROOT / "ecu" / "include" / "ecu" / "ecu_calib_gen.h").read_text()
+    ticks = int(re.search(r"#define ECU_ARM_AHEAD_TICKS (\d+)u", hdr).group(1))
+    max_u = int(re.search(r"#define ECU_ARM_AHEAD_MAX_U (\d+)u", hdr).group(1))
+    assert ticks == int(round(float(es["decoder"]["arm_ahead_s"]) * hz)) and ticks > 0
+    trg = params.mvem_spec()["trigger"]
+    pitch = 360.0 / int(trg["teeth_total"])
+    assert max_u == round(pitch * upd) - 1
+    alpha = ARM_ACCEL_RPM_S * 6.0                                  # deg/s^2
+    hist = int(es["decoder"]["period_average_teeth"]) * pitch
+    eps = lambda rpm, d: alpha * d * (hist + d) / (2.0 * (rpm * 6.0) ** 2)
+    for rpm in (5800.0, 7000.0):
+        g = min(ticks / hz * rpm * 6.0, max_u / upd)
+        d_old = (int(trg["teeth_missing"]) + 1) * pitch
+        assert eps(rpm, d_old + g) <= ARM_EXTRAP_MAX_DEG
+        assert eps(rpm, d_old + g) - eps(rpm, d_old) < 0.01        # what the window adds
 
 
 # --------------------------------------------------------------------------------------------

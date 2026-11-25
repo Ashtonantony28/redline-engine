@@ -12,6 +12,17 @@
 //     every interrupt the core takes is logged with its cycle.
 // The plant posts capture edges by poking the FIFO at the cycle the edge occurs (vx_rt_run_to, then
 // vx_write). A retire-PC profiler (vx_prof_*) attributes cycles to the next retiring instruction.
+//
+// M9.2 (ADR 0007) adds the capture/compare side (vx_cc_*): the SoC is built with Vortex-V's real
+// capture/compare timer (CAPCMP=1, its ADR 0017), so nothing is played here any more. The plant
+// drives the cap_in pins (a rising edge of `width` cycles at the cycle a crank / cam edge occurs),
+// and the model only observes the RTL, cycle by cycle:
+//   * every edge of cmp_out[7:0] with its cycle and the timer value (TIME) at that cycle,
+//   * every CMP_PUSH store as the block takes it (the cycle an event is armed), with CMP_ARG,
+//   * every capture entering the FIFO (cycle, kind, latched tick) and every pop (CAP_RD write),
+//   * the largest number of pending compare slots, the push-drop and capture-overflow counters.
+// vx_cc_align() places plant time 0 on the timer's phase so that a captured tick equals
+// round(t * timer_hz) + T0, the tick the host build is given for the same edge.
 #include <cstdint>
 #include <cstring>
 #include <memory>
@@ -37,6 +48,43 @@ struct RtEvent {                // one armed output compare
     uint8_t raw[RT_EVENT_BYTES_MAX];   // the ecu_event_t as the firmware stored it
 };
 
+struct CcEdge {                 // one change of cmp_out
+    uint64_t cycle;             // since the real-time epoch
+    uint32_t tick;              // TIME at that cycle
+    uint32_t before, after;     // cmp_out levels
+};
+
+struct CcPush {                 // one CMP_PUSH the block accepted or dropped
+    uint64_t cycle;
+    uint64_t wdata;             // tick | out << 32 | action << 40
+    uint32_t arg;               // CMP_ARG at the push
+    uint32_t time;              // TIME at the push
+    uint32_t pending;           // slots busy before the push
+    uint32_t pad;
+};
+
+struct CcCap {                  // one capture entering the FIFO, or one pop
+    uint64_t cycle;
+    uint32_t tick;              // latched timer value (captures); CAP_RD after the pop (pops)
+    uint32_t kind;              // 1 crank, 2 cam (captures); 0 for pops
+};
+
+const unsigned CC_PINS = 8;     // cap_in bits the model can pulse (the SoC uses N_CAP of them)
+const unsigned CC_PIN_TO_LATCH = 2;   // a pin set before cycle n is latched with TIME after cycle n+2
+                                      // (2-flop synchroniser, then the edge detector; ADR 0017)
+
+struct Cc {
+    bool on = false;
+    uint32_t pin_left[CC_PINS] = {};
+    uint32_t out_prev = 0;
+    uint32_t cap_wr = 0, cap_rd = 0;
+    uint32_t pending_max = 0;
+    uint64_t pending_hist[256] = {};   // cycles spent with n compares pending
+    std::vector<CcEdge> edges;
+    std::vector<CcPush> pushes;
+    std::vector<CcCap> caps, pops;
+};
+
 struct Rt {
     bool on = false;
     uint64_t epoch = 0;         // `cycles` at plant time 0
@@ -54,6 +102,7 @@ struct Sim {
     std::unique_ptr<Vvortex_soc> top;
     uint64_t cycles = 0;
     Rt rt;
+    Cc cc;
     bool prof_on = false;
     uint64_t prof_pending = 0;
     std::unordered_map<uint64_t, uint64_t> prof;
@@ -79,6 +128,40 @@ struct Sim {
         const unsigned sh = BITS_PER_BYTE * (off % WORD_BYTES);
         w = (w & ~(QData(0xFFFFFFFFu) << sh)) | (QData(v) << sh);
     }
+    // ---- capture/compare observation (M9.2) ----
+#define CC_SIG(name) top->rootp->vortex_soc__DOT__g_capcmp__DOT__u_capcmp__DOT__##name
+    uint32_t cc_time() { return uint32_t(CC_SIG(time_q)); }
+    void cc_step(uint64_t now) {
+        // pins: end the pulses the plant started
+        uint32_t pins = top->cap_in;
+        for (unsigned c = 0; c < CC_PINS; ++c) {
+            if (cc.pin_left[c] && --cc.pin_left[c] == 0) pins &= ~(1u << c);
+        }
+        top->cap_in = pins;
+        const uint32_t out = top->cmp_out;
+        if (out != cc.out_prev) {
+            cc.edges.push_back(CcEdge{now, cc_time(), cc.out_prev, out});
+            cc.out_prev = out;
+        }
+        const uint32_t pend = uint32_t(CC_SIG(pending));
+        if (pend > cc.pending_max) cc.pending_max = pend;
+        cc.pending_hist[pend & 0xFF]++;
+        // a store the block takes at the next clock edge (the values settle after this cycle)
+        if (CC_SIG(wr_push))
+            cc.pushes.push_back(CcPush{now + 1, uint64_t(CC_SIG(wdata)), uint32_t(CC_SIG(arg_q)), cc_time(), pend, 0});
+        const uint32_t wr = uint32_t(CC_SIG(cap_wr));
+        while (cc.cap_wr != wr) {
+            const unsigned i = cc.cap_wr % (sizeof(CC_SIG(fifo_ts)) / sizeof(CC_SIG(fifo_ts)[0]));
+            cc.caps.push_back(CcCap{now, uint32_t(CC_SIG(fifo_ts)[i]), uint32_t(CC_SIG(fifo_kind)[i])});
+            cc.cap_wr++;
+        }
+        const uint32_t rd = uint32_t(CC_SIG(cap_rd));
+        if (rd != cc.cap_rd) {
+            cc.pops.push_back(CcCap{now, rd, 0});
+            cc.cap_rd = rd;
+        }
+    }
+
     // One clock cycle with the profiler and the real-time peripheral model.
     void step() {
         tick();
@@ -91,6 +174,7 @@ struct Sim {
                 prof_pending = 0;
             }
         }
+        if (cc.on) cc_step(cycles - rt.epoch);
         if (!rt.on) return;
         const uint64_t now = cycles - rt.epoch;
         if (r->vortex_soc__DOT__g_ooo__DOT__u_core__DOT__dbg_irq) rt.irq.push_back(now);
@@ -209,6 +293,7 @@ void vx_rt_begin(void *h, const uint64_t *off, uint32_t ev_size, uint32_t ev_slo
     r.evt_wr = s->rd32(r.off_evt_wr);
     r.slow_seq = s->rd32(r.off_slow_seq);
     s->rt = r;
+    s->cc.on = false;
     s->wr32(r.off_timer, 0);
 }
 
@@ -233,6 +318,56 @@ uint64_t vx_rt_events(void *h, RtEvent *dst, uint64_t max) { return drain(static
 uint64_t vx_rt_services(void *h, uint64_t *dst, uint64_t max) { return drain(static_cast<Sim *>(h)->rt.service, dst, max); }
 uint64_t vx_rt_slows(void *h, uint64_t *dst, uint64_t max) { return drain(static_cast<Sim *>(h)->rt.slow, dst, max); }
 uint64_t vx_rt_irqs(void *h, uint64_t *dst, uint64_t max) { return drain(static_cast<Sim *>(h)->rt.irq, dst, max); }
+
+// ---- capture/compare timer (M9.2, ADR 0007) ----
+// Start observing the block (call after vx_rt_begin), then advance to the timer phase that makes a
+// captured tick round(t * timer_hz) + T0 for an edge driven at plant time t, and move the epoch
+// there. Requires clk_hz = (PRESC + 1) * timer_hz. Returns T0.
+uint32_t vx_cc_align(void *h) {
+    Sim *s = static_cast<Sim *>(h);
+    const uint32_t P = uint32_t(s->CC_SIG(presc_q)) + 1u;
+    const uint32_t t = s->cc_time();
+    while (s->cc_time() == t) s->tick(), s->cycles++;       // the first cycle of a new tick
+    const uint32_t t0 = s->cc_time();
+    // latch = TIME(epoch + n + CC_PIN_TO_LATCH) = T0 + floor((n + P/2) / P)
+    const uint32_t extra = (P / 2u + P - (CC_PIN_TO_LATCH % P)) % P;
+    for (uint32_t i = 0; i < extra; ++i) s->tick(), s->cycles++;
+    s->rt.epoch = s->cycles;
+    s->rt.acc = 0;
+    s->rt.tick = 0;
+    s->wr32(s->rt.off_timer, 0);
+    Cc c;
+    c.on = true;
+    c.out_prev = s->top->cmp_out;
+    c.cap_wr = uint32_t(s->CC_SIG(cap_wr));
+    c.cap_rd = uint32_t(s->CC_SIG(cap_rd));
+    s->cc = c;
+    s->top->cap_in = 0;
+    return t0;
+}
+
+void vx_cc_end(void *h) { static_cast<Sim *>(h)->cc.on = false; }
+
+// Rising edge on cap_in[pin], held for `width` cycles (>= 3 so the synchroniser sees it).
+void vx_cc_pin(void *h, uint32_t pin, uint32_t width) {
+    Sim *s = static_cast<Sim *>(h);
+    if (pin >= CC_PINS) return;
+    s->top->cap_in = s->top->cap_in | (1u << pin);
+    s->cc.pin_left[pin] = width;
+}
+
+uint32_t vx_cc_time(void *h) { return static_cast<Sim *>(h)->cc_time(); }
+uint32_t vx_cc_pending_max(void *h) { return static_cast<Sim *>(h)->cc.pending_max; }
+void vx_cc_pending_hist(void *h, uint64_t *dst, uint64_t n) {
+    Sim *s = static_cast<Sim *>(h);
+    for (uint64_t i = 0; i < n && i < 256; ++i) dst[i] = s->cc.pending_hist[i];
+}
+uint32_t vx_cc_cap_ovf(void *h) { return uint32_t(static_cast<Sim *>(h)->CC_SIG(cap_ovf)); }
+uint32_t vx_cc_cmp_drop(void *h) { return uint32_t(static_cast<Sim *>(h)->CC_SIG(cmp_drop)); }
+uint64_t vx_cc_edges(void *h, CcEdge *dst, uint64_t max) { return drain(static_cast<Sim *>(h)->cc.edges, dst, max); }
+uint64_t vx_cc_pushes(void *h, CcPush *dst, uint64_t max) { return drain(static_cast<Sim *>(h)->cc.pushes, dst, max); }
+uint64_t vx_cc_caps(void *h, CcCap *dst, uint64_t max) { return drain(static_cast<Sim *>(h)->cc.caps, dst, max); }
+uint64_t vx_cc_pops(void *h, CcCap *dst, uint64_t max) { return drain(static_cast<Sim *>(h)->cc.pops, dst, max); }
 
 // ---- retire-PC profiler ----
 void vx_prof(void *h, int on) {

@@ -1,6 +1,6 @@
 # ADR 0003: ECU HAL boundary, fixed-point angle units and event contract
 
-Status: Accepted
+Status: Accepted; partly superseded by 0008 (the window an event is armed from)
 Date: 2026-11-21
 
 ## Context

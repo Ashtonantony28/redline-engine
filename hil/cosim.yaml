@@ -21,6 +21,18 @@ realtime:
     hi_hz: 100.0e+6
     resolution_hz: 2.5e+6
 
+# M9.2 capture/compare mode (hil/realtime.py mode capcmp, ADR 0007): the SoC's own
+# capture/compare timer (Vortex-V ADR 0017, CAPCMP=1). Clocks must be whole MHz (PRESC + 1 clocks
+# per 1 us tick).
+capcmp:
+  pin_width_cycles: 8        # a crank / cam sensor pulse on cap_in (> the unit's 2-flop synchroniser)
+  windows: [redline_rt, tipin]
+  clocks_hz: [20.0e+6, 25.0e+6, 50.0e+6]
+  min_clock:                 # bisection on redline_rt, whole-MHz steps
+    lo_hz: 10.0e+6
+    hi_hz: 100.0e+6
+    resolution_hz: 1.0e+6
+
 windows:
   smoke:                     # default test suite: sync, first injections, start of a tip-in
     duration: 0.10

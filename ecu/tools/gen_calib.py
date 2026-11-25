@@ -72,6 +72,9 @@ def build() -> str:
     pitch_u = 360 * upd // teeth
     assert pitch_u * teeth == 360 * upd, "angle units must divide the tooth pitch"
     den = int(dec["ratio_den"])
+    arm_ahead_ticks = int(round(float(dec["arm_ahead_s"]) * hz))
+    assert arm_ahead_ticks >= 0
+    arm_ahead_max_u = pitch_u - 1          # the guard stays shorter than one tooth pitch (ADR 0008)
     tdc = [int(round(a * upd)) for a in params.firing_tdc_deg(spec)]
     redline = float(spec["engine"]["redline_rpm"])
     cut = redline + float(rl["cut_above_redline_rpm"])
@@ -108,6 +111,8 @@ def build() -> str:
         ("ECU_NOISE_RATIO_NUM", f"{int(round(float(dec['noise_ratio']) * den))}u"),
         ("ECU_STALL_TICKS", f"{int(round(float(dec['stall_timeout_s']) * hz))}u"),
         ("ECU_REPEAT_GUARD_U", f"{int(dec['repeat_guard_deg']) * upd}u"),
+        ("ECU_ARM_AHEAD_TICKS", f"{arm_ahead_ticks}u"),
+        ("ECU_ARM_AHEAD_MAX_U", f"{arm_ahead_max_u}u"),
         ("ECU_SYNC_MIN_GOOD", f"{int(dec['sync_min_good_teeth'])}u"),
         ("ECU_PERIOD_HIST", f"{int(dec['period_average_teeth'])}"),
         ("ECU_DWELL_TICKS", f"{int(round(float(ig['dwell_s']) * hz))}u"),

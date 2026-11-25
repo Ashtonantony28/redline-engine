@@ -16,6 +16,13 @@ decoder:
   ratio_den: 20              # fixed-point denominator for the three ratios above
   stall_timeout_s: 0.20      # no tooth for this long: loss of sync, rpm = 0
   repeat_guard_deg: 360      # an angle event may fire again only after this much crank rotation
+  arm_ahead_s: 100.0e-6      # ADR 0008: an event less than this (as angle at the current speed, capped
+                             # below one pitch) behind a tooth is armed from the tooth before: window
+                             # [tooth, next tooth + guard). A time, because the handler latency is one.
+                             # Sized from measurement: RV64 edge-to-armed latency up to 19.9 us at
+                             # 50 MHz, plus the tooth-to-tooth motion of injection-start targets (up to
+                             # ~2.3 deg = 55 us at 7000 rpm in host runs), plus margin; 4.2 deg at
+                             # 7000 rpm, 1.05 deg at 1750 rpm
   sync_min_good_teeth: 2     # normal teeth required before a gap is believed while searching
   period_average_teeth: 4    # tooth intervals averaged for the scheduler's sub-tick period
 
