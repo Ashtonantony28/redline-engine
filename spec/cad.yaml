@@ -52,6 +52,9 @@ materials:                     # which engine.yaml material each part is made fr
   intake_manifold: al_block
   exhaust_header: stainless
   manifold_bolt: bolt_steel
+  throttle_body: al_block           # cast aluminium throttle-body housing (blade and shaft lumped)
+  intake_bracket: steel_plate      # pressed-steel manifold stay
+  bracket_bolt: bolt_steel
 material_data:                   # CAD-only materials (mass reporting and rendering; no structural analysis uses them)
   main_cap_iron: {from: fea.materials.main_cap}
   bolt_steel: {rho: 7850.0}      # quenched and tempered alloy steel (class 10.9 bolts)
@@ -66,6 +69,7 @@ material_data:                   # CAD-only materials (mass reporting and render
   belt_rubber: {rho: 1300.0}     # HNBR/glass-cord timing belt; damper rubber
   plug_mix: {rho: 4500.0}        # spark plug: steel shell + alumina insulator, lumped
   stainless: {rho: 7900.0}       # exhaust header tube
+  steel_plate: {rho: 7850.0}     # low-carbon steel plate (intake manifold stay)
 piston:
   skirt_clearance: 0.00004     # m, diametral piston-to-bore clearance
   compression_height: 0.0275    # m, pin axis to crown top; M6: 28.5 -> 27.5 mm (top land 5.5 -> 5.0, oil groove still clears the pin bore)

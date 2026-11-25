@@ -35,6 +35,8 @@ try {
   await page.waitForFunction(() => window.__ready === true, null, { timeout: 120000 });
   const scene = JSON.parse(fs.readFileSync(path.join(work, 'scene.json'), 'utf8'));
   for (let i = 0; i < scene.views.length; i++) {
+    const V = scene.views[i];   // per-view frame size (portrait views for the tall full assembly)
+    await page.setViewportSize({ width: V.width || +w, height: V.height || +h });
     const info = await page.evaluate(async (k) => await window.renderView(k), i);
     const file = path.join(outdir, scene.views[i].name + '.png');
     await page.locator('canvas').screenshot({ path: file, timeout: 900000 });  // software GL: large scenes are slow

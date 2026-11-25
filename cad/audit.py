@@ -23,6 +23,10 @@ What it checks (all on the exact BRep solids, CAD units mm, MODELLED geometry):
 
 Intended contacts and overlaps come from spec/cad_fits.yaml (each with its build reason); any other overlap or
 contact is a DEFECT. Outputs out/cad/audit_<tag>.json and .md.
+
+The full run takes ~2.5 h on 4 cores. It is resumable: finished pairs are appended to out/cad/audit_<tag>.ckpt/
+as they complete (progress.json there shows the stage and counts), and rerunning the same command after a kill
+continues where it stopped as long as the source hash is unchanged (`--fresh` discards the checkpoint).
 """
 from __future__ import annotations
 
@@ -356,9 +360,65 @@ class _LiftMotion:
 
 
 # ------------------------------------------------------------------------------------------------ main audit
-def run(tag: str = "final", jobs: int = 4, renders: bool = True, sweep: bool = True, out_dir: Path = OUT_DIR) -> dict:
+class Checkpoint:
+    """Resumable run state in out/cad/audit_<tag>.ckpt/: every finished static pair and sweep job is appended to a
+    JSON-lines file as it completes (with the source hash of the run in meta.json), the tessellation report is
+    stored once done, and progress.json carries the stage and counts. A restarted run with the same source hash
+    skips everything already on disk; a different hash (or --fresh) starts over."""
+
+    def __init__(self, out_dir: Path, tag: str, src_hash: str, fresh: bool = False):
+        self.dir = out_dir / f"audit_{tag}.ckpt"
+        meta = self.dir / "meta.json"
+        if self.dir.exists() and (fresh or not meta.exists()
+                                  or json.loads(meta.read_text()).get("source_hash") != src_hash):
+            for f in self.dir.iterdir():
+                f.unlink()
+        self.dir.mkdir(parents=True, exist_ok=True)
+        if not meta.exists():
+            meta.write_text(json.dumps({"source_hash": src_hash, "tag": tag, "started": time.time()}))
+        self.progress = {}
+
+    def load(self, name: str) -> dict:
+        """{key: record} of a JSON-lines stage file (a torn last line from a kill is ignored)."""
+        out = {}
+        f = self.dir / f"{name}.jsonl"
+        if f.exists():
+            for ln in f.read_text().splitlines():
+                try:
+                    r = json.loads(ln)
+                except json.JSONDecodeError:
+                    continue
+                out[r["key"]] = r["rec"]
+        return out
+
+    def appender(self, name: str):
+        return open(self.dir / f"{name}.jsonl", "a", buffering=1)
+
+    @staticmethod
+    def add(fh, key: str, rec):
+        fh.write(json.dumps({"key": key, "rec": rec}, default=_jsonable) + "\n")
+        fh.flush()
+        os.fsync(fh.fileno())
+
+    def get(self, name: str):
+        f = self.dir / f"{name}.json"
+        return json.loads(f.read_text()) if f.exists() else None
+
+    def put(self, name: str, obj):
+        tmp = self.dir / f"{name}.json.tmp"
+        tmp.write_text(json.dumps(obj, default=_jsonable))
+        tmp.replace(self.dir / f"{name}.json")
+
+    def stage(self, **kw):
+        self.progress.update(kw, updated=time.strftime("%Y-%m-%d %H:%M:%S"))
+        self.put("progress", self.progress)
+
+
+def run(tag: str = "final", jobs: int = 4, renders: bool = True, sweep: bool = True, out_dir: Path = OUT_DIR,
+        fresh: bool = False) -> dict:
     t_start = time.time()
     src_hash = source_hash()   # hash of the sources this run is built from (taken before any geometry is made)
+    ck = Checkpoint(out_dir, tag, src_hash, fresh)
     fits = Fits()
     tol = fits.tol
     _init_state(0.0, 0.0)
@@ -371,9 +431,19 @@ def run(tag: str = "final", jobs: int = 4, renders: bool = True, sweep: bool = T
     cand = [(i, j) for i in range(n) for j in range(i + 1, n) if boxes_gap(boxes[i], boxes[j]) <= tol["contact_mm"]]
     n_pairs = n * (n - 1) // 2
     print(f"[audit:{tag}] static: {n_pairs} pairs, {len(cand)} with touching bounding boxes", flush=True)
+    done = ck.load("static")
+    todo = [ij for ij in cand if f"{insts[ij[0]].name}|{insts[ij[1]].name}" not in done]
+    print(f"[audit:{tag}] static: {len(cand) - len(todo)} pairs from the checkpoint, {len(todo)} to run", flush=True)
+    ck.stage(stage="static", static_total=len(cand), static_done=len(cand) - len(todo))
     ctx = mp.get_context("fork")
-    with ctx.Pool(jobs) as pool:
-        res = pool.map(_static_pair, cand, chunksize=4)
+    with ck.appender("static") as fh, ctx.Pool(jobs) as pool:
+        for k, r in enumerate(pool.imap_unordered(_static_pair, todo, chunksize=4)):
+            key = f"{insts[r[0]].name}|{insts[r[1]].name}"
+            Checkpoint.add(fh, key, list(r))
+            done[key] = list(r)
+            if (k + 1) % 50 == 0 or k + 1 == len(todo):
+                ck.stage(static_done=len(cand) - len(todo) + k + 1)
+    res = [done[f"{insts[i].name}|{insts[j].name}"] for i, j in cand]
     print(f"[audit:{tag}] static done in {time.time() - t_start:.0f} s", flush=True)
     static = []
     for i, j, vol, d, pa, pb, dt in res:
@@ -433,12 +503,18 @@ def run(tag: str = "final", jobs: int = 4, renders: bool = True, sweep: bool = T
     # ---- (b) moving sweep ---------------------------------------------------------------------------------
     sweeps = []
     if sweep:
-        sweeps = moving_sweep(fits, boxes, jobs, tag)
+        sweeps = moving_sweep(fits, boxes, jobs, tag, ck)
 
+    ck.stage(stage="valve_checks")
     valve = valve_checks(p, sweeps, fits.tol) if sweep else {}
 
     # ---- (d) tessellation ---------------------------------------------------------------------------------
-    tess = tessellation_report(p, src)
+    ck.stage(stage="tessellation")
+    tess = ck.get("tessellation")
+    if tess is None:
+        tess = tessellation_report(p, src)
+        ck.put("tessellation", tess)
+    ck.stage(stage="key_clearances")
 
     # ---- key clearances: exact minimum distance of selected far-apart pairs (static pose) --------------------
     key = []
@@ -481,6 +557,7 @@ def run(tag: str = "final", jobs: int = 4, renders: bool = True, sweep: bool = T
               "floating": floating, "floating_without_unlisted_contacts": floating_allowed_only,
               "defects": defects, "sweep": sweeps, "valve_checks": valve, "tessellation": tess,
               "key_clearances": key}
+    ck.stage(stage="renders" if renders else "writing")
     if renders:
         try:
             from cad.render import audit_views
@@ -490,6 +567,7 @@ def run(tag: str = "final", jobs: int = 4, renders: bool = True, sweep: bool = T
     out_dir.mkdir(parents=True, exist_ok=True)
     (out_dir / f"audit_{tag}.json").write_text(json.dumps(report, indent=1, default=_jsonable))
     (out_dir / f"audit_{tag}.md").write_text(markdown(report))
+    ck.stage(stage="done", seconds_this_run=time.time() - t_start)
     print(f"[audit:{tag}] " + json.dumps(summary))
     return report
 
@@ -502,7 +580,7 @@ def _jsonable(o):
     raise TypeError(type(o))
 
 
-def moving_sweep(fits: Fits, boxes, jobs: int, tag: str) -> list:
+def moving_sweep(fits: Fits, boxes, jobs: int, tag: str, ck: "Checkpoint | None" = None) -> list:
     cfg = dict(fits.sweep)
     cfg.update(contact_mm=fits.tol["contact_mm"], overlap_mm3=fits.tol["overlap_mm3"])
     p, insts, mot, src = _S["p"], _S["insts"], _S["mot"], _S["src"]
@@ -552,14 +630,32 @@ def moving_sweep(fits: Fits, boxes, jobs: int, tag: str) -> list:
             for adv in advs:
                 jobs_list.append((i, j, period, speed[i] + speed[j], contact_mode, adv, cfg, sbox[i], sbox[j],
                                   "crank"))
-    print(f"[audit:{tag}] sweep: {len(jobs_list)} moving pairs", flush=True)
+    def jkey(jb):
+        return f"{insts[jb[0]].name}|{insts[jb[1]].name}|{jb[9]}|{jb[5]:g}"
+    done = ck.load("sweep") if ck else {}
+    todo = [jb for jb in jobs_list if jkey(jb) not in done]
+    # longest first (valve/cam pairs over 720 deg) so the pool does not end on one long straggler
+    todo.sort(key=lambda jb: -jb[2])
+    print(f"[audit:{tag}] sweep: {len(jobs_list)} moving pairs, {len(jobs_list) - len(todo)} from the checkpoint",
+          flush=True)
+    if ck:
+        ck.stage(stage="sweep", sweep_total=len(jobs_list), sweep_done=len(jobs_list) - len(todo))
     ctx = mp.get_context("fork")
-    res = []
-    with ctx.Pool(jobs) as pool:
-        for k, r in enumerate(pool.imap_unordered(_sweep_pair, jobs_list, chunksize=1)):
-            res.append(r)
-            print(f"[audit:{tag}]   {k + 1}/{len(jobs_list)} {r['a']} / {r['b']}: min {r['min_mm']:.3f} mm "
-                  f"({r['evals']} evals, {r['seconds']:.0f} s)", flush=True)
+    fh = ck.appender("sweep") if ck else None
+    try:
+        with ctx.Pool(jobs) as pool:
+            for k, r in enumerate(pool.imap_unordered(_sweep_pair, todo, chunksize=1)):
+                key = f"{r['a']}|{r['b']}|{r['param']}|{r['vvt_advance_deg']:g}"
+                done[key] = r
+                if fh:
+                    Checkpoint.add(fh, key, r)
+                    ck.stage(sweep_done=len(jobs_list) - len(todo) + k + 1, last=key)
+                print(f"[audit:{tag}]   {len(jobs_list) - len(todo) + k + 1}/{len(jobs_list)} {r['a']} / {r['b']}: "
+                      f"min {r['min_mm']:.3f} mm ({r['evals']} evals, {r['seconds']:.0f} s)", flush=True)
+    finally:
+        if fh:
+            fh.close()
+    res = [done[jkey(jb)] for jb in jobs_list]
     for r in res:
         A = next(i for i in insts if i.name == r["a"])
         B = next(i for i in insts if i.name == r["b"])
@@ -757,8 +853,10 @@ SIMPLIFICATIONS = (
     "length (port + flange + runner to the bellmouth lip) is met exactly, and there is no cam cover modelled under "
     "the plenum. The throttle body is held by flange contact (no flange bolts modelled) and its blade is fixed at "
     "the rendered angle.",
-    "spec/dynamics.yaml bearing diameters (56/48 mm) differ from the CAD journals (52/45 mm, spec/cad.yaml); the CAD "
-    "shells use the dynamics radial clearance and width but the CAD diameters.",
+    "Bearings: spec/dynamics.yaml now uses the CAD journal diameters (main 52 mm, big end 45 mm, spec/cad.yaml "
+    "crankshaft; tests/test_m5_dynamics.py::test_bearing_diameters_match_cad keeps them equal), so the oil-film model "
+    "and the 3D shells describe the same bearings. The shells are plain half tubes (no oil grooves, holes or "
+    "locating tangs).",
     "12 clearance pairs keep a constant gap while they move: crank vs conrod and conrod cap (1.0 mm side gaps) and "
     "conrod vs piston (0.5 mm small-end side gap). The faces involved are planes normal to the common rotation "
     "axis, so the gap is exactly constant and the grid minimum is the true minimum; the Lipschitz certificate "
@@ -769,6 +867,18 @@ SIMPLIFICATIONS = (
     "samples; clearance pairs carry the Lipschitz certificate.",
     "Belts, the oil pan gasket and sealants are not modelled as compliant parts; the belt is a rigid band at its "
     "static path.",
+)
+
+
+DOC_RENDERS = (
+    ("assembly_front34", "full assembly, 3/4 front (intake side): swan-neck runners, plenum, throttle body, stay"),
+    ("assembly_rear34_exhaust", "full assembly, 3/4 rear (exhaust side): 4-2-1 header, flywheel"),
+    ("exhaust_clearance", "header past the oil pan and flywheel (gaps in the key clearances table above)"),
+    ("section_cyl1", "exact section through cylinder 1 near full intake lift"),
+    ("valvetrain_cutaway", "head sectioned through cylinder 1's rear valve pair: cams, caps, buckets, springs, guides, seats"),
+    ("intake_cutaway", "plenum sectioned through the runner axes: bellmouths inside the plenum, runner curl, port"),
+    ("bottom_end_pan_removed", "bottom end with the pan removed: main caps, rods, crank"),
+    ("exploded", "exploded assembly"),
 )
 
 
@@ -852,7 +962,8 @@ def docs_markdown(final: dict, baseline: dict | None) -> str:
         L += ["", "## Key clearances (selected pairs, exact minimum distance in the static pose)", "",
               "Pairs whose boxes are far apart never reach the exact check above; these are measured anyway because "
               "they matter for packaging (spec/cad_fits.yaml report_clearances). Rotating partners (flywheel, ring "
-              "gear) are axisymmetric, so the static distance holds over the cycle.", "",
+              "gear) are axisymmetric, so the static distance holds over the cycle. The header-to-pan and "
+              "header-to-flywheel gaps are shown in docs/renders/exhaust_clearance.png.", "",
               "| Pair (kinds) | Min distance mm | Closest instances | Why it matters |", "|---|---|---|---|"]
         for k in final["key_clearances"]:
             L.append(f"| {k['parts'][0]} / {k['parts'][1]} | {_f(k['min_mm'], 1)} | {k['a']} / {k['b']} | {k['reason']} |")
@@ -893,6 +1004,7 @@ def docs_markdown(final: dict, baseline: dict | None) -> str:
         L += ["", f"Baseline (build123d exporters, relative deflection {bt['settings']['linear_deflection']}, "
               f"{bt['settings']['angular_deflection_rad']} rad): worst chord {bt['max_chord_mm']:.4f} mm, facet angle "
               f"{bt['max_facet_angle_rad']:.4f} rad, no exported normals."]
+    L += ["", "## Renders (docs/renders/, `python -m cad.render`)", ""] + [f"* `{n}.png`: {c}" for n, c in DOC_RENDERS]
     L += ["", "## Simplifications and known gaps (honest list)", ""] + [f"* {x}" for x in SIMPLIFICATIONS]
     return "\n".join(L) + "\n"
 
@@ -920,6 +1032,7 @@ def main(argv=None) -> int:
     ap.add_argument("--jobs", type=int, default=min(4, os.cpu_count() or 1))
     ap.add_argument("--no-renders", action="store_true")
     ap.add_argument("--no-sweep", action="store_true")
+    ap.add_argument("--fresh", action="store_true", help="discard the checkpoint in out/cad/audit_<tag>.ckpt/")
     ap.add_argument("--docs", action="store_true",
                     help="only write docs/CAD-AUDIT.md and docs/cad-audit.json from out/cad/audit_*.json")
     a = ap.parse_args(argv)
@@ -930,7 +1043,7 @@ def main(argv=None) -> int:
         (ROOT / "docs" / "CAD-AUDIT.md").write_text(docs_markdown(final, base))
         DOCS_JSON.write_text(json.dumps(compact(final), indent=1) + "\n")
         return 0
-    r = run(a.tag, a.jobs, renders=not a.no_renders, sweep=not a.no_sweep)
+    r = run(a.tag, a.jobs, renders=not a.no_renders, sweep=not a.no_sweep, fresh=a.fresh)
     s = r["summary"]
     bad = s["unexplained_overlaps"] + s["unexplained_contacts"] + s["floating"] + s["moving_clashes"] + s["tessellation_fail"]
     return 0 if bad == 0 else 1

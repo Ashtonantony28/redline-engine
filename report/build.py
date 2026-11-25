@@ -365,7 +365,8 @@ def render(d: dict) -> str:
     A("")
     A("*Known gaps:* crank fillets are not in the CAD solid (FEA only); threads are line-to-line cylinders; the head "
       "has no water jacket, oil drains or cam cover; springs are placed at installed length and checked at full lift "
-      "separately; spec/dynamics.yaml bearing diameters (56/48 mm) differ from the CAD journals (52/45 mm).")
+      "separately. The M5 bearing model now uses the CAD journal diameters (main 52 mm, big end 45 mm; they were "
+      "56/48 mm), checked by tests/test_m5_dynamics.py.")
     A("")
 
     # ---- M2

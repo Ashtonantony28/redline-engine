@@ -1,6 +1,6 @@
 # Redline: technical report (MODELLED)
 
-> **Every number in this report is MODELLED.** Redline is a code-first digital twin of a generic 2.0 L naturally aspirated inline-4; there is no physical engine, dyno or car. Numbers are computed from the code, `spec/*.yaml` and the committed fixtures by `python -m report.build`, which also regenerates the figures under `out/` (git-ignored, so the image links resolve after a build). Built 2026-11-24.
+> **Every number in this report is MODELLED.** Redline is a code-first digital twin of a generic 2.0 L naturally aspirated inline-4; there is no physical engine, dyno or car. Numbers are computed from the code, `spec/*.yaml` and the committed fixtures by `python -m report.build`, which also regenerates the figures under `out/` (git-ignored, so the image links resolve after a build). Built 2026-11-25.
 
 ## Headline numbers
 
@@ -14,7 +14,7 @@
 | 0-100 km/h | 9.62 s | 7.5-10.5 s band | M10 vehicle |
 | 80-120 km/h in 5th | 13.47 s | | M10 vehicle |
 | Secondary shaking force at 7000 rpm | 14.61 kN | analytic 14.28 kN (4 m r w^2 lam) | M5 |
-| First torsional mode | 559 Hz | Holzer within 4e-15 | M5 |
+| First torsional mode | 482 Hz | Holzer within 1e-15 | M5 |
 | ECU crank-tooth handler at 7000 rpm | 19.0 us (13.3 % of a tooth) | 142.9 us tooth period | M9.1 |
 
 ## M0: scaffold, spec, kinematics, Otto anchor
@@ -37,7 +37,7 @@ Reference engine from `spec/engine.yaml`: 86 x 86 mm, 1998 cc, CR 10.5, rod/stro
 
 Exports: STEP / STL / glTF in `out/cad/` (`python -m cad.build`, absolute-deflection tessellation from cad/tess.py). Clash, clearance, support and tessellation audit: `python -m cad.audit --tag final` (docs/CAD-AUDIT.md, renders in docs/renders/).
 
-*Known gaps:* crank fillets are not in the CAD solid (FEA only); threads are line-to-line cylinders; the head has no water jacket, oil drains or cam cover; springs are placed at installed length and checked at full lift separately; spec/dynamics.yaml bearing diameters (56/48 mm) differ from the CAD journals (52/45 mm).
+*Known gaps:* crank fillets are not in the CAD solid (FEA only); threads are line-to-line cylinders; the head has no water jacket, oil drains or cam cover; springs are placed at installed length and checked at full lift separately. The M5 bearing model now uses the CAD journal diameters (main 52 mm, big end 45 mm; they were 56/48 mm), checked by tests/test_m5_dynamics.py.
 
 ## M2: two-zone crank-angle thermodynamics (3000 rpm, full load)
 
@@ -74,10 +74,10 @@ HLLC/MUSCL finite-volume pipes (intake duct, throttle, plenum, 4 runners; 4-2-1 
 Pressure source: M4 1D gas-dynamics engine (gasdyn.engine, WOT, two-zone Wiebe closed part) at full load; M2 quasi-steady two-zone cycle (thermo.cycle), intake pressure solved for zero brake torque at idle (`python -m dyn.report --pressure m4`; the M5 placeholder stays the default for the fast tests).
 
 * Balance at 7000 rpm: primary forces and all pitch/yaw moments cancel to round-off (max 5e-13 N m); secondary vertical force 14607 N vs 14280 N from 4 m r w^2 lam (exact kinematics add the higher lam terms); a Lanchester pair needs m e = 3.40 kg mm per shaft.
-* Torsional: modes 559, 1511, 2357 Hz (Holzer agrees to 4e-15); dominant resonance order 6 at 5593 rpm, twist 0.271 deg bare -> 0.037 deg with the tuned rubber damper.
+* Torsional: modes 482, 1303, 2032 Hz (Holzer agrees to 1e-15); dominant resonance order 6 at 4822 rpm, twist 0.355 deg bare -> 0.049 deg with the tuned rubber damper.
 * Flywheel (spec 0.09 kg m^2): cyclic irregularity C_s 0.038 at idle, 0.080 at 1500 rpm full load (target 0.05); meeting the target at 1500 rpm full load needs 0.158 kg m^2.
-* Bearings at 4500 rpm full load: big-end peak 31.4 kN, minimum oil film 2.01 um big end, 3.83 um main 2 (limit ~1 um).
-* Bearings at 7000 rpm full load: big-end peak 23.6 kN, minimum oil film 1.68 um big end, 2.60 um main 3 (limit ~1 um).
+* Bearings at 4500 rpm full load: big-end peak 31.4 kN, minimum oil film 1.93 um big end, 3.68 um main 2 (limit ~1 um).
+* Bearings at 7000 rpm full load: big-end peak 23.6 kN, minimum oil film 1.61 um big end, 2.48 um main 3 (limit ~1 um).
 
 Change of key numbers when the placeholder Wiebe trace is replaced by the M4 / thermo traces:
 
@@ -99,14 +99,14 @@ Change of key numbers when the placeholder Wiebe trace is replaced by the M4 / t
 | flywheel needed, full load 1500 [kg m^2] | 0.2073 | 0.1576 | -23.9 % |
 | big-end max load 4500 [N] | 2.237e+04 | 3.139e+04 | +40.4 % |
 | big-end max load 7000 [N] | 2.335e+04 | 2.357e+04 | +0.9 % |
-| big-end h_min 4500 [um] | 2.091 | 2.005 | -4.1 % |
-| big-end h_min 7000 [um] | 1.746 | 1.678 | -3.9 % |
-| main h_min 4500 (worst main) [um] | 4.445 | 3.829 | -13.9 % |
-| main h_min 7000 (worst main) [um] | 2.659 | 2.598 | -2.3 % |
-| dominant torsional order twist, bare [deg] | 0.2314 | 0.2714 | +17.3 % |
-| dominant torsional order twist, damped [deg] | 0.03156 | 0.03701 | +17.3 % |
-| all-order twist peak, bare [deg] | 0.5576 | 0.6521 | +16.9 % |
-| all-order twist peak, damped [deg] | 0.4015 | 0.4582 | +14.1 % |
+| big-end h_min 4500 [um] | 2.012 | 1.932 | -4.0 % |
+| big-end h_min 7000 [um] | 1.675 | 1.611 | -3.9 % |
+| main h_min 4500 (worst main) [um] | 4.275 | 3.685 | -13.8 % |
+| main h_min 7000 (worst main) [um] | 2.54 | 2.482 | -2.3 % |
+| dominant torsional order twist, bare [deg] | 0.3023 | 0.3547 | +17.3 % |
+| dominant torsional order twist, damped [deg] | 0.04216 | 0.04946 | +17.3 % |
+| all-order twist peak, bare [deg] | 0.8684 | 1.049 | +20.8 % |
+| all-order twist peak, damped [deg] | 0.5672 | 0.6437 | +13.5 % |
 | dominant torsional order [-] | 6 | 6 |  |
 
 ![pressure_m4](../out/dyn/m4/pressure_m4.png)

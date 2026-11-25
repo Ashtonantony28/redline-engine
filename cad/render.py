@@ -238,11 +238,36 @@ def section_objects(theta: float, x_cut: float, keep_side: float, p, work: Path,
     return objs, shapes
 
 
-def final_renders(out_dir: Path | None = None) -> dict:
+def clearance_annotations(p, theta: float, pairs) -> list:
+    """Measured gap lines for a view: exact minimum distance (BRepExtrema) between the placed instances of each
+    (kind_a, kind_b, label) in `pairs` at crank angle `theta`; returns [{a, b, label, mm}] in CAD mm."""
+    from cad import assembly as asm
+    from cad.audit import distance
+    src, mot = asm.parts(p), asm.motions(p)
+    insts = asm.instances(p)
+    out = []
+    for ka, kb, label, extra in pairs:
+        best = None
+        for A in (i for i in insts if i.kind == ka):
+            sa = src[A.kind][0].wrapped.Moved((mot[A.group].loc(theta) * A.base).wrapped)
+            for B in (i for i in insts if i.kind == kb):
+                sb = src[B.kind][0].wrapped.Moved((mot[B.group].loc(theta) * B.base).wrapped)
+                d, qa, qb = distance(sa, sb)
+                if best is None or d < best[0]:
+                    best = (d, qa, qb)
+        out.append({"a": best[1], "b": best[2], "label": f"{label} {best[0]:.1f} mm", "mm": best[0], **extra})
+    return out
+
+
+ASSEMBLY_FRAME = {"width": 1100, "height": 1400}   # portrait: the header and outlet make the assembly tall
+
+
+def final_renders(out_dir: Path | None = None, only=None) -> dict:
     """The documentation renders (1600 x 1000 at deviceScaleFactor 2, GTAO ambient occlusion, auto-framed): full
     assembly 3/4 front and 3/4 rear (exhaust side), section through cylinder 1, valve-train cutaway (head sectioned
-    through cylinder 1's rear valve pair), bottom end with the pan removed, exhaust-to-pan/flywheel clearance view,
-    exploded view."""
+    through cylinder 1's rear valve pair), intake cutaway (runner 2 plane: bellmouth, curl, port), bottom end with
+    the pan removed, exhaust-to-pan/flywheel clearance view with the measured gaps, exploded view. `only`: a set
+    of view names to render (the rest are skipped)."""
     from build123d import Pos
     from cad import assembly as asm
     from cad.params import params
@@ -256,15 +281,15 @@ def final_renders(out_dir: Path | None = None) -> dict:
 
     objs, k = assembly_views(0.0, 0.0, p=p)
     kinds |= k
-    views.append({"name": "assembly_front34", "objects": objs,
-                  "camera": {**look([-1.0, -1.25, 0.75], [0, 0, 150], 2500, 26), "fit": 0.9}, "key": [-0.6, -0.9, 1.5]})
-    views.append({"name": "assembly_rear34_exhaust", "objects": objs,
-                  "camera": {**look([1.0, 1.3, 0.55], [0, 0, 150], 2500, 26), "fit": 0.9}, "key": [0.5, 0.9, 1.5]})
+    views.append({"name": "assembly_front34", "objects": objs, **ASSEMBLY_FRAME,
+                  "camera": {**look([-1.0, -1.25, 0.75], [0, 0, 150], 2500, 26), "fit": 0.95}, "key": [-0.6, -0.9, 1.5]})
+    views.append({"name": "assembly_rear34_exhaust", "objects": objs, **ASSEMBLY_FRAME,
+                  "camera": {**look([1.0, 1.3, 0.55], [0, 0, 150], 2500, 26), "fit": 0.95}, "key": [0.5, 0.9, 1.5]})
 
     hide_sec = ("intake_manifold", "exhaust_header", "manifold_bolt", "throttle_body", "intake_bracket", "bracket_bolt")
     sec, shapes = section_objects(theta_open, p.cyl_x(0), 1.0, p, work, hide=hide_sec, tag="sec")
     kinds |= set(shapes)
-    views.append({"name": "section_cyl1", "objects": sec,
+    views.append({"name": "section_cyl1", "objects": sec, "width": 1250, "height": 1300,
                   "camera": {**look([-1.0, -0.32, 0.18], [p.cyl_x(0), 0, 170], 1050, 30), "fit": 0.9},
                   "key": [-1.0, -0.5, 1.2]})
 
@@ -288,9 +313,31 @@ def final_renders(out_dir: Path | None = None) -> dict:
 
     objs, k = assembly_views(0.0, 0.0, hide=("intake_manifold", "throttle_body", "intake_bracket", "bracket_bolt"), p=p)
     kinds |= k
-    views.append({"name": "exhaust_clearance", "objects": objs,
-                  "camera": {**look([0.45, 1.0, -0.4], [60, 150, -150], 1600, 28), "fit": 0.9},
+    # measured header gaps (the same exact distances as docs/CAD-AUDIT.md key clearances)
+    # (the flywheel disc, 77 mm, sits just inboard of its ring gear, so the ring gear gap is the flywheel's minimum)
+    ann = clearance_annotations(p, 0.0, [
+        ("exhaust_header", "oil_pan", "header to oil pan", {"offset": [0, 70, -55], "size": 0.032}),
+        ("exhaust_header", "ring_gear", "header to flywheel ring gear", {"offset": [0, 40, 40], "size": 0.032})])
+    views.append({"name": "exhaust_clearance", "objects": objs, "annotations": ann, **ASSEMBLY_FRAME,
+                  "camera": {**look([0.45, 1.0, -0.4], [60, 150, -150], 1600, 28), "fit": 0.95},
                   "key": [0.3, 0.8, 1.4], "ground": False})
+
+    # intake cutaway: everything cut on runner 2's centre-line plane (the swan neck lies in that plane), so the bore
+    # from the head port through the curl to the bellmouth lip inside the plenum is visible in section
+    from cad import manifolds as mf
+    x_in = p.cyl_x(1)
+    g = mf._runner_y(p)
+    pg = mf.plenum_geom(p)
+    hide_in = ("exhaust_header", "manifold_bolt_exhaust", "timing_belt", "cam_pulley", "idler", "tensioner", "oil_pan",
+               "pan_bolt", "crank", "conrod", "main_", "big_end", "flywheel", "ring_gear", "damper", "piston",
+               "wrist_pin", "ring_", "clip", "liner", "block", "head_gasket", "head_bolt", "intake_bracket",
+               "bracket_bolt")
+    in_objs, shapes = section_objects(0.0, x_in, 1.0, p, work, hide=hide_in, tag="in")
+    kinds |= set(shapes)
+    tgt = [x_in, 0.5 * (g["yc"] + pg["y1"]), 0.5 * (mf.port_flange_z(p, "intake") + pg["z1"])]
+    views.append({"name": "intake_cutaway", "objects": in_objs,
+                  "camera": {**look([-1.0, -0.55, 0.35], tgt, 900, 30), "fit": 0.92}, "key": [-0.8, -0.6, 1.5],
+                  "ground": False})
 
     objs = []
     for it in asm.instances(p):
@@ -298,13 +345,26 @@ def final_renders(out_dir: Path | None = None) -> dict:
         objs.append({"glb": f"{it.kind}.glb", "material": material_for(it.kind), "matrix": loc_matrix(loc),
                      "name": it.name})
         kinds.add(it.kind)
-    views.append({"name": "exploded", "objects": objs,
+    views.append({"name": "exploded", "objects": objs, **ASSEMBLY_FRAME,
                   "camera": {**look([-1.0, -1.35, 0.55], [0, 0, 150], 2600, 26), "fit": 0.93}, "key": [-0.6, -0.9, 1.5]})
 
+    if only:
+        views = [v for v in views if v["name"] in only]
     write_part_glbs({k: src[k][0] for k in kinds}, work)
     return render(views, work, out_dir, width=1600, height=1000, scale=2, timeout_s=3600)
 
 
-if __name__ == "__main__":   # python -m cad.render  -> out/cad/renders/*.png (documentation views)
-    for name, path in final_renders().items():
+def save_doc_png(src: Path, dst: Path, colors: int = 256):
+    """Committed copy of a render: 256-colour palette PNG (dithered), ~5x smaller than the RGB original."""
+    from PIL import Image
+    Image.open(src).convert("RGB").quantize(colors=colors, method=Image.Quantize.MEDIANCUT,
+                                            dither=Image.Dither.FLOYDSTEINBERG).save(dst, optimize=True)
+
+
+if __name__ == "__main__":   # python -m cad.render [view ...] -> out/cad/renders/*.png and docs/renders/*.png
+    import sys
+    docs = ROOT / "docs" / "renders"
+    docs.mkdir(parents=True, exist_ok=True)
+    for name, path in final_renders(only=set(sys.argv[1:]) or None).items():
+        save_doc_png(Path(path), docs / Path(path).name)
         print(name, path)

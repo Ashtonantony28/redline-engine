@@ -6,9 +6,8 @@ inner radius = journal radius + the running radial clearance of spec/dynamics.ya
 halves split on the housing split plane (z = 0 in the housing frame). Main shells are built at
 the main-journal stations in engine frame; big-end shells in conrod-local frame.
 
-Note: spec/dynamics.yaml lists bearing diameters 56/48 mm for its film model while the CAD
-journals are 52/45 mm (spec/cad.yaml `crankshaft`); the CAD keeps its own journals and takes
-only the clearance and land length from dynamics.yaml (reported in docs/CAD-AUDIT.md).
+The journal diameters (52 / 45 mm) come from spec/cad.yaml `crankshaft`; spec/dynamics.yaml uses
+the same diameters for its oil-film model (checked by tests/test_m5_dynamics.py).
 """
 from __future__ import annotations
 

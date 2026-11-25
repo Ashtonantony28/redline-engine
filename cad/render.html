@@ -21,7 +21,7 @@ import { GTAOPass } from 'three/addons/postprocessing/GTAOPass.js';
 import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 const S = await (await fetch('scene.json')).json();
-const W = S.width, H = S.height;
+let W = S.width, H = S.height;
 const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
 renderer.setPixelRatio(window.devicePixelRatio);
 renderer.setSize(W, H);
@@ -53,8 +53,42 @@ async function geometry(file) {
   return geoCache[file];
 }
 
+// measurement annotations (view.annotations: [{a, b, label}] in CAD mm): drawn in an overlay pass after the
+// tone-mapped/AO image, so they are never shaded, occluded or picked up by the AO buffers
+function annotationScene(list, R) {
+  const sc = new THREE.Scene();
+  const col = new THREE.Color('#c0262d');
+  const mat = new THREE.MeshBasicMaterial({ color: col, depthTest: false, depthWrite: false, toneMapped: false });
+  const r = R * 0.0026;
+  for (const an of list) {
+    const a = new THREE.Vector3(...an.a.map(v => v / 1000)), b = new THREE.Vector3(...an.b.map(v => v / 1000));
+    const tube = new THREE.Mesh(new THREE.TubeGeometry(new THREE.LineCurve3(a, b), 1, r, 8, false), mat);
+    sc.add(tube);
+    for (const q of [a, b]) { const s = new THREE.Mesh(new THREE.SphereGeometry(r * 2.6, 16, 12), mat); s.position.copy(q); sc.add(s); }
+    const font = '600 68px Helvetica, Arial, sans-serif';
+    const m = document.createElement('canvas').getContext('2d'); m.font = font;
+    const tw = Math.ceil(m.measureText(an.label).width) + 56, cw = tw + 16;   // canvas sized to the label
+    const cv = document.createElement('canvas'); cv.width = cw; cv.height = 160;
+    const g = cv.getContext('2d');
+    g.font = font;
+    g.fillStyle = 'rgba(255,255,255,0.92)'; g.strokeStyle = '#c0262d'; g.lineWidth = 6;
+    g.beginPath(); g.roundRect(8, 22, tw, 116, 18); g.fill(); g.stroke();
+    g.fillStyle = '#1d1f22'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(an.label, cw / 2, 82);
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace;
+    const sp = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, depthTest: false, depthWrite: false, toneMapped: false }));
+    const h = R * (an.size || 0.045);
+    sp.scale.set(h * cw / 160, h, 1);
+    const off = an.offset ? new THREE.Vector3(...an.offset.map(v => v / 1000)) : new THREE.Vector3();
+    sp.position.copy(a).add(b).multiplyScalar(0.5).add(off);
+    sp.renderOrder = 10; sc.add(sp);
+  }
+  return sc;
+}
+
 window.renderView = async (i) => {
   const V = S.views[i];
+  W = V.width || S.width; H = V.height || S.height;
+  renderer.setSize(W, H);
   const scene = new THREE.Scene();
   scene.environment = envTex;
   scene.background = new THREE.Color(V.background || '#dfe1e4');
@@ -140,6 +174,11 @@ window.renderView = async (i) => {
     composer.render();
   } else {
     renderer.render(scene, cam);
+  }
+  if (V.annotations && V.annotations.length) {
+    renderer.autoClear = false;
+    renderer.render(annotationScene(V.annotations, R), cam);
+    renderer.autoClear = true;
   }
   return { triangles: renderer.info.render.triangles, calls: renderer.info.render.calls };
 };
