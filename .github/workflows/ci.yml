@@ -1,5 +1,8 @@
 name: ci
-on: [push, pull_request]
+on:
+  push:
+    branches: [main]
+  pull_request:
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -7,5 +10,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with: {python-version: "3.11"}
+      # gmsh's wheel dlopens GLU/X libs; CalculiX (ccx) is the M6 FEA solver.
+      - run: sudo apt-get update && sudo apt-get install -y --no-install-recommends libglu1-mesa libxrender1 libxcursor1 libxft2 libxinerama1 libxi6 calculix-ccx
       - run: pip install -r requirements.txt
-      - run: pytest -q
+      # Slow tests (full CAD build, exact clash audit, sweeps) take hours and run locally;
+      # RV64/Verilator HIL tests skip here because they need the Vortex-V tree and toolchain.
+      - run: pytest -q -m "not slow"

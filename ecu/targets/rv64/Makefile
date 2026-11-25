@@ -9,7 +9,7 @@
 #                                       portable libm (ecu_libm.c), the bit-exact reference
 #   make -C ecu/targets/rv64 nofloat    prove the sync-path units contain no float (see below)
 include soc.mk
-PYTHON ?= /home/user/redline-venv/bin/python
+PYTHON ?= python3
 CROSS ?= riscv64-unknown-elf-
 CC_RV := $(CROSS)gcc
 HOSTCC ?= gcc

@@ -4,7 +4,7 @@
 #   make -C ecu gen      regenerate include/ecu/ecu_calib_gen.h from the specs (needs the venv)
 #   make -C ecu check-gen  fail if the committed generated header is stale
 CC ?= gcc
-PYTHON ?= /home/user/redline-venv/bin/python
+PYTHON ?= python3
 BUILD := build
 CSTD := -std=c11 -Wall -Wextra -Wpedantic -Werror -Wshadow -Wconversion -Wno-sign-conversion -O2 -fPIC
 INC := -Iinclude -Isrc

@@ -1,6 +1,6 @@
 """M2 exit criteria: two-zone Wiebe cycle with Cantera properties and Woschni heat transfer.
 
-Verify: /home/user/redline-venv/bin/python -m pytest -q tests/test_m2_thermo.py
+Verify: python -m pytest -q tests/test_m2_thermo.py
 All engine numbers are MODELLED (no physical engine exists).
 """
 import numpy as np

@@ -1,8 +1,8 @@
 """M7: knock, quasi-dimensional flame model, emissions, spark optimisation and speed-load maps.
 
-Verify: /home/user/redline-venv/bin/python -m pytest -q tests/test_m7_maps.py
+Verify: python -m pytest -q tests/test_m7_maps.py
         (the fixture regeneration test is marked slow, ~30 s; deselect with -m "not slow")
-        /home/user/redline-venv/bin/python -m sim.maps
+        python -m sim.maps
 All engine numbers are MODELLED (no physical engine exists, CLAUDE.md rule 5).
 
 Analytic / published anchors come first, then the M7 exit criteria (PLAN.md sec. 5).
