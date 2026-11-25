@@ -180,6 +180,7 @@ def m9(cfg):
     rows = table(ml_spec()["fuel_ppo"])
     mean = lambda who, key: float(np.mean([r[who][key] for r in rows]))
     return {"cosim": cosim, "realtime": artefact("realtime"), "realtime_sweep": artefact("realtime_sweep"),
+            "realtime_capcmp_sweep": artefact("realtime_capcmp_sweep"),
             "baseline": cfg["m9_baseline"], "ppo_rows": rows, "knock": golden.load_policy()["metrics"],
             "max_cl": mean("classical", "max_dev"), "max_ppo": mean("ppo", "max_dev"),
             "rms_cl": mean("classical", "rms_dev"), "rms_ppo": mean("ppo", "rms_dev")}
@@ -271,6 +272,84 @@ def m9_1_lines(x) -> list:
       + "The M9 firmware drops no tooth only because the modelled capture FIFO holds 32 edges. The worst "
         "tooth-to-serviced figures are the start-up poll before the decoder has a period. Vortex-V has not verified "
         "FPGA timing at any of these clocks.")
+    A("")
+    return L
+
+
+def m9_2_lines(x) -> list:
+    """The M9.2 section: the capture/compare mode from out/hil/realtime.json (runs of mode `capcmp`
+    next to the M9.1 mode `irq`) and out/hil/realtime_capcmp_sweep.json."""
+    L = []
+    A = L.append
+    A("## M9.2: the ECU on the Vortex-V capture/compare timer (ADR 0007)")
+    A("")
+    rt, sw = x["realtime"], x.get("realtime_capcmp_sweep")
+    cc = [m for m in (rt or {}).get("runs", []) if m["mode"] == "capcmp"]
+    if not cc:
+        A("*No capture/compare runs in out/hil/realtime.json: run `make -C hil cosim` (needs Verilator and the "
+          "Vortex-V tree).*")
+        A("")
+        return L
+    A("The SoC is built with Vortex-V's capture/compare unit (its ADR 0017, `CAPCMP=1`): the plant drives the "
+      "crank and cam pins and acts on the eight compare outputs. All values MODELLED (`make -C hil cosim`, "
+      "`make -C hil cc-sweep`).")
+    A("")
+    A("* Design: crank / cam edges are timestamped by the RTL and serviced from the machine external interrupt "
+      "(no timer wake, prediction or spin); every event is one compare slot (injector pulse, coil set, coil "
+      "clear); the HAL counts free slots and holds an event back rather than let the unit drop it; knock windows "
+      "stay in the mailbox and are merged by tick; the slow-loop commit is atomic against captures. The portable "
+      "core is unchanged and frozen-time outputs stay bit-exact against the host build.")
+    runs = {(m["window"], m["mode"]): m for m in rt["runs"]}
+    cols = [(w, mode) for w in dict.fromkeys(m["window"] for m in rt["runs"]) for mode in ("irq", "capcmp")
+            if (w, mode) in runs]
+    name = {"irq": "M9.1", "capcmp": "M9.2"}
+    clk = cc[0]["clk_hz"] / 1e6
+    A(f"* Real time at {clk:.0f} MHz, M9.1 (played mailbox peripheral) vs M9.2 (RTL unit):")
+    A("")
+    A("| | " + " | ".join(f"{runs[k]['rpm']:.0f} rpm ({k[0]}), {name[k[1]]}" for k in cols) + " |")
+    A("|---|" + "---|" * len(cols))
+    row = lambda label, f: A(f"| {label} | " + " | ".join(f(runs[k]) for k in cols) + " |")
+    cco = lambda f: (lambda m: f(m) if m["mode"] == "capcmp" else "-")
+    row("worst tooth-to-serviced latency", lambda m: f"{m['tooth_to_serviced_max_us']:.1f} us")
+    row("worst tooth-to-event latency", lambda m: f"{m['tooth_to_event_max_us']:.1f} us")
+    row("pin edge to interrupt taken, max", cco(lambda m: f"{m['tooth_to_irq_max_cycles']} cycles"))
+    row("spark angle error vs host, max", lambda m: f"{m['spark_angle_error_max_deg']:.3f} deg")
+    row("any event angle error, max", lambda m: f"{m['event_angle_error_max_deg']:.2f} deg")
+    row("worst case (latency as crank angle)", lambda m: f"{m['worst_case_angle_error_deg']:.2f} deg")
+    row("events pushed after their tick", cco(lambda m: f"{m['cc_pushed_late']} of {m['events']}"))
+    row("CPU load", lambda m: f"{100 * m['cpu_load']:.1f} %")
+    row("captures lost / CAP_OVF / loss of sync",
+        lambda m: f"{m['captures_dropped']} / {m['cap_ovf'] if 'cap_ovf' in m else '-'} / {m['n_loss']}")
+    row("max pending compares", cco(lambda m: f"{m['cc_pending_max']} of {m['cc_slots']}"))
+    row("compare pushes dropped / held back", cco(lambda m: f"{m['cc_cmp_drop']} / {m['cc_deferred']}"))
+    A("")
+    if sw and sw.get("min_clock"):
+        mc = sw["min_clock"]
+        pts = {float(m["clk_hz"]): m for m in sw["runs"] if m["window"] == mc["window"]}
+        pts.update({float(f): m for f, m in mc["tried"].items()})
+        A(f"* Clock sweep on {mc['window']} (M9.2), worst case angle error: "
+          + "; ".join(f"{f / 1e6:g} MHz {m['worst_case_angle_error_deg']:.3f} deg"
+                      + ("" if m["rt_ok"] else f" (real time lost, {m['slow_overruns']} slow steps skipped)")
+                      for f, m in sorted(pts.items()))
+          + ". Minimum whole-MHz clock meeting the spec for every event: "
+          + (f"{mc['min_clock_hz'] / 1e6:g} MHz." if mc["min_clock_hz"] else "none in the searched range."))
+        tip = [m for m in sw["runs"] if m["window"] != mc["window"]]
+        if tip:
+            A(f"* {tip[0]['window']} ({tip[0]['rpm']:.0f} rpm), worst case: "
+              + "; ".join(f"{m['clk_hz'] / 1e6:g} MHz {m['worst_case_angle_error_deg']:.2f} deg"
+                          + ("" if m["rt_ok"] else " (real time lost)") for m in tip) + ".")
+    A("")
+    m7 = next((m for m in cc if not m["meets_spec"]), None)
+    A("*Known gaps:* "
+      + (f"the unit fires every compare armed before its tick exactly on that tick, but at {m7['rpm']:.0f} rpm and "
+         f"{clk:.0f} MHz the scheduler still arms events right behind a tooth after their tick "
+         f"({m7['cc_pushed_late']} of {m7['events']} pushed late; worst {m7['event_angle_error_max_deg']:.2f} deg, worst case "
+         f"{m7['worst_case_angle_error_deg']:.2f} deg against 0.5 deg). The M9.1 gap was arming latency, not output "
+         "jitter, so a hardware compare alone does not close it; ADR 0007 proposes a scheduler arm-ahead window (a "
+         "core change with a new host fixture) and rejects HAL look-ahead pre-arming, which was measured. "
+         if m7 else "")
+      + "Knock windows still use the mailbox. The capture/compare pins are not on the Arty board yet, and Vortex-V "
+        "has not verified FPGA timing at any of these clocks.")
     A("")
     return L
 
@@ -580,6 +659,7 @@ def render(d: dict) -> str:
       "classical ECU on rms lambda, not on peak excursion.")
     A("")
     L.extend(m9_1_lines(x))
+    L.extend(m9_2_lines(x))
 
     # ---- M10
     x = d["m10"]
@@ -631,8 +711,9 @@ def render(d: dict) -> str:
       "boost at 2000 rpm, synthetic compressor/turbine maps, turbine inlet ~1320 K without enrichment) and the "
       "STM32H743 ECU board in Zener (`ecad/`, 230 parts, KiCad DRC 0/0/0; conformal-coating clearance, ETB copper "
       "and datasheet VERIFY items open, see docs/ecad.md). Intake-port CFD is not planned.")
-    A("* Open items: ECU loop against the crank-angle model (M8); event timing 0.76 deg vs the 0.5 deg spec at 50 MHz "
-      "on Vortex-V (needs a capture/compare unit or >= 77.5 MHz, M9.1); maps at low-speed part load where M4 "
+    A("* Open items: ECU loop against the crank-angle model (M8); event timing vs the 0.5 deg spec at 50 MHz on "
+      "Vortex-V: 0.80 deg on the capture/compare unit too, since the scheduler arms from the tooth just before an "
+      "event (needs the ADR 0007 scheduler arm-ahead, or a faster clock, M9.1 / M9.2); maps at low-speed part load where M4 "
       "residuals are high (M7); M4 traces with the flame model for the dynamics (M5/M10); a fourth piston mesh "
       "level (M6); and the GitHub repository.")
     A("")

@@ -10,6 +10,7 @@ external_artefacts:
   cosim: out/hil/cosim.json                           # make -C hil cosim (Vortex-V Verilator co-sim)
   realtime: out/hil/realtime.json                     # make -C hil cosim (M9.1 real-time runs, 50 MHz)
   realtime_sweep: out/hil/realtime_sweep.json         # make -C hil rt-sweep (clock sweep, minimum clock)
+  realtime_capcmp_sweep: out/hil/realtime_capcmp_sweep.json   # make -C hil cc-sweep (M9.2 sweep, minimum clock)
 # frozen-time figures of the M9 firmware (commit da63d32, out/hil/cosim.json at that commit): M9.1 rebuilt
 # the firmware, so the report quotes them as the baseline next to the current ones
 m9_baseline: {crank_handler_cycles_mean: 1430, slow_handler_cycles_mean: 44150, crank_worst_us: 39.3,

@@ -9,3 +9,18 @@ lint_off -rule WIDTHTRUNC
 public_flat_rd -module "vortex_ooo_core" -var "dbg_retire_valid"
 public_flat_rd -module "vortex_ooo_core" -var "dbg_retire_pc"
 public_flat_rd -module "vortex_ooo_core" -var "dbg_irq"
+// M9.2 (ADR 0007): the capture/compare timer (Vortex-V ADR 0017), observed by the co-sim; read only.
+// The pins (cap_in, cmp_out) are top-level ports; these give the timer phase for the epoch
+// alignment, the compare pushes (the "event armed" stamp), slot occupancy and the drop counters.
+public_flat_rd -module "vortex_capcmp" -var "time_q"
+public_flat_rd -module "vortex_capcmp" -var "presc_q"
+public_flat_rd -module "vortex_capcmp" -var "wr_push"
+public_flat_rd -module "vortex_capcmp" -var "wdata"
+public_flat_rd -module "vortex_capcmp" -var "arg_q"
+public_flat_rd -module "vortex_capcmp" -var "pending"
+public_flat_rd -module "vortex_capcmp" -var "cap_wr"
+public_flat_rd -module "vortex_capcmp" -var "cap_rd"
+public_flat_rd -module "vortex_capcmp" -var "cap_ovf"
+public_flat_rd -module "vortex_capcmp" -var "cmp_drop"
+public_flat_rd -module "vortex_capcmp" -var "fifo_ts"
+public_flat_rd -module "vortex_capcmp" -var "fifo_kind"

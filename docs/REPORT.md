@@ -179,6 +179,32 @@ Plant time advances with core cycles; the frozen-time mode is kept for bit-exact
 
 *Known gaps:* at 7000 rpm and 50 MHz the 0.5 deg bound is not met for an event that falls within 18 us behind its reference tooth (worst case 0.76 deg, observed 0.69 deg; sparks in the measured window 0.042 deg because they landed mid-window). Closing it at this clock needs the scheduler to arm from the previous tooth (a core change) or a capture/compare unit in the SoC. The M9 firmware drops no tooth only because the modelled capture FIFO holds 32 edges. The worst tooth-to-serviced figures are the start-up poll before the decoder has a period. Vortex-V has not verified FPGA timing at any of these clocks.
 
+## M9.2: the ECU on the Vortex-V capture/compare timer (ADR 0007)
+
+The SoC is built with Vortex-V's capture/compare unit (its ADR 0017, `CAPCMP=1`): the plant drives the crank and cam pins and acts on the eight compare outputs. All values MODELLED (`make -C hil cosim`, `make -C hil cc-sweep`).
+
+* Design: crank / cam edges are timestamped by the RTL and serviced from the machine external interrupt (no timer wake, prediction or spin); every event is one compare slot (injector pulse, coil set, coil clear); the HAL counts free slots and holds an event back rather than let the unit drop it; knock windows stay in the mailbox and are merged by tick; the slow-loop commit is atomic against captures. The portable core is unchanged and frozen-time outputs stay bit-exact against the host build.
+* Real time at 50 MHz, M9.1 (played mailbox peripheral) vs M9.2 (RTL unit):
+
+| | 7000 rpm (redline_rt), M9.1 | 7000 rpm (redline_rt), M9.2 | 2000 rpm (tipin), M9.1 | 2000 rpm (tipin), M9.2 |
+|---|---|---|---|---|
+| worst tooth-to-serviced latency | 46.8 us | 20.2 us | 55.5 us | 20.8 us |
+| worst tooth-to-event latency | 18.0 us | 19.1 us | 19.1 us | 20.2 us |
+| pin edge to interrupt taken, max | - | 32 cycles | - | 21 cycles |
+| spark angle error vs host, max | 0.042 deg | 0.024 deg | 0.000 deg | 0.005 deg |
+| any event angle error, max | 0.70 deg | 0.72 deg | 0.21 deg | 0.22 deg |
+| worst case (latency as crank angle) | 0.75 deg | 0.80 deg | 0.23 deg | 0.24 deg |
+| events pushed after their tick | - | 9 of 74 | - | 4 of 60 |
+| CPU load | 47.9 % | 48.0 % | 37.7 % | 38.4 % |
+| captures lost / CAP_OVF / loss of sync | 0 / - / 0 | 0 / 0 / 0 | 0 / - / 0 | 0 / 0 / 0 |
+| max pending compares | - | 2 of 8 | - | 2 of 8 |
+| compare pushes dropped / held back | - | 0 / 0 | - | 0 / 0 |
+
+* Clock sweep on redline_rt (M9.2), worst case angle error: 10 MHz 4.158 deg (real time lost, 102 slow steps skipped); 20 MHz 1.953 deg (real time lost, 52 slow steps skipped); 25 MHz 1.614 deg (real time lost, 35 slow steps skipped); 50 MHz 0.802 deg; 55 MHz 0.716 deg; 78 MHz 0.507 deg; 79 MHz 0.501 deg; 80 MHz 0.495 deg; 81 MHz 0.490 deg; 84 MHz 0.472 deg; 89 MHz 0.444 deg; 100 MHz 0.395 deg. Minimum whole-MHz clock meeting the spec for every event: 80 MHz.
+* tipin (2000 rpm), worst case: 20 MHz 0.61 deg (real time lost); 25 MHz 0.49 deg; 50 MHz 0.24 deg.
+
+*Known gaps:* the unit fires every compare armed before its tick exactly on that tick, but at 7000 rpm and 50 MHz the scheduler still arms events right behind a tooth after their tick (9 of 74 pushed late; worst 0.72 deg, worst case 0.80 deg against 0.5 deg). The M9.1 gap was arming latency, not output jitter, so a hardware compare alone does not close it; ADR 0007 proposes a scheduler arm-ahead window (a core change with a new host fixture) and rejects HAL look-ahead pre-arming, which was measured. Knock windows still use the mailbox. The capture/compare pins are not on the Arty board yet, and Vortex-V has not verified FPGA timing at any of these clocks.
+
 ## M10: vehicle, drive cycle, replay
 
 Generic compact sedan (`spec/vehicle.yaml`, sources cited there): WLTP test mass 1442 kg, c_d A 0.638 m^2, c_r 0.01, 6-speed manual [3.62, 2.12, 1.45, 1.1, 0.89, 0.74] x final drive 4.06, driveline efficiency 0.92. Fuel flow from a Willans fit to the M7 maps (throttled points reproduced to 0.95 % rms, max 2.4 %), WOT envelope from the M4 fixture, overrun fuel cut, idle at standstill.

@@ -1,11 +1,14 @@
-# Redline M9 / M9.1: co-simulation of the ECU firmware on the Vortex-V RTL (Verilator) against
+# Redline M9 / M9.1 / M9.2: co-simulation of the ECU firmware on the Vortex-V RTL (Verilator) against
 # the Python MVEM plant. All results are MODELLED.
 #   make -C hil cosim     build firmware + model + host reference, then
 #                         (frozen time) bit-exact event stream / slow-loop outputs vs the host build,
 #                         cycle budget, the int8 knock sensor fixture on the RTL, and
 #                         (real time, ADR 0005) latency, angle error, CPU load, missed teeth at
-#                         7000 rpm and in the 2000 rpm tip-in, M9 firmware vs M9.1 firmware
-#   make -C hil rt-sweep  the real-time runs at 25 / 50 / 100 MHz and the minimum-clock bisection
+#                         7000 rpm and in the 2000 rpm tip-in, M9 firmware vs M9.1 firmware vs the
+#                         M9.2 capture/compare mode (ADR 0007: the SoC's own capture/compare timer,
+#                         pins driven and read by the plant; slot occupancy, CAP_OVF, pin timing)
+#   make -C hil rt-sweep  the M9.1 real-time runs at 25 / 50 / 100 MHz and the minimum-clock bisection
+#   make -C hil cc-sweep  the M9.2 capture/compare runs at 20 / 25 / 50 MHz and its minimum clock
 #   make -C hil model     only build build/libvortex_soc.so
 # Vortex-V is consumed read-only from $(VORTEX_V_ROOT) (default in ecu/targets/rv64/soc.mk).
 RV64 := ../ecu/targets/rv64
@@ -21,7 +24,7 @@ filelist = $(addprefix $(VORTEX_V_ROOT)/,$(shell grep -v '^\s*//' $(VORTEX_V_ROO
 RTL := $(call filelist,rtl/core/files.f) $(call filelist,rtl/soc/files.f)
 GPARAMS := $(addprefix -G,$(SOC_PARAMS)) -GRAM_BYTES=$(SOC_RAM_BYTES)
 
-.PHONY: cosim rt rt-sweep model firmware ref
+.PHONY: cosim rt rt-sweep cc-sweep model firmware ref
 cosim: model firmware ref
 	cd .. && $(PYTHON) -m hil.cosim
 	cd .. && $(PYTHON) -m hil.realtime
@@ -30,7 +33,10 @@ rt: model firmware ref
 	cd .. && $(PYTHON) -m hil.realtime
 
 rt-sweep: model firmware ref
-	cd .. && $(PYTHON) -m hil.realtime --sweep
+	cd .. && $(PYTHON) -m hil.realtime --sweep --modes m9 irq
+
+cc-sweep: model firmware ref
+	cd .. && $(PYTHON) -m hil.realtime --cc-sweep
 
 model: build/libvortex_soc.so
 build/libvortex_soc.so: cosim/vortex_sim.cpp cosim/public.vlt $(RTL) $(RV64)/soc.mk

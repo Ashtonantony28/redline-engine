@@ -1,4 +1,4 @@
-/* Redline ECU on Vortex-V (M9, M9.1): the HIL mailbox, a struct in SoC RAM shared by the firmware
+/* Redline ECU on Vortex-V (M9, M9.1, M9.2): the HIL mailbox, a struct in SoC RAM shared by the firmware
  * (hal_rv64.c) and the Python plant (hil/rv64.py pokes and peeks it through the Verilator model).
  *
  * Frozen-time command mode (M9, kept for the bit-exactness tests): every ECU entry point is a
@@ -20,6 +20,14 @@
  *   rt.in / out   sensor samples and slow-loop outputs, double-buffered (in_sel / out_sel name the
  *                 valid copy, so neither side reads a half-written struct); slow_seq counts steps.
  * The firmware returns to command mode when the plant sets rt.stop.
+ *
+ * Capture/compare mode (M9.2, ADR 0007; HIL_RT_F_CAPCMP): the SoC's own capture/compare timer
+ * (Vortex-V ADR 0017) replaces the played peripheral for crank, cam and outputs. The plant drives
+ * the cap_in pins and reads cmp_out; the firmware services the hardware FIFO from the machine
+ * external interrupt and arms one compare slot per event. Only what the unit does not have stays
+ * in the mailbox: knock windows (rt.cap[], kind HIL_CAP_KNOCK, `reserved` = the timer tick of the
+ * window's end, so the handler can merge them with the hardware captures in time order), the
+ * sensor / output double buffers, and rt.t0 = the hardware timer value at plant time 0.
  *
  * hil/rv64.py parses the enums below, and reads every field offset from layout[] at run time, so
  * nothing here is retyped in Python. */
@@ -73,6 +81,8 @@ enum hil_rt_cfg {
 #define HIL_RT_F_IRQ 1u                 /* captures serviced from the machine timer interrupt; without
                                          * it the background loop polls the FIFO (the M9 structure) */
 #define HIL_RT_F_PREDICT 2u             /* arm the timer for the next predicted crank edge */
+#define HIL_RT_F_CAPCMP 4u              /* M9.2: crank / cam / outputs on the SoC capture/compare
+                                         * timer, captures from the external interrupt (with IRQ) */
 
 enum hil_rt_stat {
     HIL_RT_S_IRQS = 0,        /* timer interrupts taken */
@@ -90,6 +100,11 @@ enum hil_rt_stat {
     HIL_RT_S_IDLE_CAL_ITERS,  /* calibration: this many idle passes ... */
     HIL_RT_S_IDLE_CAL_CYCLES, /* ... take this many cycles undisturbed */
     HIL_RT_S_RUN_CYCLES,      /* cycles from go to stop */
+    HIL_RT_S_CC_PUSHES,       /* M9.2: compares pushed */
+    HIL_RT_S_CC_DEFERRED,     /* M9.2: events held back because every compare slot was busy */
+    HIL_RT_S_CC_DROPS,        /* M9.2: pushes the unit dropped (CMP_STATUS 47:16; must stay 0) */
+    HIL_RT_S_CC_CAP_OVF,      /* M9.2: edges the unit dropped on a full FIFO (CAP_OVF) */
+    HIL_RT_S_CC_SPURIOUS,     /* M9.2: external interrupts that found nothing to do */
     HIL_RT_NSTATS
 };
 
@@ -97,7 +112,7 @@ typedef struct {
     uint32_t kind;
     uint32_t a0;
     uint32_t a1;
-    uint32_t reserved;
+    uint32_t reserved;        /* capture/compare mode, knock: timer tick of the window's end */
 } hil_cap_t;
 
 typedef struct {
@@ -112,6 +127,7 @@ typedef struct {
     uint32_t in_sel;          /* plant: valid copy of in[] */
     uint32_t out_sel;         /* firmware: valid copy of out[] */
     uint32_t slow_seq;        /* firmware: slow-loop steps committed */
+    uint32_t t0;              /* plant (capture/compare mode): hardware timer value at time 0 */
     hil_cap_t cap[HIL_CAP_SLOTS];
     ecu_inputs_t in[2];
     ecu_outputs_t out[2];
@@ -125,7 +141,7 @@ enum hil_layout {
     HIL_L_KNOCK_X, HIL_L_KNOCK_N_IN, HIL_L_KNOCK_LOGIT,
     HIL_L_RT_CFG, HIL_L_RT_READY, HIL_L_RT_GO, HIL_L_RT_STOP, HIL_L_RT_TIMER, HIL_L_RT_CAP_WR,
     HIL_L_RT_CAP_RD, HIL_L_RT_EVT_WR, HIL_L_RT_IN_SEL, HIL_L_RT_OUT_SEL, HIL_L_RT_SLOW_SEQ,
-    HIL_L_RT_CAP, HIL_L_RT_CAP_SIZE, HIL_L_RT_IN, HIL_L_RT_OUT, HIL_L_RT_STATS, HIL_L_N
+    HIL_L_RT_CAP, HIL_L_RT_CAP_SIZE, HIL_L_RT_IN, HIL_L_RT_OUT, HIL_L_RT_STATS, HIL_L_RT_T0, HIL_L_N
 };
 
 typedef struct {
